@@ -2,15 +2,16 @@ diff --git a/browser/amethyst/content/browser.xul b/browser/amethyst/content/bro
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xul
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,10 @@
 +#filter substitution
 +<?xml version="1.0"?>
 +<!DOCTYPE window>
 +<window id="main-window"
 +        width="800"
 +        height="480"
++        sizemode="maximized"
 +        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-+<iframe src="https://www.renesas.com/" flex="100%" type="content-primary" />
++<iframe src="https://www.google.com/" flex="100%" type="content-primary" />
 +</window>
 diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
 new file mode 100644

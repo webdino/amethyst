@@ -1,16 +1,48 @@
+diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/browser.js
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.js
+@@ -0,0 +1,7 @@
++function onload(){
++  window.fullScreen = true;
++}
++
++function BrowserFullScreen(){
++  window.fullScreen = !window.fullScreen;
++}
 diff --git a/browser/amethyst/content/browser.xul b/browser/amethyst/content/browser.xul
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xul
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,30 @@
 +#filter substitution
 +<?xml version="1.0"?>
-+<!DOCTYPE window>
++<!DOCTYPE window [
++<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
++%brandDTD;
++]>
++
 +<window id="main-window"
++        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 +        width="800"
 +        height="480"
 +        sizemode="maximized"
-+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
++        title="&brandFullName;"
++        onload="onload()"
++>
++
++<commandset id="mainCommandSet">
++  <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
++</commandset>
++<keyset id="mainKeyset">
++  <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
++</keyset>
++
++<script type="application/javascript">
++  Components.utils.import("resource://gre/modules/Services.jsm");
++  Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
++</script>
++
 +<iframe src="https://www.google.com/" flex="100%" type="content-primary" />
 +</window>
 diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
@@ -25,7 +57,7 @@ new file mode 100644
 +%  content browser %content/browser/ contentaccessible=yes
 +
 +#*       content/browser/browser.css                   (content/browser.css)
-+#        content/browser/browser.js                    (content/browser.js)
++        content/browser/browser.js                    (content/browser.js)
 +*       content/browser/browser.xul                   (content/browser.xul)
 diff --git a/browser/amethyst/moz.build b/browser/amethyst/moz.build
 new file mode 100644

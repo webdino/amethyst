@@ -2,9 +2,20 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,18 @@
 +function onload(){
 +  window.fullScreen = true;
++
++  let uriToLoad = "about:blank";
++  if (window.arguments && window.arguments.length) {
++    let args = window.arguments[0];
++    if (args instanceof Ci.nsIArray && args.length) {
++      uriToLoad = args.queryElementAt(0, Ci.nsISupportsString).data;
++    }
++  }
++
++  let content = document.getElementById("content");
++  content.src = uriToLoad;
 +}
 +
 +function BrowserFullScreen(){
@@ -43,7 +54,7 @@ new file mode 100644
 +  Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
 +</script>
 +
-+<iframe src="https://www.google.com/" flex="100%" type="content-primary" />
++<iframe id="content" flex="100%" type="content-primary" />
 +</window>
 diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
 new file mode 100644

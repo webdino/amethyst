@@ -2,7 +2,7 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,28 @@
 +function onload(){
 +  window.fullScreen = true;
 +
@@ -14,12 +14,17 @@ new file mode 100644
 +    }
 +  }
 +
-+  let content = document.getElementById("content");
-+  content.src = uriToLoad;
++  this.content = document.getElementById("content");
++  this.content.src = uriToLoad;
 +
 +  setInterval(function(){
 +    window.fullScreen = !window.fullScreen;
 +  }, 5000);
++}
++
++function BrowserBack(){
++  console.log("VK_BACK, canGoBack:" + this.content.canGoBack);
++  return this.content.goBack();
 +}
 +
 +function BrowserFullScreen(){
@@ -30,7 +35,7 @@ diff --git a/browser/amethyst/content/browser.xul b/browser/amethyst/content/bro
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xul
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,32 @@
 +#filter substitution
 +<?xml version="1.0"?>
 +<!DOCTYPE window [
@@ -48,9 +53,11 @@ new file mode 100644
 +>
 +
 +<commandset id="mainCommandSet">
++  <command id="Browser:Back"    oncommand="BrowserBack();"/>
 +  <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
 +</commandset>
 +<keyset id="mainKeyset">
++  <key keycode="VK_BACK" command="Browser:Back"/>
 +  <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
 +</keyset>
 +
@@ -59,7 +66,7 @@ new file mode 100644
 +  Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
 +</script>
 +
-+<iframe id="content" flex="100%" type="content-primary" />
++<browser id="content" type="content" flex="1" />
 +</window>
 diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
 new file mode 100644

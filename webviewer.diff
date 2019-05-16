@@ -2,7 +2,7 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,23 @@
 +function onload(){
 +  window.fullScreen = true;
 +
@@ -16,10 +16,15 @@ new file mode 100644
 +
 +  let content = document.getElementById("content");
 +  content.src = uriToLoad;
++
++  setInterval(function(){
++    window.fullScreen = !window.fullScreen;
++  }, 5000);
 +}
 +
 +function BrowserFullScreen(){
 +  window.fullScreen = !window.fullScreen;
++  console.log("VK_F11, window.fullScreen:" + window.fullScreen);
 +}
 diff --git a/browser/amethyst/content/browser.xul b/browser/amethyst/content/browser.xul
 new file mode 100644

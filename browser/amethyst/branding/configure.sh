@@ -5,3 +5,4 @@
 MOZ_APP_DISPLAYNAME=WebViewer
 MOZ_APP_BASENAME=WebViewer
 MOZ_APP_VENDOR="Renesas Electronics Corporation"
+MOZ_APP_UA_NAME="Firefox"

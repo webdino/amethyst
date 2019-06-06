@@ -2,20 +2,33 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,35 @@
 +function onload(){
 +  window.fullScreen = true;
 +
-+  let uriToLoad = "about:blank";
++  let uriToLoad = "";
 +  if (window.arguments && window.arguments.length) {
 +    let args = window.arguments[0];
 +    if (args instanceof Ci.nsIArray && args.length) {
-+      uriToLoad = args.queryElementAt(0, Ci.nsISupportsString).data;
++      for (let i = 0; i < args.length; i++) {
++        uriToLoad = args.queryElementAt(i, Ci.nsISupportsString).data;
++        if (!invalidStartupHomepage(uriToLoad)) break;
++      }
 +    }
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = Cc["@mozilla.org/browser/clh;1"].getService(Ci.nsIBrowserHandler).defaultArgs;
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = "https://urls.jp/amethyst";
 +  }
 +
 +  this.content = document.getElementById("content");
 +  this.content.src = uriToLoad;
++}
++
++function invalidStartupHomepage(uriToLoad){
++  return !uriToLoad || uriToLoad === "about:home";
 +}
 +
 +function BrowserBack(){

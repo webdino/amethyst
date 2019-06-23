@@ -2,8 +2,11 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,38 @@
 +function onload(){
++  let mm = window.getGroupMessageManager("browsers");
++  mm.loadFrameScript("chrome://browser/content/content.js", true);
++
 +  window.fullScreen = true;
 +
 +  let uriToLoad = "";
@@ -73,7 +76,7 @@ new file mode 100644
 +  Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
 +</script>
 +
-+<browser id="content" type="content" flex="1" />
++<browser id="content" type="content" flex="1" messagemanagergroup="browsers" />
 +</window>
 diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
 new file mode 100644

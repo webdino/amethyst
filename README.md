@@ -1,7 +1,9 @@
-# amethyst
+# Project Amethyst
 Web/HTML Viewer for RZ/G (patches for Firefox/Gecko)
 
 # パッチファイルの解説
+各パッチファイルで実装する機能の設計および Firefox のソースツリーへの適用手順を説明します。
+
 ### webviewer.diff
 WebViewer 本体です。Firefox ブラウザのメインウィンドウを実装する browser.xul を置き換えます。  
 このパッチにより、Firefox オリジナルの browser/base/content/browser/browser.xul を利用せず、代わりに browser/amethyst/content/browser/browser.xul をデフォルトのメインウィンドウとして読み込み起動するようになります。  

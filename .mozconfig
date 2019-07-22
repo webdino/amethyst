@@ -13,5 +13,4 @@ ac_add_options --disable-debug-symbols
 ac_add_options --disable-rust-tests
 ac_add_options --disable-ipdl-tests
 ac_add_options --disable-crashreporter
-ac_add_options --disable-maintenance-service
 ac_add_options --disable-updater

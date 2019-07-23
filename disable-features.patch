@@ -1,0 +1,20 @@
+diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
+--- a/browser/extensions/moz.build
++++ b/browser/extensions/moz.build
+@@ -5,16 +5,7 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ DIRS += [
+-    'activity-stream',
+-    'aushelper',
+-    'followonsearch',
+     'formautofill',
+-    'jaws-esr',
+-    'onboarding',
+-    'pdfjs',
+-    'pocket',
+-    'screenshots',
+-    'webcompat',
+ ]
+ 
+ # Only include the following system add-ons if building Aurora or Nightly

@@ -61,7 +61,7 @@ new file mode 100644
 +}
 +
 +function invalidStartupHomepage(uriToLoad){
-+  return !uriToLoad || uriToLoad === "about:home";
++  return !uriToLoad || uriToLoad === "about:home" || uriToLoad === "about:newtab";
 +}
 +
 +function getSelectedBrowser(){

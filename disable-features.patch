@@ -1,7 +1,7 @@
 diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
 --- a/browser/extensions/moz.build
 +++ b/browser/extensions/moz.build
-@@ -5,16 +5,7 @@
+@@ -5,16 +5,8 @@
  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
  
  DIRS += [
@@ -11,7 +11,7 @@ diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
      'formautofill',
 -    'jaws-esr',
 -    'onboarding',
--    'pdfjs',
+     'pdfjs',
 -    'pocket',
 -    'screenshots',
 -    'webcompat',

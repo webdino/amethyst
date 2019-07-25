@@ -24,7 +24,7 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,44 @@
 +function onload(){
 +  let mm = window.getGroupMessageManager("browsers");
 +  mm.loadFrameScript("chrome://browser/content/content.js", true);
@@ -48,16 +48,6 @@ new file mode 100644
 +    uriToLoad = "https://urls.jp/amethyst";
 +  }
 +  getSelectedBrowser().src = uriToLoad;
-+
-+  this.gBrowser = {
-+    get selectedBrowser(){
-+      return getSelectedBrowser();
-+    },
-+
-+    get popupAnchor(){
-+      return getPopupAnchor();
-+    },
-+  };
 +}
 +
 +function invalidStartupHomepage(uriToLoad){

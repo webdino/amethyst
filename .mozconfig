@@ -1,5 +1,3 @@
-export  CC=$HOME/.mozbuild/clang/bin/clang
-export CXX=$HOME/.mozbuild/clang/bin/clang++
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../obj
 . $topsrcdir/browser/config/mozconfig
 ac_add_options --with-branding=browser/amethyst/branding

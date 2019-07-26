@@ -209,6 +209,26 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
 -globalMM.addMessageListener("HybridContentTelemetry:onTelemetryMessage", aMessage => {
 -  HybridContentTelemetry.onTelemetryMessage(aMessage, aMessage.data);
 -});
+diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
+--- a/browser/extensions/moz.build
++++ b/browser/extensions/moz.build
+@@ -5,16 +5,8 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ DIRS += [
+-    'activity-stream',
+-    'aushelper',
+-    'followonsearch',
+     'formautofill',
+-    'jaws-esr',
+-    'onboarding',
+     'pdfjs',
+-    'pocket',
+-    'screenshots',
+-    'webcompat',
+ ]
+ 
+ # Only include the following system add-ons if building Aurora or Nightly
 diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
 --- a/browser/installer/package-manifest.in
 +++ b/browser/installer/package-manifest.in

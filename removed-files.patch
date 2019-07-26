@@ -1,3 +1,34 @@
+diff --git a/browser/components/nsBrowserContentHandler.js b/browser/components/nsBrowserContentHandler.js
+--- a/browser/components/nsBrowserContentHandler.js
++++ b/browser/components/nsBrowserContentHandler.js
+@@ -18,8 +18,6 @@ ChromeUtils.defineModuleGetter(this, "Sh
+                                "resource:///modules/ShellService.jsm");
+ XPCOMUtils.defineLazyServiceGetter(this, "WindowsUIUtils",
+                                    "@mozilla.org/windows-ui-utils;1", "nsIWindowsUIUtils");
+-ChromeUtils.defineModuleGetter(this, "UpdatePing",
+-                               "resource://gre/modules/UpdatePing.jsm");
+ 
+ const nsISupports            = Ci.nsISupports;
+ 
+@@ -541,18 +539,10 @@ nsBrowserContentHandler.prototype = {
+             overridePage = Services.urlFormatter.formatURLPref("startup.homepage_override_url");
+             if (prefb.prefHasUserValue("app.update.postupdate")) {
+               overridePage = getPostUpdateOverridePage(overridePage);
+-              // Send the update ping to signal that the update was successful.
+-              UpdatePing.handleUpdateSuccess(old_mstone, old_buildId);
+             }
+ 
+             overridePage = overridePage.replace("%OLD_VERSION%", old_mstone);
+             break;
+-          case OVERRIDE_NEW_BUILD_ID:
+-            if (prefb.prefHasUserValue("app.update.postupdate")) {
+-              // Send the update ping to signal that the update was successful.
+-              UpdatePing.handleUpdateSuccess(old_mstone, old_buildId);
+-            }
+-            break;
+         }
+       }
+     } catch (ex) {}
 diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserGlue.js
 --- a/browser/components/nsBrowserGlue.js
 +++ b/browser/components/nsBrowserGlue.js
@@ -178,6 +209,43 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
 -globalMM.addMessageListener("HybridContentTelemetry:onTelemetryMessage", aMessage => {
 -  HybridContentTelemetry.onTelemetryMessage(aMessage, aMessage.data);
 -});
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -490,8 +490,6 @@
+ @RESPATH@/components/captivedetect.js
+ @RESPATH@/components/servicesComponents.manifest
+ @RESPATH@/components/cryptoComponents.manifest
+-@RESPATH@/components/TelemetryStartup.js
+-@RESPATH@/components/TelemetryStartup.manifest
+ @RESPATH@/components/XULStore.js
+ @RESPATH@/components/XULStore.manifest
+ @RESPATH@/components/recording-cmdline.js
+@@ -786,10 +784,6 @@ bin/libfreebl_32int64_3.so
+ 
+ @RESPATH@/components/dom_audiochannel.xpt
+ 
+-; Shutdown Terminator
+-@RESPATH@/components/nsTerminatorTelemetry.js
+-@RESPATH@/components/terminator.manifest
+-
+ #ifdef LLVM_SYMBOLIZER
+ @BINPATH@/@LLVM_SYMBOLIZER@
+ #endif
+@@ -824,13 +818,6 @@ bin/libfreebl_32int64_3.so
+ ; Background Hang Monitor
+ @RESPATH@/components/backgroundhangmonitor.xpt
+ 
+-; NOTE: This must match the config checks in
+-; /toolkit/components/backgroundhangmonitor/moz.build.
+-#if defined(NIGHTLY_BUILD) && !defined(MOZ_DEBUG) && !defined(MOZ_TSAN)
+-@RESPATH@/components/BHRTelemetryService.js
+-@RESPATH@/components/BHRTelemetryService.manifest
+-#endif
+-
+ #ifdef PKG_LOCALE_MANIFEST
+ #include @PKG_LOCALE_MANIFEST@
+ #endif
 diff --git a/browser/modules/moz.build b/browser/modules/moz.build
 --- a/browser/modules/moz.build
 +++ b/browser/modules/moz.build
@@ -211,6 +279,21 @@ diff --git a/docshell/base/nsAboutRedirector.cpp b/docshell/base/nsAboutRedirect
      {"url-classifier", "chrome://global/content/aboutUrlClassifier.xhtml",
       nsIAboutModule::ALLOW_SCRIPT},
      {"webrtc", "chrome://global/content/aboutwebrtc/aboutWebrtc.html",
+diff --git a/toolkit/components/backgroundhangmonitor/moz.build b/toolkit/components/backgroundhangmonitor/moz.build
+--- a/toolkit/components/backgroundhangmonitor/moz.build
++++ b/toolkit/components/backgroundhangmonitor/moz.build
+@@ -16,11 +16,6 @@ if CONFIG['NIGHTLY_BUILD'] and \
+    not CONFIG['MOZ_TSAN']:
+     DEFINES['MOZ_ENABLE_BACKGROUND_HANG_MONITOR'] = 1
+ 
+-    EXTRA_COMPONENTS += [
+-        'BHRTelemetryService.js',
+-        'BHRTelemetryService.manifest',
+-    ]
+-
+     XPCSHELL_TESTS_MANIFESTS += ['tests/xpcshell.ini']
+ 
+ XPIDL_SOURCES += [
 diff --git a/toolkit/components/moz.build b/toolkit/components/moz.build
 --- a/toolkit/components/moz.build
 +++ b/toolkit/components/moz.build
@@ -236,6 +319,39 @@ diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemet
  DEFINES['MOZ_APP_VERSION'] = '"%s"' % CONFIG['MOZ_APP_VERSION']
  
  LOCAL_INCLUDES += [
+@@ -77,11 +72,6 @@ if CONFIG['MOZ_GECKO_PROFILER']:
+       'KeyedStackCapturer.cpp'
+     ]
+ 
+-EXTRA_COMPONENTS += [
+-    'TelemetryStartup.js',
+-    'TelemetryStartup.manifest'
+-]
+-
+ EXTRA_JS_MODULES += [
+     'GCTelemetry.jsm',
+     'TelemetryArchive.jsm',
+@@ -98,7 +88,6 @@ EXTRA_JS_MODULES += [
+     'TelemetryTimestamps.jsm',
+     'TelemetryUtils.jsm',
+     'UITelemetry.jsm',
+-    'UpdatePing.jsm',
+ ]
+ 
+ TESTING_JS_MODULES += [
+diff --git a/toolkit/components/terminator/moz.build b/toolkit/components/terminator/moz.build
+--- a/toolkit/components/terminator/moz.build
++++ b/toolkit/components/terminator/moz.build
+@@ -17,9 +17,4 @@ EXPORTS += [
+     'nsTerminator.h',
+ ]
+ 
+-EXTRA_COMPONENTS += [
+-    'nsTerminatorTelemetry.js',
+-    'terminator.manifest',
+-]
+-
+ FINAL_LIBRARY = 'xul'
 diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
 --- a/toolkit/content/jar.mn
 +++ b/toolkit/content/jar.mn

@@ -408,3 +408,19 @@ diff --git a/toolkit/content/moz.build b/toolkit/content/moz.build
  with Files('autocomplete.css'):
      BUG_COMPONENT = ('Firefox', 'Search')
  
+diff --git a/toolkit/mozapps/extensions/extensions.manifest b/toolkit/mozapps/extensions/extensions.manifest
+--- a/toolkit/mozapps/extensions/extensions.manifest
++++ b/toolkit/mozapps/extensions/extensions.manifest
+@@ -4,12 +4,8 @@ contract @mozilla.org/extensions/blockli
+ category profile-after-change nsBlocklistService @mozilla.org/extensions/blocklist;1 process=main
+ #endif
+ 
+-category update-timer nsBlocklistService @mozilla.org/extensions/blocklist;1,getService,blocklist-background-update-timer,extensions.blocklist.interval,86400
+ component {4399533d-08d1-458c-a87a-235f74451cfa} addonManager.js
+ contract @mozilla.org/addons/integration;1 {4399533d-08d1-458c-a87a-235f74451cfa}
+-#ifndef MOZ_WIDGET_ANDROID
+-category update-timer addonManager @mozilla.org/addons/integration;1,getService,addon-background-update-timer,extensions.update.interval,86400
+-#endif
+ component {7beb3ba8-6ec3-41b4-b67c-da89b8518922} amContentHandler.js
+ contract @mozilla.org/uriloader/content-handler;1?type=application/x-xpinstall {7beb3ba8-6ec3-41b4-b67c-da89b8518922}
+ component {9df8ef2b-94da-45c9-ab9f-132eb55fddf1} amInstallTrigger.js

@@ -1,0 +1,30 @@
+diff --git a/old-configure.in b/old-configure.in
+--- a/old-configure.in
++++ b/old-configure.in
+@@ -3188,6 +3188,7 @@ MOZ_ARG_DISABLE_BOOL(updater,
+     MOZ_UPDATER=,
+     MOZ_UPDATER=1 )
+ 
++MOZ_UPDATER=
+ if test -n "$MOZ_UPDATER"; then
+     AC_DEFINE(MOZ_UPDATER)
+ fi
+diff --git a/toolkit/content/aboutSupport.xhtml b/toolkit/content/aboutSupport.xhtml
+--- a/toolkit/content/aboutSupport.xhtml
++++ b/toolkit/content/aboutSupport.xhtml
+@@ -98,6 +98,7 @@
+             <td id="buildid-box"></td>
+           </tr>
+ 
++#ifdef MOZ_UPDATER
+ #ifndef ANDROID
+           <tr class="no-copy">
+             <th class="column">
+@@ -112,7 +113,6 @@
+           </tr>
+ #endif
+ 
+-#ifdef MOZ_UPDATER
+           <tr>
+             <th class="column">
+               &aboutSupport.appBasicsUpdateChannel;

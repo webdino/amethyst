@@ -1,0 +1,190 @@
+diff --git a/browser/amethyst/content/browser.css b/browser/amethyst/content/browser.css
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.css
+@@ -0,0 +1,17 @@
++#invalid-form-popup {
++  --arrowpanel-padding: 10px;
++  --arrowpanel-background: -moz-field;
++  --arrowpanel-color: -moz-fieldText;
++  --arrowpanel-border-color: ThreeDShadow;
++}
++
++#invalid-form-popup > description {
++  max-width: 280px;
++}
++
++.popup-anchor {
++  /* should occupy space but not be visible */
++  opacity: 0;
++  pointer-events: none;
++  -moz-stack-sizing: ignore;
++}
+diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/browser.js
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.js
+@@ -0,0 +1,44 @@
++function onload(){
++  let mm = window.getGroupMessageManager("browsers");
++  mm.loadFrameScript("chrome://browser/content/content.js", true);
++
++  window.fullScreen = true;
++
++  let uriToLoad = "";
++  if (window.arguments && window.arguments.length) {
++    let args = window.arguments[0];
++    if (args instanceof Ci.nsIArray && args.length) {
++      for (let i = 0; i < args.length; i++) {
++        uriToLoad = args.queryElementAt(i, Ci.nsISupportsString).data;
++        if (!invalidStartupHomepage(uriToLoad)) break;
++      }
++    }
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = Cc["@mozilla.org/browser/clh;1"].getService(Ci.nsIBrowserHandler).defaultArgs;
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = "https://urls.jp/amethyst";
++  }
++  getSelectedBrowser().src = uriToLoad;
++}
++
++function invalidStartupHomepage(uriToLoad){
++  return !uriToLoad || uriToLoad === "about:home" || uriToLoad === "about:newtab";
++}
++
++function getSelectedBrowser(){
++  return document.getElementById("content");
++}
++
++function getPopupAnchor(){
++  return document.getElementById("invalid-form-popup-anchor");
++}
++
++function BrowserBack(){
++  return getSelectedBrowser().goBack();
++}
++
++function BrowserFullScreen(){
++  window.fullScreen = !window.fullScreen;
++}
+diff --git a/browser/amethyst/content/browser.xul b/browser/amethyst/content/browser.xul
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.xul
+@@ -0,0 +1,41 @@
++<?xml version="1.0"?>
++<!DOCTYPE window [
++<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
++%brandDTD;
++]>
++
++<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
++
++<window id="main-window"
++        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
++        width="800"
++        height="480"
++        sizemode="maximized"
++        title="&brandFullName;"
++        onload="onload()"
++>
++
++<commandset id="mainCommandSet">
++  <command id="Browser:Back"    oncommand="BrowserBack();"/>
++  <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
++</commandset>
++<keyset id="mainKeyset">
++  <key keycode="VK_BACK" command="Browser:Back"/>
++  <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
++</keyset>
++
++<script type="application/javascript">
++  Components.utils.import("resource://gre/modules/Services.jsm");
++  Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
++</script>
++
++<!-- for invalid form error message -->
++<panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" hidden="true" level="parent">
++  <description/>
++</panel>
++
++<stack flex="1" class="browserStack">
++  <browser id="content" type="content" messagemanagergroup="browsers" />
++  <hbox id="invalid-form-popup-anchor" class="popup-anchor" hidden="true"/>
++</stack>
++</window>
+diff --git a/browser/amethyst/content/content.js b/browser/amethyst/content/content.js
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/content.js
+@@ -0,0 +1,19 @@
++ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");
++
++XPCOMUtils.defineLazyModuleGetters(this, {
++  ContentWebRTC: "resource:///modules/ContentWebRTC.jsm",
++  FormSubmitObserver: "resource:///modules/FormSubmitObserver.jsm",
++});
++
++// Load the form validation popup handler
++var formSubmitObserver = new FormSubmitObserver(content, this);
++
++// We use this shim so that ContentWebRTC.jsm will not be loaded until
++// it is actually needed.
++var ContentWebRTCShim = message => ContentWebRTC.receiveMessage(message);
++
++addMessageListener("rtcpeer:Allow", ContentWebRTCShim);
++addMessageListener("rtcpeer:Deny", ContentWebRTCShim);
++addMessageListener("webrtc:Allow", ContentWebRTCShim);
++addMessageListener("webrtc:Deny", ContentWebRTCShim);
++addMessageListener("webrtc:StopSharing", ContentWebRTCShim);
+diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/jar.mn
+@@ -0,0 +1,6 @@
++browser.jar:
++%  content browser %content/browser/ contentaccessible=yes
++        content/browser/browser.css                   (content/browser.css)
++        content/browser/browser.js                    (content/browser.js)
++        content/browser/browser.xul                   (content/browser.xul)
++        content/browser/content.js                    (content/content.js)
+diff --git a/browser/amethyst/moz.build b/browser/amethyst/moz.build
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/moz.build
+@@ -0,0 +1,1 @@
++JAR_MANIFESTS += ['jar.mn']
+diff --git a/browser/base/jar.mn b/browser/base/jar.mn
+--- a/browser/base/jar.mn
++++ b/browser/base/jar.mn
+@@ -44,9 +44,6 @@ browser.jar:
+         content/browser/aboutTabCrashed.css           (content/aboutTabCrashed.css)
+         content/browser/aboutTabCrashed.js            (content/aboutTabCrashed.js)
+         content/browser/aboutTabCrashed.xhtml         (content/aboutTabCrashed.xhtml)
+-*       content/browser/browser.css                   (content/browser.css)
+-        content/browser/browser.js                    (content/browser.js)
+-*       content/browser/browser.xul                   (content/browser.xul)
+         content/browser/browser-addons.js             (content/browser-addons.js)
+         content/browser/browser-captivePortal.js      (content/browser-captivePortal.js)
+         content/browser/browser-ctrlTab.js            (content/browser-ctrlTab.js)
+@@ -77,7 +74,6 @@ browser.jar:
+         content/browser/browser-trackingprotection.js (content/browser-trackingprotection.js)
+         content/browser/browser-webrender.js          (content/browser-webrender.js)
+         content/browser/tab-content.js                (content/tab-content.js)
+-        content/browser/content.js                    (content/content.js)
+         content/browser/default-theme-icon.svg        (content/default-theme-icon.svg)
+         content/browser/defaultthemes/1.header.jpg    (content/defaultthemes/1.header.jpg)
+         content/browser/defaultthemes/1.icon.jpg      (content/defaultthemes/1.icon.jpg)
+diff --git a/browser/moz.build b/browser/moz.build
+--- a/browser/moz.build
++++ b/browser/moz.build
+@@ -12,6 +12,7 @@ with Files('docs/**'):
+     SCHEDULES.exclusive = ['docs']
+ 
+ DIRS += [
++    'amethyst',
+     'base',
+     'components',
+     'experiments',

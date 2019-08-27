@@ -1,0 +1,117 @@
+diff --git a/dom/system/NetworkGeolocationProvider.js b/dom/system/NetworkGeolocationProvider.js
+--- a/dom/system/NetworkGeolocationProvider.js
++++ b/dom/system/NetworkGeolocationProvider.js
+@@ -26,8 +26,6 @@ var gLoggingEnabled = false;
+ 
+ var gLocationRequestTimeout = 5000;
+ 
+-var gWifiScanningEnabled = true;
+-
+ function LOG(aMsg) {
+   if (gLoggingEnabled) {
+     aMsg = "*** WIFI GEO: " + aMsg + "\n";
+@@ -233,11 +231,6 @@ function WifiGeoPositionProvider() {
+     gLocationRequestTimeout = Services.prefs.getIntPref("geo.wifi.timeToWaitBeforeSending");
+   } catch (e) {}
+ 
+-  try {
+-    gWifiScanningEnabled = Services.prefs.getBoolPref("geo.wifi.scan");
+-  } catch (e) {}
+-
+-  this.wifiService = null;
+   this.timer = null;
+   this.started = false;
+ }
+@@ -269,14 +262,6 @@ WifiGeoPositionProvider.prototype = {
+     this.started = true;
+     let self = this;
+ 
+-    if (gWifiScanningEnabled && Cc["@mozilla.org/wifi/monitor;1"]) {
+-      if (this.wifiService) {
+-        this.wifiService.stopWatching(this);
+-      }
+-      this.wifiService = Cc["@mozilla.org/wifi/monitor;1"].getService(Ci.nsIWifiMonitor);
+-      this.wifiService.startWatching(this);
+-    }
+-
+     this.resetTimer();
+     LOG("startup called.");
+   },
+@@ -300,11 +285,6 @@ WifiGeoPositionProvider.prototype = {
+       this.timer = null;
+     }
+ 
+-    if(this.wifiService) {
+-      this.wifiService.stopWatching(this);
+-      this.wifiService = null;
+-    }
+-
+     this.listener = null;
+     this.started = false;
+   },
+@@ -352,64 +332,7 @@ WifiGeoPositionProvider.prototype = {
+   },
+ 
+   sendLocationRequest: function (wifiData) {
+-    let data = { cellTowers: undefined, wifiAccessPoints: undefined };
+-    if (wifiData && wifiData.length >= 2) {
+-      data.wifiAccessPoints = wifiData;
+-    }
+-
+-    let useCached = isCachedRequestMoreAccurateThanServerRequest(data.cellTowers,
+-                                                                 data.wifiAccessPoints);
+-
+-    LOG("Use request cache:" + useCached + " reason:" + gDebugCacheReasoning);
+-
+-    if (useCached) {
+-      gCachedRequest.location.timestamp = Date.now();
+-      this.listener.update(gCachedRequest.location);
+-      return;
+-    }
+-
+-    // From here on, do a network geolocation request //
+-    let url = Services.urlFormatter.formatURLPref("geo.wifi.uri");
+-    LOG("Sending request");
+-
+-    let xhr = new XMLHttpRequest();
+-    try {
+-      xhr.open("POST", url, true);
+-      xhr.channel.loadFlags = Ci.nsIChannel.LOAD_ANONYMOUS;
+-    } catch (e) {
+-      this.listener.notifyError(POSITION_UNAVAILABLE);
+-      return;
+-    }
+-    xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+-    xhr.responseType = "json";
+-    xhr.mozBackgroundRequest = true;
+-    xhr.timeout = Services.prefs.getIntPref("geo.wifi.xhr.timeout");
+-    xhr.ontimeout = () => {
+-      LOG("Location request XHR timed out.")
+-      this.listener.notifyError(POSITION_UNAVAILABLE);
+-    };
+-    xhr.onerror = () => {
+-      this.listener.notifyError(POSITION_UNAVAILABLE);
+-    };
+-    xhr.onload = () => {
+-      LOG("server returned status: " + xhr.status + " --> " +  JSON.stringify(xhr.response));
+-      if ((xhr.channel instanceof Ci.nsIHttpChannel && xhr.status != 200) ||
+-          !xhr.response || !xhr.response.location) {
+-        this.listener.notifyError(POSITION_UNAVAILABLE);
+-        return;
+-      }
+-
+-      let newLocation = new WifiGeoPositionObject(xhr.response.location.lat,
+-                                                  xhr.response.location.lng,
+-                                                  xhr.response.accuracy);
+-
+-      this.listener.update(newLocation);
+-      gCachedRequest = new CachedRequest(newLocation, data.cellTowers, data.wifiAccessPoints);
+-    };
+-
+-    var requestData = JSON.stringify(data);
+-    LOG("sending " + requestData);
+-    xhr.send(requestData);
++    this.listener.notifyError(POSITION_UNAVAILABLE);
+   }
+ };
+ 

@@ -1,0 +1,235 @@
+diff --git a/dom/push/PushService.jsm b/dom/push/PushService.jsm
+--- a/dom/push/PushService.jsm
++++ b/dom/push/PushService.jsm
+@@ -307,11 +307,6 @@ var PushService = {
+             this._changeServerURL(prefs.get("serverURL"),
+                                   CHANGING_SERVICE_EVENT)
+           );
+-
+-        } else if (aData == "dom.push.connection.enabled") {
+-          this._stateChangeProcessEnqueue(_ =>
+-            this._changeStateConnectionEnabledEvent(prefs.get("connection.enabled"))
+-          );
+         }
+         break;
+ 
+@@ -414,7 +409,7 @@ var PushService = {
+           return Promise.resolve();
+         }
+         return this._startService(service, uri, options)
+-          .then(_ => this._changeStateConnectionEnabledEvent(prefs.get("connection.enabled"))
++          .then(_ => this._changeStateConnectionEnabledEvent(false)
+           );
+       }
+       case CHANGING_SERVICE_EVENT:
+@@ -424,7 +419,7 @@ var PushService = {
+             this._setState(PUSH_SERVICE_ACTIVATING);
+             // The service has not been running - start it.
+             return this._startService(service, uri, options)
+-              .then(_ => this._changeStateConnectionEnabledEvent(prefs.get("connection.enabled"))
++              .then(_ => this._changeStateConnectionEnabledEvent(false)
+               );
+ 
+           } else {
+@@ -436,7 +431,7 @@ var PushService = {
+               .then(_ =>
+                  this._startService(service, uri, options)
+               )
+-              .then(_ => this._changeStateConnectionEnabledEvent(prefs.get("connection.enabled"))
++              .then(_ => this._changeStateConnectionEnabledEvent(false)
+               );
+ 
+           }
+@@ -511,9 +506,6 @@ var PushService = {
+     // networks; in such a case we rely on timeout.
+     Services.obs.addObserver(this, "network:offline-status-changed");
+ 
+-    // Used to monitor if the user wishes to disable Push.
+-    prefs.observe("connection.enabled", this);
+-
+     // Prunes expired registrations and notifies dormant service workers.
+     Services.obs.addObserver(this, "idle-daily");
+ 
+@@ -595,8 +587,6 @@ var PushService = {
+       return;
+     }
+ 
+-    prefs.ignore("connection.enabled", this);
+-
+     Services.obs.removeObserver(this, "network:offline-status-changed");
+     Services.obs.removeObserver(this, "clear-origin-attributes-data");
+     Services.obs.removeObserver(this, "idle-daily");
+diff --git a/dom/push/PushServiceHttp2.jsm b/dom/push/PushServiceHttp2.jsm
+--- a/dom/push/PushServiceHttp2.jsm
++++ b/dom/push/PushServiceHttp2.jsm
+@@ -94,9 +94,6 @@ PushSubscriptionListener.prototype = {
+   },
+ 
+   onPush: function(associatedChannel, pushChannel) {
+-    console.debug("PushSubscriptionListener: onPush()");
+-    var pushChannelListener = new PushChannelListener(this);
+-    pushChannel.asyncOpen2(pushChannelListener);
+   },
+ 
+   disconnect: function() {
+@@ -444,13 +441,7 @@ var PushServiceHttp2 = {
+   },
+ 
+   _makeChannel: function(aUri) {
+-    var chan = NetUtil.newChannel({uri: aUri, loadUsingSystemPrincipal: true})
+-                      .QueryInterface(Ci.nsIHttpChannel);
+-
+-    var loadGroup = Cc["@mozilla.org/network/load-group;1"]
+-                      .createInstance(Ci.nsILoadGroup);
+-    chan.loadGroup = loadGroup;
+-    return chan;
++    return null;
+   },
+ 
+   /**
+@@ -486,31 +477,14 @@ var PushServiceHttp2 = {
+     console.debug("subscribeResourceInternal()");
+ 
+     return new Promise((resolve, reject) => {
+-      var listener = new SubscriptionListener(aSubInfo,
+-                                              resolve,
+-                                              reject,
+-                                              this._serverURI,
+-                                              this);
+-
+-      var chan = this._makeChannel(this._serverURI.spec);
+-      chan.requestMethod = "POST";
+-      chan.asyncOpen2(listener);
+-    })
+-    .catch(err => {
+-      if ("retry" in err) {
+-        return this._subscribeResourceInternal(err.subInfo);
+-      } else {
+-        throw err;
+-      }
+-    })
++      reject(new Error("Push service unavailable"));
++    });
+   },
+ 
+   _deleteResource: function(aUri) {
+ 
+     return new Promise((resolve,reject) => {
+-      var chan = this._makeChannel(aUri);
+-      chan.requestMethod = "DELETE";
+-      chan.asyncOpen2(new PushServiceDelete(resolve, reject));
++      reject(new Error("Error removing subscription: 404"));
+     });
+   },
+ 
+@@ -529,35 +503,8 @@ var PushServiceHttp2 = {
+    */
+   _listenForMsgs: function(aSubscriptionUri) {
+     console.debug("listenForMsgs()", aSubscriptionUri);
+-    if (!this._conns[aSubscriptionUri]) {
+       console.warn("listenForMsgs: We do not have this subscription",
+         aSubscriptionUri);
+-      return;
+-    }
+-
+-    var chan = this._makeChannel(aSubscriptionUri);
+-    var conn = {};
+-    conn.channel = chan;
+-    var listener = new PushSubscriptionListener(this, aSubscriptionUri);
+-    conn.listener = listener;
+-
+-    chan.notificationCallbacks = listener;
+-
+-    try {
+-      chan.asyncOpen2(listener);
+-    } catch (e) {
+-      console.error("listenForMsgs: Error connecting to push server.",
+-        "asyncOpen2 failed", e);
+-      conn.listener.disconnect();
+-      chan.cancel(Cr.NS_ERROR_ABORT);
+-      this._retryAfterBackoff(aSubscriptionUri, -1);
+-      return;
+-    }
+-
+-    this._conns[aSubscriptionUri].lastStartListening = Date.now();
+-    this._conns[aSubscriptionUri].channel = conn.channel;
+-    this._conns[aSubscriptionUri].listener = conn.listener;
+-
+   },
+ 
+   _ackMsgRecv: function(aAckUri) {
+diff --git a/dom/push/PushServiceWebSocket.jsm b/dom/push/PushServiceWebSocket.jsm
+--- a/dom/push/PushServiceWebSocket.jsm
++++ b/dom/push/PushServiceWebSocket.jsm
+@@ -299,14 +299,8 @@ var PushServiceWebSocket = {
+    * typeof(msg) shall be an object
+    */
+   _wsSendMessage: function(msg) {
+-    if (!this._ws) {
+       console.warn("wsSendMessage: No WebSocket initialized.",
+         "Cannot send a message");
+-      return;
+-    }
+-    msg = JSON.stringify(msg);
+-    console.debug("wsSendMessage: Sending message", msg);
+-    this._ws.sendMsg(msg);
+   },
+ 
+   init: function(options, mainPushService, serverURI) {
+@@ -343,14 +337,6 @@ var PushServiceWebSocket = {
+     this._currentState = STATE_SHUT_DOWN;
+     this._skipReconnect = false;
+ 
+-    if (this._wsListener) {
+-      this._wsListener._pushService = null;
+-    }
+-    try {
+-        this._ws.close(0, null);
+-    } catch (e) {}
+-    this._ws = null;
+-
+     this._lastPingTime = 0;
+ 
+     if (this._pingTimer) {
+@@ -475,41 +461,8 @@ var PushServiceWebSocket = {
+ 
+   _beginWSSetup: function() {
+     console.debug("beginWSSetup()");
+-    if (this._currentState != STATE_SHUT_DOWN) {
+       console.error("_beginWSSetup: Not in shutdown state! Current state",
+         this._currentState);
+-      return;
+-    }
+-
+-    // Stop any pending reconnects scheduled for the near future.
+-    if (this._backoffTimer) {
+-      this._backoffTimer.cancel();
+-    }
+-
+-    let uri = this._serverURI;
+-    if (!uri) {
+-      return;
+-    }
+-    let socket = this._makeWebSocket(uri);
+-    if (!socket) {
+-      return;
+-    }
+-    this._ws = socket.QueryInterface(Ci.nsIWebSocketChannel);
+-
+-    console.debug("beginWSSetup: Connecting to", uri.spec);
+-    this._wsListener = new PushWebSocketListener(this);
+-    this._ws.protocol = "push-notification";
+-
+-    try {
+-      // Grab a wakelock before we open the socket to ensure we don't go to
+-      // sleep before connection the is opened.
+-      this._ws.asyncOpen(uri, uri.spec, 0, this._wsListener, null);
+-      this._currentState = STATE_WAITING_FOR_WS_START;
+-    } catch(e) {
+-      console.error("beginWSSetup: Error opening websocket.",
+-        "asyncOpen failed", e);
+-      this._reconnect();
+-    }
+   },
+ 
+   connect: function(records) {

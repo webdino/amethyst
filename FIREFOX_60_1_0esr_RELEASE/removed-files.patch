@@ -1,3 +1,16 @@
+diff --git a/browser/base/content/urlbarBindings.xml b/browser/base/content/urlbarBindings.xml
+--- a/browser/base/content/urlbarBindings.xml
++++ b/browser/base/content/urlbarBindings.xml
+@@ -672,9 +672,6 @@ file, You can obtain one at http://mozil
+             return;
+           }
+ 
+-          BrowserUsageTelemetry.recordUrlbarSelectedResultMethod(
+-            event, this.userSelectionBehavior);
+-
+           // Determine whether to use the selected one-off search button.  In
+           // one-off search buttons parlance, "selected" means that the button
+           // has been navigated to via the keyboard.  So we want to use it if
 diff --git a/browser/components/nsBrowserContentHandler.js b/browser/components/nsBrowserContentHandler.js
 --- a/browser/components/nsBrowserContentHandler.js
 +++ b/browser/components/nsBrowserContentHandler.js
@@ -209,6 +222,59 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
 -globalMM.addMessageListener("HybridContentTelemetry:onTelemetryMessage", aMessage => {
 -  HybridContentTelemetry.onTelemetryMessage(aMessage, aMessage.data);
 -});
+diff --git a/browser/components/search/content/search.xml b/browser/components/search/content/search.xml
+--- a/browser/components/search/content/search.xml
++++ b/browser/components/search/content/search.xml
+@@ -390,11 +390,6 @@
+           let selection = this.telemetrySearchDetails;
+           let oneOffRecorded = false;
+ 
+-          BrowserUsageTelemetry.recordSearchbarSelectedResultMethod(
+-            aEvent,
+-            selection ? selection.index : -1
+-          );
+-
+           if (!selection || (selection.index == -1)) {
+             oneOffRecorded = this.textbox.popup.oneOffButtons
+                                  .maybeRecordTelemetry(aEvent, aWhere, aParams);
+@@ -418,8 +413,6 @@
+               if (!aEngine) {
+                 aEngine = this.currentEngine;
+               }
+-              BrowserSearch.recordOneoffSearchInTelemetry(aEngine, source, type,
+-                                                          aWhere);
+             }
+           }
+ 
+@@ -464,7 +457,6 @@
+             isSuggestion: (!aOneOff && telemetrySearchDetails),
+             selection: telemetrySearchDetails
+           };
+-          BrowserSearch.recordSearchInTelemetry(engine, "searchbar", details);
+           // null parameter below specifies HTML response for search
+           let params = {
+             postData: submission.postData,
+@@ -977,11 +969,6 @@
+ 
+           // Check for middle-click or modified clicks on the search bar
+           if (popupForSearchBar) {
+-            BrowserUsageTelemetry.recordSearchbarSelectedResultMethod(
+-              aEvent,
+-              this.selectedIndex
+-            );
+-
+             // Handle search bar popup clicks
+             var search = this.input.controller.getValueAt(this.selectedIndex);
+ 
+@@ -2208,8 +2195,6 @@
+                               aOpenUILinkParams &&
+                               aOpenUILinkParams.inBackground;
+           let where = tabBackground ? "tab-background" : aOpenUILinkWhere;
+-          BrowserSearch.recordOneoffSearchInTelemetry(engine, source, type,
+-                                                      where);
+           return true;
+         ]]></body>
+       </method>
 diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
 --- a/browser/extensions/moz.build
 +++ b/browser/extensions/moz.build
@@ -231,8 +297,19 @@ diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
 diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
 --- a/browser/installer/package-manifest.in
 +++ b/browser/installer/package-manifest.in
-@@ -490,8 +490,6 @@
- @RESPATH@/components/captivedetect.js
+@@ -290,7 +290,6 @@
+ @RESPATH@/components/saxparser.xpt
+ @RESPATH@/browser/components/sessionstore.xpt
+ @RESPATH@/components/services-crypto-component.xpt
+-@RESPATH@/components/captivedetect.xpt
+ @RESPATH@/browser/components/shellservice.xpt
+ @RESPATH@/components/shistory.xpt
+ @RESPATH@/components/spellchecker.xpt
+@@ -487,11 +486,8 @@
+ @RESPATH@/components/FxAccountsComponents.manifest
+ @RESPATH@/components/FxAccountsPush.js
+ @RESPATH@/components/CaptivePortalDetectComponents.manifest
+-@RESPATH@/components/captivedetect.js
  @RESPATH@/components/servicesComponents.manifest
  @RESPATH@/components/cryptoComponents.manifest
 -@RESPATH@/components/TelemetryStartup.js
@@ -240,7 +317,7 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  @RESPATH@/components/XULStore.js
  @RESPATH@/components/XULStore.manifest
  @RESPATH@/components/recording-cmdline.js
-@@ -786,10 +784,6 @@ bin/libfreebl_32int64_3.so
+@@ -786,10 +782,6 @@ bin/libfreebl_32int64_3.so
  
  @RESPATH@/components/dom_audiochannel.xpt
  
@@ -251,7 +328,7 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  #ifdef LLVM_SYMBOLIZER
  @BINPATH@/@LLVM_SYMBOLIZER@
  #endif
-@@ -824,13 +818,6 @@ bin/libfreebl_32int64_3.so
+@@ -824,13 +816,6 @@ bin/libfreebl_32int64_3.so
  ; Background Hang Monitor
  @RESPATH@/components/backgroundhangmonitor.xpt
  
@@ -300,6 +377,132 @@ diff --git a/docshell/base/nsAboutRedirector.cpp b/docshell/base/nsAboutRedirect
      "url-classifier", "chrome://global/content/aboutUrlClassifier.xhtml",
      nsIAboutModule::ALLOW_SCRIPT
    },
+diff --git a/netwerk/base/CaptivePortalService.cpp b/netwerk/base/CaptivePortalService.cpp
+--- a/netwerk/base/CaptivePortalService.cpp
++++ b/netwerk/base/CaptivePortalService.cpp
+@@ -26,7 +26,7 @@ static LazyLogModule gCaptivePortalLog("
+ 
+ NS_IMPL_ISUPPORTS(CaptivePortalService, nsICaptivePortalService, nsIObserver,
+                   nsISupportsWeakReference, nsITimerCallback,
+-                  nsICaptivePortalCallback, nsINamed)
++                  nsINamed)
+ 
+ CaptivePortalService::CaptivePortalService()
+   : mState(UNKNOWN)
+@@ -59,20 +59,7 @@ CaptivePortalService::PerformCheck()
+     return NS_OK;
+   }
+   MOZ_ASSERT(XRE_GetProcessType() == GeckoProcessType_Default);
+-  nsresult rv;
+-  if (!mCaptivePortalDetector) {
+-    mCaptivePortalDetector =
+-      do_GetService("@mozilla.org/toolkit/captive-detector;1", &rv);
+-    if (NS_FAILED(rv)) {
+-        LOG(("Unable to get a captive portal detector\n"));
+-        return rv;
+-    }
+-  }
+-
+-  LOG(("CaptivePortalService::PerformCheck - Calling CheckCaptivePortal\n"));
+-  mRequestInProgress = true;
+-  mCaptivePortalDetector->CheckCaptivePortal(kInterfaceName, this);
+-  return NS_OK;
++  return NS_ERROR_FACTORY_NOT_REGISTERED;
+ }
+ 
+ nsresult
+@@ -187,10 +174,6 @@ CaptivePortalService::Stop()
+   mTimer = nullptr;
+   mRequestInProgress = false;
+   mStarted = false;
+-  if (mCaptivePortalDetector) {
+-    mCaptivePortalDetector->Abort(kInterfaceName);
+-  }
+-  mCaptivePortalDetector = nullptr;
+ 
+   // Clear the state in case anyone queries the state while detection is off.
+   mState = UNKNOWN;
+@@ -346,45 +329,5 @@ CaptivePortalService::NotifyConnectivity
+   }
+ }
+ 
+-//-----------------------------------------------------------------------------
+-// CaptivePortalService::nsICaptivePortalCallback
+-//-----------------------------------------------------------------------------
+-NS_IMETHODIMP
+-CaptivePortalService::Prepare()
+-{
+-  LOG(("CaptivePortalService::Prepare\n"));
+-  MOZ_ASSERT(XRE_GetProcessType() == GeckoProcessType_Default);
+-  // XXX: Finish preparation shouldn't be called until dns and routing is available.
+-  if (mCaptivePortalDetector) {
+-    mCaptivePortalDetector->FinishPreparation(kInterfaceName);
+-  }
+-  return NS_OK;
+-}
+-
+-NS_IMETHODIMP
+-CaptivePortalService::Complete(bool success)
+-{
+-  LOG(("CaptivePortalService::Complete(success=%d) mState=%d\n", success, mState));
+-  MOZ_ASSERT(XRE_GetProcessType() == GeckoProcessType_Default);
+-  mLastChecked = TimeStamp::Now();
+-
+-  // Note: this callback gets called when:
+-  // 1. the request is completed, and content is valid (success == true)
+-  // 2. when the request is aborted or times out (success == false)
+-
+-  if (success) {
+-    if (mEverBeenCaptive) {
+-      mState = UNLOCKED_PORTAL;
+-      NotifyConnectivityAvailable(true);
+-    } else {
+-      mState = NOT_CAPTIVE;
+-      NotifyConnectivityAvailable(false);
+-    }
+-  }
+-
+-  mRequestInProgress = false;
+-  return NS_OK;
+-}
+-
+ } // namespace net
+ } // namespace mozilla
+diff --git a/netwerk/base/CaptivePortalService.h b/netwerk/base/CaptivePortalService.h
+--- a/netwerk/base/CaptivePortalService.h
++++ b/netwerk/base/CaptivePortalService.h
+@@ -6,7 +6,6 @@
+ #define CaptivePortalService_h_
+ 
+ #include "nsICaptivePortalService.h"
+-#include "nsICaptivePortalDetector.h"
+ #include "nsINamed.h"
+ #include "nsIObserver.h"
+ #include "nsWeakReference.h"
+@@ -22,7 +21,6 @@ class CaptivePortalService
+   , public nsIObserver
+   , public nsSupportsWeakReference
+   , public nsITimerCallback
+-  , public nsICaptivePortalCallback
+   , public nsINamed
+ {
+ public:
+@@ -30,7 +28,6 @@ public:
+   NS_DECL_NSICAPTIVEPORTALSERVICE
+   NS_DECL_NSIOBSERVER
+   NS_DECL_NSITIMERCALLBACK
+-  NS_DECL_NSICAPTIVEPORTALCALLBACK
+   NS_DECL_NSINAMED
+ 
+   CaptivePortalService();
+@@ -47,7 +44,6 @@ private:
+   nsresult RearmTimer();
+   void NotifyConnectivityAvailable(bool aCaptive);
+ 
+-  nsCOMPtr<nsICaptivePortalDetector>    mCaptivePortalDetector;
+   int32_t                               mState;
+ 
+   nsCOMPtr<nsITimer>                    mTimer;
 diff --git a/toolkit/components/backgroundhangmonitor/moz.build b/toolkit/components/backgroundhangmonitor/moz.build
 --- a/toolkit/components/backgroundhangmonitor/moz.build
 +++ b/toolkit/components/backgroundhangmonitor/moz.build
@@ -318,7 +521,16 @@ diff --git a/toolkit/components/backgroundhangmonitor/moz.build b/toolkit/compon
 diff --git a/toolkit/components/moz.build b/toolkit/components/moz.build
 --- a/toolkit/components/moz.build
 +++ b/toolkit/components/moz.build
-@@ -111,6 +111,3 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'andr
+@@ -93,8 +93,6 @@ if CONFIG['MOZ_XUL']:
+ if CONFIG['MOZ_TOOLKIT_SEARCH']:
+     DIRS += ['search']
+ 
+-DIRS += ['captivedetect']
+-
+ if CONFIG['OS_TARGET'] != 'Android':
+     DIRS += ['terminator']
+ 
+@@ -111,6 +109,3 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'andr
  
  if CONFIG['NIGHTLY_BUILD'] and CONFIG['MOZ_BUILD_APP'] == 'browser':
      DIRS += ['payments']
@@ -373,6 +585,18 @@ diff --git a/toolkit/components/terminator/moz.build b/toolkit/components/termin
 -]
 -
  FINAL_LIBRARY = 'xul'
+diff --git a/toolkit/content/browser-child.js b/toolkit/content/browser-child.js
+--- a/toolkit/content/browser-child.js
++++ b/toolkit/content/browser-child.js
+@@ -356,7 +356,7 @@ var WebNavigation =  {
+     if (triggeringPrincipal)
+       triggeringPrincipal = Utils.deserializePrincipal(triggeringPrincipal);
+     this._wrapURIChangeCall(() => {
+-      return this.webNavigation.loadURIWithOptions(uri, flags, referrer, referrerPolicy,
++      this.webNavigation.loadURIWithOptions(uri, flags, referrer, referrerPolicy,
+                                                    postData, headers, baseURI, triggeringPrincipal);
+     });
+   },
 diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
 --- a/toolkit/content/jar.mn
 +++ b/toolkit/content/jar.mn

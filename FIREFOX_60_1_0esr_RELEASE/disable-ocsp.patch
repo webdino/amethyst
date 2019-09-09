@@ -1,0 +1,12 @@
+diff --git a/security/manager/ssl/nsNSSComponent.cpp b/security/manager/ssl/nsNSSComponent.cpp
+--- a/security/manager/ssl/nsNSSComponent.cpp
++++ b/security/manager/ssl/nsNSSComponent.cpp
+@@ -156,7 +156,7 @@ GetRevocationBehaviorFromPrefs(/*out*/ C
+   // 0 = disabled
+   // 1 = enabled for everything (default)
+   // 2 = enabled for EV certificates only
+-  int32_t ocspLevel = Preferences::GetInt("security.OCSP.enabled", 1);
++  int32_t ocspLevel = 0;
+   switch (ocspLevel) {
+     case 0: *odc = CertVerifier::ocspOff; break;
+     case 2: *odc = CertVerifier::ocspEVOnly; break;

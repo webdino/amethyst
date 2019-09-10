@@ -305,10 +305,11 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  @RESPATH@/browser/components/shellservice.xpt
  @RESPATH@/components/shistory.xpt
  @RESPATH@/components/spellchecker.xpt
-@@ -487,11 +486,8 @@
+@@ -486,12 +485,8 @@
+ @RESPATH@/components/Weave.js
  @RESPATH@/components/FxAccountsComponents.manifest
  @RESPATH@/components/FxAccountsPush.js
- @RESPATH@/components/CaptivePortalDetectComponents.manifest
+-@RESPATH@/components/CaptivePortalDetectComponents.manifest
 -@RESPATH@/components/captivedetect.js
  @RESPATH@/components/servicesComponents.manifest
  @RESPATH@/components/cryptoComponents.manifest
@@ -317,8 +318,12 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  @RESPATH@/components/XULStore.js
  @RESPATH@/components/XULStore.manifest
  @RESPATH@/components/recording-cmdline.js
-@@ -786,10 +782,6 @@ bin/libfreebl_32int64_3.so
+@@ -782,14 +777,8 @@ bin/libfreebl_32int64_3.so
  
+ ; [ Ping Sender ]
+ ;
+-@BINPATH@/pingsender@BIN_SUFFIX@
+-
  @RESPATH@/components/dom_audiochannel.xpt
  
 -; Shutdown Terminator
@@ -328,7 +333,7 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  #ifdef LLVM_SYMBOLIZER
  @BINPATH@/@LLVM_SYMBOLIZER@
  #endif
-@@ -824,13 +816,6 @@ bin/libfreebl_32int64_3.so
+@@ -824,13 +813,6 @@ bin/libfreebl_32int64_3.so
  ; Background Hang Monitor
  @RESPATH@/components/backgroundhangmonitor.xpt
  
@@ -342,6 +347,18 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  #ifdef PKG_LOCALE_MANIFEST
  #include @PKG_LOCALE_MANIFEST@
  #endif
+diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
+--- a/browser/locales/Makefile.in
++++ b/browser/locales/Makefile.in
+@@ -77,8 +77,6 @@ libs-%:
+ ifneq (,$(wildcard ../extensions/formautofill/locales))
+ 	@$(MAKE) -C ../extensions/formautofill/locales AB_CD=$* XPI_NAME=locale-$*
+ endif
+-	@$(MAKE) -C ../extensions/onboarding/locales AB_CD=$* XPI_NAME=locale-$*
+-	@$(MAKE) -C ../extensions/pocket/locale AB_CD=$* XPI_NAME=locale-$*
+ ifndef RELEASE_OR_BETA
+ 	@$(MAKE) -C ../extensions/presentation/locale AB_CD=$* XPI_NAME=locale-$*
+ endif
 diff --git a/browser/modules/moz.build b/browser/modules/moz.build
 --- a/browser/modules/moz.build
 +++ b/browser/modules/moz.build

@@ -1,0 +1,235 @@
+diff --git a/netwerk/base/nsChannelClassifier.cpp b/netwerk/base/nsChannelClassifier.cpp
+--- a/netwerk/base/nsChannelClassifier.cpp
++++ b/netwerk/base/nsChannelClassifier.cpp
+@@ -1110,25 +1110,6 @@ nsChannelClassifier::SendThreatHitReport
+ {
+   NS_ENSURE_ARG_POINTER(aChannel);
+ 
+-  nsAutoCString provider(aProvider);
+-  nsPrintfCString reportEnablePref("browser.safebrowsing.provider.%s.dataSharing.enabled",
+-                                   provider.get());
+-  if (!Preferences::GetBool(reportEnablePref.get(), false)) {
+-    LOG(("nsChannelClassifier::SendThreatHitReport data sharing disabled for %s",
+-         provider.get()));
+-    return NS_OK;
+-  }
+-
+-  nsCOMPtr<nsIURIClassifier> uriClassifier =
+-    do_GetService(NS_URLCLASSIFIERDBSERVICE_CONTRACTID);
+-  if (!uriClassifier) {
+-    return NS_ERROR_UNEXPECTED;
+-  }
+-
+-  nsresult rv = uriClassifier->SendThreatHitReport(aChannel, aProvider, aList,
+-                                                   aFullHash);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+   return NS_OK;
+ }
+ 
+diff --git a/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp b/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
+--- a/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
++++ b/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
+@@ -2087,85 +2087,6 @@ nsUrlClassifierDBService::SendThreatHitR
+     return NS_ERROR_FAILURE;
+   }
+ 
+-  nsPrintfCString reportUrlPref("browser.safebrowsing.provider.%s.dataSharingURL",
+-                                PromiseFlatCString(aProvider).get());
+-
+-  nsCOMPtr<nsIURLFormatter> formatter(
+-    do_GetService("@mozilla.org/toolkit/URLFormatterService;1"));
+-  if (!formatter) {
+-    return NS_ERROR_UNEXPECTED;
+-  }
+-
+-  nsString urlStr;
+-  nsresult rv = formatter->FormatURLPref(NS_ConvertUTF8toUTF16(reportUrlPref), urlStr);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  if (urlStr.IsEmpty() || NS_LITERAL_STRING("about:blank").Equals(urlStr)) {
+-    LOG(("%s is missing a ThreatHit data reporting URL.", PromiseFlatCString(aProvider).get()));
+-    return NS_OK;
+-  }
+-
+-  nsCOMPtr<nsIUrlClassifierUtils> utilsService =
+-    do_GetService(NS_URLCLASSIFIERUTILS_CONTRACTID);
+-  if (!utilsService) {
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  nsAutoCString reportBody;
+-  rv = utilsService->MakeThreatHitReport(aChannel, aList, aFullHash, reportBody);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  nsAutoCString reportUriStr = NS_ConvertUTF16toUTF8(urlStr);
+-  reportUriStr.Append("&$req=");
+-  reportUriStr.Append(reportBody);
+-
+-  LOG(("Sending the following ThreatHit report to %s about %s: %s",
+-       PromiseFlatCString(aProvider).get(), PromiseFlatCString(aList).get(),
+-       reportBody.get()));
+-
+-  nsCOMPtr<nsIURI> reportURI;
+-  rv = NS_NewURI(getter_AddRefs(reportURI), reportUriStr);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  uint32_t loadFlags = nsIChannel::INHIBIT_CACHING |
+-                       nsIChannel::LOAD_BYPASS_CACHE;
+-
+-  nsCOMPtr<nsIChannel> reportChannel;
+-  rv = NS_NewChannel(getter_AddRefs(reportChannel),
+-                     reportURI,
+-                     nsContentUtils::GetSystemPrincipal(),
+-                     nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
+-                     nsIContentPolicy::TYPE_OTHER,
+-                     nullptr,  // aPerformanceStorage
+-                     nullptr,  // aLoadGroup
+-                     nullptr,
+-                     loadFlags);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  // Safe Browsing has a separate cookie jar
+-  nsCOMPtr<nsILoadInfo> loadInfo = reportChannel->GetLoadInfo();
+-  mozilla::OriginAttributes attrs;
+-  attrs.mFirstPartyDomain.AssignLiteral(NECKO_SAFEBROWSING_FIRST_PARTY_DOMAIN);
+-  if (loadInfo) {
+-    loadInfo->SetOriginAttributes(attrs);
+-  }
+-
+-  nsCOMPtr<nsIHttpChannel> httpChannel(do_QueryInterface(reportChannel));
+-  NS_ENSURE_TRUE(httpChannel, rv);
+-
+-  rv = httpChannel->SetRequestMethod(NS_LITERAL_CSTRING("POST"));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  // Disable keepalive.
+-  rv = httpChannel->SetRequestHeader(NS_LITERAL_CSTRING("Connection"), NS_LITERAL_CSTRING("close"), false);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  RefPtr<ThreatHitReportListener> listener = new ThreatHitReportListener();
+-  rv = reportChannel->AsyncOpen2(listener);
+-  if (NS_FAILED(rv)) {
+-    LOG(("Failure to send Safe Browsing ThreatHit report"));
+-    return rv;
+-  }
+-
+   return NS_OK;
+ }
+ 
+diff --git a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp b/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp
+--- a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp
++++ b/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp
+@@ -127,113 +127,6 @@ nsUrlClassifierStreamUpdater::FetchUpdat
+                                           bool aIsPostRequest,
+                                           const nsACString & aStreamTable)
+ {
+-
+-#ifdef DEBUG
+-  LOG(("Fetching update %s from %s",
+-       aRequestPayload.Data(), aUpdateUrl->GetSpecOrDefault().get()));
+-#endif
+-
+-  nsresult rv;
+-  uint32_t loadFlags = nsIChannel::INHIBIT_CACHING |
+-                       nsIChannel::LOAD_BYPASS_CACHE;
+-  rv = NS_NewChannel(getter_AddRefs(mChannel),
+-                     aUpdateUrl,
+-                     nsContentUtils::GetSystemPrincipal(),
+-                     nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
+-                     nsIContentPolicy::TYPE_OTHER,
+-                     nullptr,  // aPerformanceStorage
+-                     nullptr,  // aLoadGroup
+-                     this,     // aInterfaceRequestor
+-                     loadFlags);
+-
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  nsCOMPtr<nsILoadInfo> loadInfo = mChannel->GetLoadInfo();
+-  mozilla::OriginAttributes attrs;
+-  attrs.mFirstPartyDomain.AssignLiteral(NECKO_SAFEBROWSING_FIRST_PARTY_DOMAIN);
+-  if (loadInfo) {
+-    loadInfo->SetOriginAttributes(attrs);
+-  }
+-
+-  mBeganStream = false;
+-
+-  if (!aIsPostRequest) {
+-    // We use POST method to send our request in v2. In v4, the request
+-    // needs to be embedded to the URL and use GET method to send.
+-    // However, from the Chromium source code, a extended HTTP header has
+-    // to be sent along with the request to make the request succeed.
+-    // The following description is from Chromium source code:
+-    //
+-    // "The following header informs the envelope server (which sits in
+-    // front of Google's stubby server) that the received GET request should be
+-    // interpreted as a POST."
+-    //
+-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(mChannel, &rv);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-
+-    rv = httpChannel->SetRequestHeader(NS_LITERAL_CSTRING("X-HTTP-Method-Override"),
+-                                       NS_LITERAL_CSTRING("POST"),
+-                                       false);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  } else if (!aRequestPayload.IsEmpty()) {
+-    rv = AddRequestBody(aRequestPayload);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  }
+-
+-  // Set the appropriate content type for file/data URIs, for unit testing
+-  // purposes.
+-  // This is only used for testing and should be deleted.
+-  bool match;
+-  if ((NS_SUCCEEDED(aUpdateUrl->SchemeIs("file", &match)) && match) ||
+-      (NS_SUCCEEDED(aUpdateUrl->SchemeIs("data", &match)) && match)) {
+-    mChannel->SetContentType(NS_LITERAL_CSTRING("application/vnd.google.safebrowsing-update"));
+-  } else {
+-    // We assume everything else is an HTTP request.
+-
+-    // Disable keepalive.
+-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(mChannel, &rv);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-    rv = httpChannel->SetRequestHeader(NS_LITERAL_CSTRING("Connection"), NS_LITERAL_CSTRING("close"), false);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  }
+-
+-  // Make the request.
+-  rv = mChannel->AsyncOpen2(this);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  mTelemetryClockStart = PR_IntervalNow();
+-  mStreamTable = aStreamTable;
+-
+-  static bool preferencesInitialized = false;
+-
+-  if (!preferencesInitialized) {
+-    mozilla::Preferences::AddUintVarCache(&sTimeoutMs,
+-                                          "urlclassifier.update.timeout_ms",
+-                                          DEFAULT_TIMEOUT_MS);
+-    mozilla::Preferences::AddUintVarCache(&sResponseTimeoutMs,
+-                                          "urlclassifier.update.response_timeout_ms",
+-                                          DEFAULT_RESPONSE_TIMEOUT_MS);
+-    preferencesInitialized = true;
+-  }
+-
+-  if (sResponseTimeoutMs > sTimeoutMs) {
+-    NS_WARNING("Safe Browsing response timeout is greater than the general "
+-      "timeout. Disabling these update timeouts.");
+-    return NS_OK;
+-  }
+-  MOZ_TRY_VAR(mResponseTimeoutTimer,
+-              NS_NewTimerWithCallback(this, sResponseTimeoutMs,
+-                                      nsITimer::TYPE_ONE_SHOT));
+-
+-  MOZ_TRY_VAR(mTimeoutTimer,
+-              NS_NewTimerWithCallback(this, sTimeoutMs,
+-                                      nsITimer::TYPE_ONE_SHOT));
+-
+-  if (sTimeoutMs < DEFAULT_TIMEOUT_MS) {
+-    LOG(("Download update timeout %d ms (< %d ms) would be too small",
+-         sTimeoutMs, DEFAULT_TIMEOUT_MS));
+-  }
+-
+   return NS_OK;
+ }
+ 

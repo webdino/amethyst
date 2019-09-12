@@ -1,0 +1,20 @@
+diff --git a/browser/modules/AttributionCode.jsm b/browser/modules/AttributionCode.jsm
+--- a/browser/modules/AttributionCode.jsm
++++ b/browser/modules/AttributionCode.jsm
+@@ -73,16 +73,6 @@ var AttributionCode = {
+       }
+ 
+       let code = "";
+-      try {
+-        let bytes = await OS.File.read(getAttributionFile().path);
+-        let decoder = new TextDecoder();
+-        code = decoder.decode(bytes);
+-      } catch (ex) {
+-        // The attribution file may already have been deleted,
+-        // or it may have never been installed at all;
+-        // failure to open or read it isn't an error.
+-      }
+-
+       gCachedAttrData = parseAttributionCode(code);
+       return gCachedAttrData;
+     })();

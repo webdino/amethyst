@@ -453,21 +453,31 @@ diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
 diff --git a/browser/modules/moz.build b/browser/modules/moz.build
 --- a/browser/modules/moz.build
 +++ b/browser/modules/moz.build
-@@ -123,13 +123,9 @@ BROWSER_CHROME_MANIFESTS += [
+@@ -46,9 +46,6 @@ with Files("AboutNewTab.jsm"):
+ with Files('AsyncTabSwitcher.jsm'):
+     BUG_COMPONENT = ('Firefox', 'Tabbed Browser')
+ 
+-with Files("AttributionCode.jsm"):
+-    BUG_COMPONENT = ("Toolkit", "Telemetry")
+-
+ with Files("*Telemetry.jsm"):
+     BUG_COMPONENT = ("Toolkit", "Telemetry")
+ 
+@@ -123,13 +120,8 @@ BROWSER_CHROME_MANIFESTS += [
  XPCSHELL_TESTS_MANIFESTS += ['test/unit/xpcshell.ini']
  
  EXTRA_JS_MODULES += [
 -    'AboutHome.jsm',
      'AboutNewTab.jsm',
      'AsyncTabSwitcher.jsm',
-     'AttributionCode.jsm',
+-    'AttributionCode.jsm',
 -    'BrowserErrorReporter.jsm',
 -    'BrowserUITelemetry.jsm',
 -    'BrowserUsageTelemetry.jsm',
      'ContentClick.jsm',
      'ContentCrashHandlers.jsm',
      'ContentLinkHandler.jsm',
-@@ -147,7 +143,6 @@ EXTRA_JS_MODULES += [
+@@ -147,7 +139,6 @@ EXTRA_JS_MODULES += [
      'OpenInTabsUtils.jsm',
      'PageActions.jsm',
      'PermissionUI.jsm',
@@ -649,6 +659,57 @@ diff --git a/toolkit/components/moz.build b/toolkit/components/moz.build
 -
 -if CONFIG['MOZ_BUILD_APP'] == 'browser':
 -    DIRS += ['normandy']
+diff --git a/toolkit/components/telemetry/TelemetryEnvironment.jsm b/toolkit/components/telemetry/TelemetryEnvironment.jsm
+--- a/toolkit/components/telemetry/TelemetryEnvironment.jsm
++++ b/toolkit/components/telemetry/TelemetryEnvironment.jsm
+@@ -22,8 +22,6 @@ const Utils = TelemetryUtils;
+ 
+ const { AddonManager } = ChromeUtils.import("resource://gre/modules/AddonManager.jsm", {});
+ 
+-ChromeUtils.defineModuleGetter(this, "AttributionCode",
+-                               "resource:///modules/AttributionCode.jsm");
+ ChromeUtils.defineModuleGetter(this, "ctypes",
+                                "resource://gre/modules/ctypes.jsm");
+ ChromeUtils.defineModuleGetter(this, "LightweightThemeManager",
+@@ -1492,38 +1490,12 @@ EnvironmentCache.prototype = {
+    * @returns Promise<> resolved when the I/O is complete.
+    */
+   async _loadAttributionAsync() {
+-    try {
+-      await AttributionCode.getAttrDataAsync();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-      return;
+-    }
+-    this._updateAttribution();
+   },
+ 
+   /**
+    * Update the environment with the cached attribution data.
+    */
+   _updateAttribution() {
+-    let data = null;
+-    try {
+-      data = AttributionCode.getCachedAttributionData();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-    }
+-
+-    if (!data || !Object.keys(data).length) {
+-      return;
+-    }
+-
+-    let attributionData = {};
+-    for (let key in data) {
+-      attributionData[key] =
+-        limitStringToLength(data[key], MAX_ATTRIBUTION_STRING_LENGTH);
+-    }
+-    this._currentEnvironment.settings.attribution = attributionData;
+   },
+ 
+   /**
 diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemetry/moz.build
 --- a/toolkit/components/telemetry/moz.build
 +++ b/toolkit/components/telemetry/moz.build

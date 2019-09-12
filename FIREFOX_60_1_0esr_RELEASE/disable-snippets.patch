@@ -1,0 +1,77 @@
+diff --git a/browser/base/content/abouthome/aboutHome.js b/browser/base/content/abouthome/aboutHome.js
+--- a/browser/base/content/abouthome/aboutHome.js
++++ b/browser/base/content/abouthome/aboutHome.js
+@@ -264,37 +264,8 @@ function loadSnippets() {
+     gSnippetsMap.clear();
+   }
+ 
+-  // Check last snippets update.
+-  let lastUpdate = gSnippetsMap.get("snippets-last-update");
+-  let updateURL = document.documentElement.getAttribute("snippetsURL");
+-  let shouldUpdate = !lastUpdate ||
+-                     Date.now() - lastUpdate > SNIPPETS_UPDATE_INTERVAL_MS;
+-  if (updateURL && shouldUpdate) {
+-    // Try to update from network.
+-    let xhr = new XMLHttpRequest();
+-    xhr.timeout = 5000;
+-    // Even if fetching should fail we don't want to spam the server, thus
+-    // set the last update time regardless its results.  Will retry tomorrow.
+-    gSnippetsMap.set("snippets-last-update", Date.now());
+-    xhr.onloadend = function() {
+-      if (xhr.status == 200) {
+-        gSnippetsMap.set("snippets", xhr.responseText);
+-        gSnippetsMap.set("snippets-cached-version", currentVersion);
+-      }
+-      showSnippets();
+-      loadCompleted();
+-    };
+-    try {
+-      xhr.open("GET", updateURL, true);
+-      xhr.send(null);
+-    } catch (ex) {
+-      showSnippets();
+-      loadCompleted();
+-    }
+-  } else {
+     showSnippets();
+     loadCompleted();
+-  }
+ }
+ 
+ /**
+diff --git a/browser/extensions/activity-stream/data/content/activity-stream.bundle.js b/browser/extensions/activity-stream/data/content/activity-stream.bundle.js
+--- a/browser/extensions/activity-stream/data/content/activity-stream.bundle.js
++++ b/browser/extensions/activity-stream/data/content/activity-stream.bundle.js
+@@ -2513,25 +2513,6 @@ class SnippetsProvider {
+     if (cachedVersion !== this.appData.version) {
+       this.snippetsMap.clear();
+     }
+-
+-    // Has enough time passed for us to require an update?
+-    const lastUpdate = this.snippetsMap.get("snippets-last-update");
+-    const needsUpdate = !(lastUpdate >= 0) || Date.now() - lastUpdate > SNIPPETS_UPDATE_INTERVAL_MS;
+-
+-    if (needsUpdate && this.appData.snippetsURL) {
+-      this.snippetsMap.set("snippets-last-update", Date.now());
+-      try {
+-        const response = await fetch(this.appData.snippetsURL);
+-        if (response.status === 200) {
+-          const payload = await response.text();
+-
+-          this.snippetsMap.set("snippets", payload);
+-          this.snippetsMap.set("snippets-cached-version", this.appData.version);
+-        }
+-      } catch (e) {
+-        console.error(e); // eslint-disable-line no-console
+-      }
+-    }
+   }
+ 
+   _noSnippetFallback() {
+@@ -4800,4 +4781,4 @@ module.exports = ReactDOM;
+ 
+ /***/ })
+ /******/ ]);
+-//# sourceMappingURL=activity-stream.bundle.js.map
+\ No newline at end of file
++//# sourceMappingURL=activity-stream.bundle.js.map

@@ -1,3 +1,33 @@
+diff --git a/browser/base/content/browser-sidebar.js b/browser/base/content/browser-sidebar.js
+--- a/browser/base/content/browser-sidebar.js
++++ b/browser/base/content/browser-sidebar.js
+@@ -393,7 +393,6 @@ var SidebarUI = {
+       }
+ 
+       this._fireFocusedEvent();
+-      BrowserUITelemetry.countSidebarEvent(commandID, "show");
+     });
+   },
+ 
+@@ -424,10 +423,6 @@ var SidebarUI = {
+         return;
+       }
+ 
+-      if (this.isOpen && commandID != this.currentID) {
+-        BrowserUITelemetry.countSidebarEvent(this.currentID, "hide");
+-      }
+-
+       let broadcasters = document.querySelectorAll("broadcaster[group=sidebar]");
+       for (let broadcaster of broadcasters) {
+         if (broadcaster != sidebarBroadcaster) {
+@@ -535,7 +530,6 @@ var SidebarUI = {
+     if (triggerNode) {
+       updateToggleControlLabel(triggerNode);
+     }
+-    BrowserUITelemetry.countSidebarEvent(commandID, "hide");
+   },
+ };
+ 
 diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
 --- a/browser/base/content/nsContextMenu.js
 +++ b/browser/base/content/nsContextMenu.js
@@ -22,6 +52,39 @@ diff --git a/browser/base/content/urlbarBindings.xml b/browser/base/content/urlb
            // Determine whether to use the selected one-off search button.  In
            // one-off search buttons parlance, "selected" means that the button
            // has been navigated to via the keyboard.  So we want to use it if
+diff --git a/browser/base/jar.mn b/browser/base/jar.mn
+--- a/browser/base/jar.mn
++++ b/browser/base/jar.mn
+@@ -11,29 +11,6 @@ browser.jar:
+         content/browser/aboutRobots.xhtml             (content/aboutRobots.xhtml)
+         content/browser/aboutRobots.js                (content/aboutRobots.js)
+         content/browser/aboutRobots.css               (content/aboutRobots.css)
+-*       content/browser/abouthome/aboutHome.xhtml     (content/abouthome/aboutHome.xhtml)
+-        content/browser/abouthome/aboutHome.js        (content/abouthome/aboutHome.js)
+-*       content/browser/abouthome/aboutHome.css       (content/abouthome/aboutHome.css)
+-        content/browser/abouthome/snippet1.png        (content/abouthome/snippet1.png)
+-        content/browser/abouthome/snippet2.png        (content/abouthome/snippet2.png)
+-        content/browser/abouthome/downloads.png       (content/abouthome/downloads.png)
+-        content/browser/abouthome/bookmarks.png       (content/abouthome/bookmarks.png)
+-        content/browser/abouthome/history.png         (content/abouthome/history.png)
+-        content/browser/abouthome/addons.png          (content/abouthome/addons.png)
+-        content/browser/abouthome/sync.png            (content/abouthome/sync.png)
+-        content/browser/abouthome/settings.png        (content/abouthome/settings.png)
+-        content/browser/abouthome/restore.png         (content/abouthome/restore.png)
+-        content/browser/abouthome/restore-large.png   (content/abouthome/restore-large.png)
+-        content/browser/abouthome/snippet1@2x.png      (content/abouthome/snippet1@2x.png)
+-        content/browser/abouthome/snippet2@2x.png      (content/abouthome/snippet2@2x.png)
+-        content/browser/abouthome/downloads@2x.png     (content/abouthome/downloads@2x.png)
+-        content/browser/abouthome/bookmarks@2x.png     (content/abouthome/bookmarks@2x.png)
+-        content/browser/abouthome/history@2x.png       (content/abouthome/history@2x.png)
+-        content/browser/abouthome/addons@2x.png        (content/abouthome/addons@2x.png)
+-        content/browser/abouthome/sync@2x.png          (content/abouthome/sync@2x.png)
+-        content/browser/abouthome/settings@2x.png      (content/abouthome/settings@2x.png)
+-        content/browser/abouthome/restore@2x.png       (content/abouthome/restore@2x.png)
+-        content/browser/abouthome/restore-large@2x.png (content/abouthome/restore-large@2x.png)
+ 
+         content/browser/illustrations/error-connection-failure.svg (content/illustrations/error-connection-failure.svg)
+         content/browser/illustrations/error-server-not-found.svg (content/illustrations/error-server-not-found.svg)
 diff --git a/browser/components/nsBrowserContentHandler.js b/browser/components/nsBrowserContentHandler.js
 --- a/browser/components/nsBrowserContentHandler.js
 +++ b/browser/components/nsBrowserContentHandler.js
@@ -89,7 +152,24 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
    PlacesBackups: "resource://gre/modules/PlacesBackups.jsm",
    PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
    PluralForm: "resource://gre/modules/PluralForm.jsm",
-@@ -348,37 +342,6 @@ BrowserGlue.prototype = {
+@@ -149,7 +143,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+ let initializedModules = {};
+ 
+ [
+-  ["AboutHome", "resource:///modules/AboutHome.jsm", "init"],
+   ["ContentPrefServiceParent", "resource://gre/modules/ContentPrefServiceParent.jsm", "alwaysInit"],
+   ["ContentSearch", "resource:///modules/ContentSearch.jsm", "init"],
+   ["UpdateListener", "resource://gre/modules/UpdateListener.jsm", "init"],
+@@ -207,8 +200,6 @@ const listeners = {
+   },
+ 
+   mm: {
+-    "AboutHome:MaybeShowMigrateMessage": ["AboutHome"],
+-    "AboutHome:RequestUpdate": ["AboutHome"],
+     "Content:Click": ["ContentClick"],
+     "ContentSearch": ["ContentSearch"],
+     "FormValidation:ShowPopup": ["FormValidationHandler"],
+@@ -348,37 +339,6 @@ BrowserGlue.prototype = {
      Weave.Service.scheduler.delayedAutoConnect(delay);
    },
  
@@ -127,7 +207,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
    // nsIObserver implementation
    observe: function BG_observe(subject, topic, data) {
      switch (topic) {
-@@ -573,10 +536,6 @@ BrowserGlue.prototype = {
+@@ -573,10 +533,6 @@ BrowserGlue.prototype = {
          // shim for privileged api access.
          PdfJs.init(true);
          break;
@@ -138,7 +218,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      }
    },
  
-@@ -613,7 +572,6 @@ BrowserGlue.prototype = {
+@@ -613,7 +569,6 @@ BrowserGlue.prototype = {
      os.addObserver(this, "xpi-signature-changed");
      os.addObserver(this, "sync-ui-state:update");
      os.addObserver(this, "handlersvc-store-initialized");
@@ -146,7 +226,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
  
      this._flashHangCount = 0;
      this._firstWindowReady = new Promise(resolve => this._firstWindowLoaded = resolve);
-@@ -666,7 +624,6 @@ BrowserGlue.prototype = {
+@@ -666,7 +621,6 @@ BrowserGlue.prototype = {
      os.removeObserver(this, "flash-plugin-hang");
      os.removeObserver(this, "xpi-signature-changed");
      os.removeObserver(this, "sync-ui-state:update");
@@ -154,7 +234,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
    },
  
    _onAppDefaults: function BG__onAppDefaults() {
-@@ -716,8 +673,6 @@ BrowserGlue.prototype = {
+@@ -716,8 +670,6 @@ BrowserGlue.prototype = {
        author: vendorShortName,
      });
  
@@ -163,7 +243,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      // Initialize the default l10n resource sources for L10nRegistry.
      let locales = Services.locale.getPackagedLocales();
      const appSource = new FileSource("app", locales, "resource://app/localization/{locale}/");
-@@ -1048,23 +1003,10 @@ BrowserGlue.prototype = {
+@@ -1048,23 +1000,10 @@ BrowserGlue.prototype = {
        }
      }
  
@@ -187,7 +267,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
    },
  
    // All initial windows have opened.
-@@ -1074,14 +1016,6 @@ BrowserGlue.prototype = {
+@@ -1074,14 +1013,6 @@ BrowserGlue.prototype = {
      }
      this._windowsWereRestored = true;
  
@@ -202,7 +282,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      // Show update notification, if needed.
      if (Services.prefs.prefHasUserValue("app.update.postupdate"))
        this._showUpdateNotification();
-@@ -2466,19 +2400,6 @@ BrowserGlue.prototype = {
+@@ -2466,19 +2397,6 @@ BrowserGlue.prototype = {
      // Firefox 60, the hardcoded default was to show history/bookmarks first.
      // After 60, it's to show search suggestions first.
  
@@ -222,7 +302,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      // Now get the pref's value.  If the study is active, the value will have
      // just been set (on the default branch) as part of Shield's init.  The pref
      // should not exist otherwise (normally).
-@@ -3283,10 +3204,3 @@ var globalMM = Cc["@mozilla.org/globalme
+@@ -3283,10 +3201,3 @@ var globalMM = Cc["@mozilla.org/globalme
  globalMM.addMessageListener("UITour:onPageEvent", function(aMessage) {
    UITour.onPageEvent(aMessage, aMessage.data);
  });
@@ -373,7 +453,11 @@ diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
 diff --git a/browser/modules/moz.build b/browser/modules/moz.build
 --- a/browser/modules/moz.build
 +++ b/browser/modules/moz.build
-@@ -127,9 +127,6 @@ EXTRA_JS_MODULES += [
+@@ -123,13 +123,9 @@ BROWSER_CHROME_MANIFESTS += [
+ XPCSHELL_TESTS_MANIFESTS += ['test/unit/xpcshell.ini']
+ 
+ EXTRA_JS_MODULES += [
+-    'AboutHome.jsm',
      'AboutNewTab.jsm',
      'AsyncTabSwitcher.jsm',
      'AttributionCode.jsm',
@@ -383,7 +467,7 @@ diff --git a/browser/modules/moz.build b/browser/modules/moz.build
      'ContentClick.jsm',
      'ContentCrashHandlers.jsm',
      'ContentLinkHandler.jsm',
-@@ -147,7 +144,6 @@ EXTRA_JS_MODULES += [
+@@ -147,7 +143,6 @@ EXTRA_JS_MODULES += [
      'OpenInTabsUtils.jsm',
      'PageActions.jsm',
      'PermissionUI.jsm',
@@ -613,18 +697,6 @@ diff --git a/toolkit/components/terminator/moz.build b/toolkit/components/termin
 -]
 -
  FINAL_LIBRARY = 'xul'
-diff --git a/toolkit/content/browser-child.js b/toolkit/content/browser-child.js
---- a/toolkit/content/browser-child.js
-+++ b/toolkit/content/browser-child.js
-@@ -356,7 +356,7 @@ var WebNavigation =  {
-     if (triggeringPrincipal)
-       triggeringPrincipal = Utils.deserializePrincipal(triggeringPrincipal);
-     this._wrapURIChangeCall(() => {
--      return this.webNavigation.loadURIWithOptions(uri, flags, referrer, referrerPolicy,
-+      this.webNavigation.loadURIWithOptions(uri, flags, referrer, referrerPolicy,
-                                                    postData, headers, baseURI, triggeringPrincipal);
-     });
-   },
 diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
 --- a/toolkit/content/jar.mn
 +++ b/toolkit/content/jar.mn

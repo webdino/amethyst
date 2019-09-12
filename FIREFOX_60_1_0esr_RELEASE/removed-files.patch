@@ -1,3 +1,14 @@
+diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
+--- a/browser/base/content/nsContextMenu.js
++++ b/browser/base/content/nsContextMenu.js
+@@ -1524,7 +1524,6 @@ nsContextMenu.prototype = {
+           this._telemetryHadCustomItems ? "withcustom" : "withoutcustom"
+       ];
+       let target = this._telemetryClickID || "close-without-interaction";
+-      BrowserUITelemetry.registerContextMenuInteraction(eventKey, target);
+     };
+     let activationHandler = (e) => {
+       // Deal with command events being routed to command elements; figure out
 diff --git a/browser/base/content/urlbarBindings.xml b/browser/base/content/urlbarBindings.xml
 --- a/browser/base/content/urlbarBindings.xml
 +++ b/browser/base/content/urlbarBindings.xml

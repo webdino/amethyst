@@ -15,13 +15,12 @@ diff --git a/toolkit/mozapps/extensions/AddonManager.jsm b/toolkit/mozapps/exten
    systemUpdateEnabled() {
 -    if (!Services.prefs.getBoolPref(PREF_APP_UPDATE_ENABLED) ||
 -        !Services.prefs.getBoolPref(PREF_APP_UPDATE_AUTO)) {
--      return false;
+       return false;
 -    }
 -    if (Services.policies && !Services.policies.isAllowed("SysAddonUpdate")) {
 -      return false;
 -    }
 -    return true;
-+    return false;
    },
  
    /**
@@ -52,13 +51,12 @@ diff --git a/toolkit/mozapps/extensions/AddonManager.jsm b/toolkit/mozapps/exten
 -                                 Cr.NS_ERROR_INVALID_ARG);
 -
 -    if (!("applyBackgroundUpdates" in aAddon))
--      return false;
+       return false;
 -    if (aAddon.applyBackgroundUpdates == AddonManager.AUTOUPDATE_ENABLE)
 -      return true;
 -    if (aAddon.applyBackgroundUpdates == AddonManager.AUTOUPDATE_DISABLE)
 -      return false;
 -    return this.autoUpdateDefault;
-+    return false;
    },
  
    get checkCompatibility() {
@@ -72,9 +70,9 @@ diff --git a/toolkit/mozapps/extensions/content/extensions.js b/toolkit/mozapps/
 -      try {
 -        this.homepageURL = Services.io.newURI(aURL);
 -      } catch (e) {
--        this.showError();
--        notifyInitialized();
--        return;
+         this.showError();
+         notifyInitialized();
+         return;
 -      }
 -
 -      this._browser.homePage = this.homepageURL.spec;
@@ -84,9 +82,6 @@ diff --git a/toolkit/mozapps/extensions/content/extensions.js b/toolkit/mozapps/
 -        this._loadURL(this.homepageURL.spec, false, notifyInitialized);
 -      else
 -        notifyInitialized();
-+      this.showError();
-+      notifyInitialized();
-+      return;
      };
  
      if (!Services.prefs.getBoolPref(PREF_GETADDONS_CACHE_ENABLED)) {
@@ -107,6 +102,55 @@ diff --git a/toolkit/mozapps/extensions/internal/AddonRepository.jsm b/toolkit/m
    get cacheEnabled() {
 -    return Services.prefs.getBoolPref(PREF_GETADDONS_CACHE_ENABLED, false);
 +    return false;
+   },
+ 
+   /**
+@@ -427,47 +426,7 @@ var AddonRepository = {
+    */
+   _fetchPaged(ids, pref, handler) {
+     let startURL = this._formatURLPref(pref, {IDS: ids.join(",")});
+-    let results = [];
+-
+-    const fetchNextPage = (url) => {
+-      return new Promise((resolve, reject) => {
+-        let request = new ServiceRequest();
+-        request.mozBackgroundRequest = true;
+-        request.open("GET", url, true);
+-        request.responseType = "json";
+-
+-        request.addEventListener("error", aEvent => {
+-          reject(new Error(`GET ${url} failed`));
+-        });
+-        request.addEventListener("timeout", aEvent => {
+-          reject(new Error(`GET ${url} timed out`));
+-        });
+-        request.addEventListener("load", aEvent => {
+-          let response = request.response;
+-          if (!response || (request.status != 200 && request.status != 0)) {
+-            reject(new Error(`GET ${url} failed (status ${request.status})`));
+-            return;
+-          }
+-
+-          try {
+-            let newResults = handler(response.results).filter(e => ids.includes(e.id));
+-            results.push(...newResults);
+-          } catch (err) {
+-            reject(err);
+-          }
+-
+-          if (response.next) {
+-            resolve(fetchNextPage(response.next));
+-          }
+-
+-          resolve(results);
+-        });
+-
+-        request.send(null);
+-      });
+-    };
+-
+-    return fetchNextPage(startURL);
++    return Promise.reject(new Error(`GET ${startURL} failed`));
    },
  
    /**
@@ -186,7 +230,7 @@ diff --git a/toolkit/mozapps/extensions/nsBlocklistService.js b/toolkit/mozapps/
  
    notify(aTimer) {
 -    if (!gBlocklistEnabled)
--      return;
+       return;
 -
 -    try {
 -      var dsURI = Services.prefs.getCharPref(PREF_BLOCKLIST_URL);
@@ -309,7 +353,6 @@ diff --git a/toolkit/mozapps/extensions/nsBlocklistService.js b/toolkit/mozapps/
 -        // Bug 1254099 - Telemetry (success or errors) will be collected during this process.
 -      });
 -    }
-+    return;
    },
  
    async onXMLLoad(aEvent) {

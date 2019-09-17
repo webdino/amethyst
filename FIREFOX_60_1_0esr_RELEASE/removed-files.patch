@@ -28,10 +28,138 @@ diff --git a/browser/base/content/browser-sidebar.js b/browser/base/content/brow
    },
  };
  
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -15,9 +15,6 @@ const {WebExtensionPolicy} = Cu.getGloba
+ // lazy module getters
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+-  AboutHome: "resource:///modules/AboutHome.jsm",
+-  BrowserUITelemetry: "resource:///modules/BrowserUITelemetry.jsm",
+-  BrowserUsageTelemetry: "resource:///modules/BrowserUsageTelemetry.jsm",
+   BrowserUtils: "resource://gre/modules/BrowserUtils.jsm",
+   CharsetMenu: "resource://gre/modules/CharsetMenu.jsm",
+   Color: "resource://gre/modules/Color.jsm",
+@@ -61,9 +58,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   UITour: "resource:///modules/UITour.jsm",
+   UpdateUtils: "resource://gre/modules/UpdateUtils.jsm",
+   Utils: "resource://gre/modules/sessionstore/Utils.jsm",
+-  Weave: "resource://services-sync/main.js",
+   WebNavigationFrames: "resource://gre/modules/WebNavigationFrames.jsm",
+-  fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   webrtcUI: "resource:///modules/webrtcUI.jsm",
+   ZoomUI: "resource:///modules/ZoomUI.jsm",
+ });
+@@ -97,8 +92,6 @@ XPCOMUtils.defineLazyScriptGetter(this, 
+                                   "chrome://browser/content/browser-gestureSupport.js");
+ XPCOMUtils.defineLazyScriptGetter(this, "gSafeBrowsing",
+                                   "chrome://browser/content/browser-safebrowsing.js");
+-XPCOMUtils.defineLazyScriptGetter(this, "gSync",
+-                                  "chrome://browser/content/browser-sync.js");
+ XPCOMUtils.defineLazyScriptGetter(this, "gBrowserThumbnails",
+                                   "chrome://browser/content/browser-thumbnails.js");
+ XPCOMUtils.defineLazyScriptGetter(this, ["setContextMenuContentData",
+@@ -1740,11 +1733,6 @@ var gBrowserInit = {
+     }
+ 
+     scheduleIdleTask(() => {
+-      // Initialize the Sync UI
+-      gSync.init();
+-    });
+-
+-    scheduleIdleTask(() => {
+       CombinedStopReload.startAnimationPrefMonitoring();
+     });
+ 
+@@ -1847,8 +1835,6 @@ var gBrowserInit = {
+ 
+     FullScreen.uninit();
+ 
+-    gSync.uninit();
+-
+     gExtensionsNotifications.uninit();
+ 
+     Services.obs.removeObserver(gPluginHandler.NPAPIPluginCrashed, "plugin-crashed");
+@@ -4032,10 +4018,6 @@ const BrowserSearch = {
+    * BrowserSearch.loadSearch for the preferred API.
+    */
+   loadSearchFromContext(terms) {
+-    let engine = BrowserSearch._loadSearch(terms, true, "contextmenu");
+-    if (engine) {
+-      BrowserSearch.recordSearchInTelemetry(engine, "contextmenu");
+-    }
+   },
+ 
+   pasteAndSearch(event) {
+@@ -4090,12 +4072,6 @@ const BrowserSearch = {
+    *        selected it: {selection: {index: The selected index, kind: "key" or "mouse"}}
+    */
+   recordSearchInTelemetry(engine, source, details = {}) {
+-    BrowserUITelemetry.countSearchEvent(source, null, details.selection);
+-    try {
+-      BrowserUsageTelemetry.recordSearch(engine, source, details);
+-    } catch (ex) {
+-      Cu.reportError(ex);
+-    }
+   },
+ 
+   /**
+@@ -4114,14 +4090,6 @@ const BrowserSearch = {
+    *        (string) Where was the search link opened (e.g. new tab, current tab, ..).
+    */
+   recordOneoffSearchInTelemetry(engine, source, type, where) {
+-    let id = this._getSearchEngineId(engine) + "." + source;
+-    BrowserUITelemetry.countOneoffSearchEvent(id, type, where);
+-    try {
+-      const details = {type, isOneOff: true};
+-      BrowserUsageTelemetry.recordSearch(engine, source, details);
+-    } catch (ex) {
+-      Cu.reportError(ex);
+-    }
+   }
+ };
+ 
+@@ -7358,7 +7326,6 @@ function checkEmptyPageOrigin(browser = 
+ }
+ 
+ function BrowserOpenSyncTabs() {
+-  gSync.openSyncedTabsPanel();
+ }
+ 
+ function ReportFalseDeceptiveSite() {
+@@ -8988,8 +8955,6 @@ var TabContextMenu = {
+ 
+     this.contextTab.addEventListener("TabAttrModified", this);
+     aPopupMenu.addEventListener("popuphiding", this);
+-
+-    gSync.updateTabContextMenu(aPopupMenu, this.contextTab);
+   },
+   handleEvent(aEvent) {
+     switch (aEvent.type) {
 diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
 --- a/browser/base/content/nsContextMenu.js
 +++ b/browser/base/content/nsContextMenu.js
-@@ -1524,7 +1524,6 @@ nsContextMenu.prototype = {
+@@ -312,7 +312,6 @@ nsContextMenu.prototype = {
+     this.initLeaveDOMFullScreenItems();
+     this.initClickToPlayItems();
+     this.initPasswordManagerItems();
+-    this.initSyncItems();
+   },
+ 
+   initPageMenuSeparator: function CM_initPageMenuSeparator() {
+@@ -742,10 +741,6 @@ nsContextMenu.prototype = {
+     popup.insertBefore(fragment, insertBeforeElement);
+   },
+ 
+-  initSyncItems() {
+-    gSync.updateContentContextMenu(this);
+-  },
+-
+   openPasswordManager() {
+     LoginHelper.openPasswordManager(window, gContextMenuContentData.documentURIObject.host);
+   },
+@@ -1524,7 +1519,6 @@ nsContextMenu.prototype = {
            this._telemetryHadCustomItems ? "withcustom" : "withoutcustom"
        ];
        let target = this._telemetryClickID || "close-without-interaction";
@@ -52,6 +180,14 @@ diff --git a/browser/base/content/urlbarBindings.xml b/browser/base/content/urlb
            // Determine whether to use the selected one-off search button.  In
            // one-off search buttons parlance, "selected" means that the button
            // has been navigated to via the keyboard.  So we want to use it if
+@@ -922,7 +919,6 @@ file, You can obtain one at http://mozil
+           details.isOneOff = isOneOff;
+           details.type = eventType;
+ 
+-          BrowserSearch.recordSearchInTelemetry(engine, "urlbar", details);
+           let submission = engine.getSubmission(query, null, "keyword");
+           return [submission.uri.spec, submission.postData];
+         ]]></body>
 diff --git a/browser/base/jar.mn b/browser/base/jar.mn
 --- a/browser/base/jar.mn
 +++ b/browser/base/jar.mn
@@ -85,6 +221,34 @@ diff --git a/browser/base/jar.mn b/browser/base/jar.mn
  
          content/browser/illustrations/error-connection-failure.svg (content/illustrations/error-connection-failure.svg)
          content/browser/illustrations/error-server-not-found.svg (content/illustrations/error-server-not-found.svg)
+@@ -66,7 +43,6 @@ browser.jar:
+         content/browser/browser-plugins.js            (content/browser-plugins.js)
+         content/browser/browser-safebrowsing.js       (content/browser-safebrowsing.js)
+         content/browser/browser-sidebar.js            (content/browser-sidebar.js)
+-        content/browser/browser-sync.js               (content/browser-sync.js)
+ *       content/browser/browser-tabPreviews.xml       (content/browser-tabPreviews.xml)
+ #ifdef CAN_DRAW_IN_TITLEBAR
+         content/browser/browser-tabsintitlebar.js       (content/browser-tabsintitlebar.js)
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -146,16 +146,6 @@ AboutRedirector::NewChannel(nsIURI* aURI
+     if (!strcmp(path.get(), redir.id)) {
+       nsAutoCString url;
+ 
+-      // Let the aboutNewTabService decide where to redirect for about:home and
+-      // enabled about:newtab. Disabled about:newtab page uses fallback.
+-      if (path.EqualsLiteral("home") ||
+-          (sNewTabPageEnabled && path.EqualsLiteral("newtab"))) {
+-        nsCOMPtr<nsIAboutNewTabService> aboutNewTabService =
+-          do_GetService("@mozilla.org/browser/aboutnewtab-service;1", &rv);
+-        NS_ENSURE_SUCCESS(rv, rv);
+-        rv = aboutNewTabService->GetDefaultURL(url);
+-        NS_ENSURE_SUCCESS(rv, rv);
+-      }
+       // fall back to the specified url in the map
+       if (url.IsEmpty()) {
+         url.AssignASCII(redir.url);
 diff --git a/browser/components/nsBrowserContentHandler.js b/browser/components/nsBrowserContentHandler.js
 --- a/browser/components/nsBrowserContentHandler.js
 +++ b/browser/components/nsBrowserContentHandler.js
@@ -207,7 +371,15 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
    // nsIObserver implementation
    observe: function BG_observe(subject, topic, data) {
      switch (topic) {
-@@ -573,10 +533,6 @@ BrowserGlue.prototype = {
+@@ -533,7 +493,6 @@ BrowserGlue.prototype = {
+           Cu.reportError(ex);
+         }
+         let win = RecentWindow.getMostRecentBrowserWindow();
+-        win.BrowserSearch.recordSearchInTelemetry(engine, "urlbar");
+         break;
+       case "browser-search-engine-modified":
+         // Ensure we cleanup the hiddenOneOffs pref when removing
+@@ -573,10 +532,6 @@ BrowserGlue.prototype = {
          // shim for privileged api access.
          PdfJs.init(true);
          break;
@@ -218,7 +390,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      }
    },
  
-@@ -613,7 +569,6 @@ BrowserGlue.prototype = {
+@@ -613,7 +568,6 @@ BrowserGlue.prototype = {
      os.addObserver(this, "xpi-signature-changed");
      os.addObserver(this, "sync-ui-state:update");
      os.addObserver(this, "handlersvc-store-initialized");
@@ -226,7 +398,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
  
      this._flashHangCount = 0;
      this._firstWindowReady = new Promise(resolve => this._firstWindowLoaded = resolve);
-@@ -666,7 +621,6 @@ BrowserGlue.prototype = {
+@@ -666,7 +620,6 @@ BrowserGlue.prototype = {
      os.removeObserver(this, "flash-plugin-hang");
      os.removeObserver(this, "xpi-signature-changed");
      os.removeObserver(this, "sync-ui-state:update");
@@ -234,7 +406,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
    },
  
    _onAppDefaults: function BG__onAppDefaults() {
-@@ -716,8 +670,6 @@ BrowserGlue.prototype = {
+@@ -716,8 +669,6 @@ BrowserGlue.prototype = {
        author: vendorShortName,
      });
  
@@ -243,7 +415,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      // Initialize the default l10n resource sources for L10nRegistry.
      let locales = Services.locale.getPackagedLocales();
      const appSource = new FileSource("app", locales, "resource://app/localization/{locale}/");
-@@ -1048,23 +1000,10 @@ BrowserGlue.prototype = {
+@@ -1048,23 +999,10 @@ BrowserGlue.prototype = {
        }
      }
  
@@ -267,7 +439,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
    },
  
    // All initial windows have opened.
-@@ -1074,14 +1013,6 @@ BrowserGlue.prototype = {
+@@ -1074,14 +1012,6 @@ BrowserGlue.prototype = {
      }
      this._windowsWereRestored = true;
  
@@ -282,7 +454,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      // Show update notification, if needed.
      if (Services.prefs.prefHasUserValue("app.update.postupdate"))
        this._showUpdateNotification();
-@@ -2466,19 +2397,6 @@ BrowserGlue.prototype = {
+@@ -2466,19 +2396,6 @@ BrowserGlue.prototype = {
      // Firefox 60, the hardcoded default was to show history/bookmarks first.
      // After 60, it's to show search suggestions first.
  
@@ -302,7 +474,7 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
      // Now get the pref's value.  If the study is active, the value will have
      // just been set (on the default branch) as part of Shield's init.  The pref
      // should not exist otherwise (normally).
-@@ -3283,10 +3201,3 @@ var globalMM = Cc["@mozilla.org/globalme
+@@ -3283,10 +3200,3 @@ var globalMM = Cc["@mozilla.org/globalme
  globalMM.addMessageListener("UITour:onPageEvent", function(aMessage) {
    UITour.onPageEvent(aMessage, aMessage.data);
  });
@@ -313,6 +485,26 @@ diff --git a/browser/components/nsBrowserGlue.js b/browser/components/nsBrowserG
 -globalMM.addMessageListener("HybridContentTelemetry:onTelemetryMessage", aMessage => {
 -  HybridContentTelemetry.onTelemetryMessage(aMessage, aMessage.data);
 -});
+diff --git a/browser/components/preferences/in-content/jar.mn b/browser/components/preferences/in-content/jar.mn
+--- a/browser/components/preferences/in-content/jar.mn
++++ b/browser/components/preferences/in-content/jar.mn
+@@ -12,5 +12,4 @@ browser.jar:
+    content/browser/preferences/in-content/search.js
+    content/browser/preferences/in-content/privacy.js
+    content/browser/preferences/in-content/containers.js
+-   content/browser/preferences/in-content/sync.js
+    content/browser/preferences/in-content/findInPage.js
+diff --git a/browser/components/preferences/in-content/preferences.xul b/browser/components/preferences/in-content/preferences.xul
+--- a/browser/components/preferences/in-content/preferences.xul
++++ b/browser/components/preferences/in-content/preferences.xul
+@@ -220,7 +220,6 @@
+ #include search.xul
+ #include privacy.xul
+ #include containers.xul
+-#include sync.xul
+         </vbox>
+       </vbox>
+     </vbox>
 diff --git a/browser/components/search/content/search.xml b/browser/components/search/content/search.xml
 --- a/browser/components/search/content/search.xml
 +++ b/browser/components/search/content/search.xml
@@ -357,7 +549,16 @@ diff --git a/browser/components/search/content/search.xml b/browser/components/s
              // Handle search bar popup clicks
              var search = this.input.controller.getValueAt(this.selectedIndex);
  
-@@ -2208,8 +2195,6 @@
+@@ -1440,8 +1427,6 @@
+ 
+       <method name="showSettings">
+         <body><![CDATA[
+-          BrowserUITelemetry.countSearchSettingsEvent(this.telemetryOrigin);
+-
+           openPreferences("paneSearch", {origin: "contentSearch"});
+ 
+           // If the preference tab was already selected, the panel doesn't
+@@ -2208,8 +2193,6 @@
                                aOpenUILinkParams &&
                                aOpenUILinkParams.inBackground;
            let where = tabBackground ? "tab-background" : aOpenUILinkWhere;
@@ -396,10 +597,14 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  @RESPATH@/browser/components/shellservice.xpt
  @RESPATH@/components/shistory.xpt
  @RESPATH@/components/spellchecker.xpt
-@@ -486,12 +485,8 @@
- @RESPATH@/components/Weave.js
- @RESPATH@/components/FxAccountsComponents.manifest
- @RESPATH@/components/FxAccountsPush.js
+@@ -482,16 +481,8 @@
+ @RESPATH@/components/nsINIProcessor.js
+ @RESPATH@/components/nsPrompter.manifest
+ @RESPATH@/components/nsPrompter.js
+-@RESPATH@/components/SyncComponents.manifest
+-@RESPATH@/components/Weave.js
+-@RESPATH@/components/FxAccountsComponents.manifest
+-@RESPATH@/components/FxAccountsPush.js
 -@RESPATH@/components/CaptivePortalDetectComponents.manifest
 -@RESPATH@/components/captivedetect.js
  @RESPATH@/components/servicesComponents.manifest
@@ -409,7 +614,17 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  @RESPATH@/components/XULStore.js
  @RESPATH@/components/XULStore.manifest
  @RESPATH@/components/recording-cmdline.js
-@@ -782,14 +777,8 @@ bin/libfreebl_32int64_3.so
+@@ -655,9 +646,6 @@
+ ; defined in ../../testing/marionette/prefs/marionette.js
+ @RESPATH@/defaults/pref/marionette.js
+ 
+-; Services (gre) prefs
+-@RESPATH@/defaults/pref/services-sync.js
+-
+ ; [Layout Engine Resources]
+ ; Style Sheets, Graphics and other Resources used by the layout engine.
+ @RESPATH@/res/EditorOverride.css
+@@ -782,14 +770,8 @@ bin/libfreebl_32int64_3.so
  
  ; [ Ping Sender ]
  ;
@@ -424,7 +639,7 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
  #ifdef LLVM_SYMBOLIZER
  @BINPATH@/@LLVM_SYMBOLIZER@
  #endif
-@@ -824,13 +813,6 @@ bin/libfreebl_32int64_3.so
+@@ -824,13 +806,6 @@ bin/libfreebl_32int64_3.so
  ; Background Hang Monitor
  @RESPATH@/components/backgroundhangmonitor.xpt
  
@@ -441,7 +656,12 @@ diff --git a/browser/installer/package-manifest.in b/browser/installer/package-m
 diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
 --- a/browser/locales/Makefile.in
 +++ b/browser/locales/Makefile.in
-@@ -77,8 +77,6 @@ libs-%:
+@@ -72,13 +72,10 @@ libs-%:
+ 	$(if $(filter en-US,$(AB_CD)),, @$(MAKE) merge-$*)
+ 	$(NSINSTALL) -D $(DIST)/install
+ 	@$(MAKE) -C ../../toolkit/locales libs-$* XPI_ROOT_APPID='$(XPI_ROOT_APPID)'
+-	@$(MAKE) -C ../../services/sync/locales AB_CD=$* XPI_NAME=locale-$*
+ 	@$(MAKE) -C ../../extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
  ifneq (,$(wildcard ../extensions/formautofill/locales))
  	@$(MAKE) -C ../extensions/formautofill/locales AB_CD=$* XPI_NAME=locale-$*
  endif
@@ -450,6 +670,26 @@ diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
  ifndef RELEASE_OR_BETA
  	@$(MAKE) -C ../extensions/presentation/locale AB_CD=$* XPI_NAME=locale-$*
  endif
+@@ -97,7 +94,6 @@ chrome-%: IS_LANGUAGE_REPACK=1
+ chrome-%:
+ 	$(if $(filter en-US,$(AB_CD)),, @$(MAKE) merge-$*)
+ 	@$(MAKE) -C ../../toolkit/locales chrome-$*
+-	@$(MAKE) -C ../../services/sync/locales chrome AB_CD=$*
+ 	@$(MAKE) -C ../../extensions/spellcheck/locales chrome AB_CD=$*
+ ifneq (,$(wildcard ../extensions/formautofill/locales))
+ 	@$(MAKE) -C ../extensions/formautofill/locales chrome AB_CD=$*
+diff --git a/browser/modules/ContentSearch.jsm b/browser/modules/ContentSearch.jsm
+--- a/browser/modules/ContentSearch.jsm
++++ b/browser/modules/ContentSearch.jsm
+@@ -249,8 +249,6 @@ var ContentSearch = {
+       };
+       win.openUILinkIn(submission.uri.spec, where, params);
+     }
+-    win.BrowserSearch.recordSearchInTelemetry(engine, data.healthReportKey,
+-                                              { selection: data.selection });
+   },
+ 
+   async getSuggestions(engineName, searchString, browser) {
 diff --git a/browser/modules/moz.build b/browser/modules/moz.build
 --- a/browser/modules/moz.build
 +++ b/browser/modules/moz.build
@@ -625,6 +865,19 @@ diff --git a/netwerk/base/CaptivePortalService.h b/netwerk/base/CaptivePortalSer
    int32_t                               mState;
  
    nsCOMPtr<nsITimer>                    mTimer;
+diff --git a/services/moz.build b/services/moz.build
+--- a/services/moz.build
++++ b/services/moz.build
+@@ -14,9 +14,5 @@ DIRS += [
+ 
+ if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'android':
+     DIRS += [
+-        'fxaccounts',
+         'blocklists',
+     ]
+-
+-if CONFIG['MOZ_SERVICES_SYNC']:
+-    DIRS += ['sync']
 diff --git a/toolkit/components/backgroundhangmonitor/moz.build b/toolkit/components/backgroundhangmonitor/moz.build
 --- a/toolkit/components/backgroundhangmonitor/moz.build
 +++ b/toolkit/components/backgroundhangmonitor/moz.build

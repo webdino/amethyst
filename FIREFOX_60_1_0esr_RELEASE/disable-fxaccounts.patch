@@ -1,0 +1,151 @@
+diff --git a/browser/base/content/browser-sync.js b/browser/base/content/browser-sync.js
+--- a/browser/base/content/browser-sync.js
++++ b/browser/base/content/browser-sync.js
+@@ -95,8 +95,7 @@ var gSync = {
+         });
+     XPCOMUtils.defineLazyPreferenceGetter(this, "PRODUCT_INFO_BASE_URL",
+         "app.productInfo.baseURL");
+-    XPCOMUtils.defineLazyPreferenceGetter(this, "SYNC_ENABLED",
+-        "identity.fxaccounts.enabled");
++    this.SYNC_ENABLED = false;
+   },
+ 
+   _maybeUpdateUIState() {
+diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
+--- a/browser/components/customizableui/CustomizableWidgets.jsm
++++ b/browser/components/customizableui/CustomizableWidgets.jsm
+@@ -550,7 +550,7 @@ const CustomizableWidgets = [
+     }
+   }];
+ 
+-if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
++if (false) {
+   CustomizableWidgets.push({
+     id: "sync-button",
+     label: "remotetabs-panelmenu.label",
+diff --git a/browser/components/preferences/in-content/main.js b/browser/components/preferences/in-content/main.js
+--- a/browser/components/preferences/in-content/main.js
++++ b/browser/components/preferences/in-content/main.js
+@@ -98,13 +98,6 @@ const APP_ICON_ATTR_NAME = "appHandlerIc
+ ChromeUtils.defineModuleGetter(this, "OS",
+   "resource://gre/modules/osfile.jsm");
+ 
+-if (AppConstants.MOZ_DEV_EDITION) {
+-  ChromeUtils.defineModuleGetter(this, "fxAccounts",
+-    "resource://gre/modules/FxAccounts.jsm");
+-  ChromeUtils.defineModuleGetter(this, "FxAccounts",
+-    "resource://gre/modules/FxAccounts.jsm");
+-}
+-
+ Preferences.addAll([
+   // Startup
+   { id: "browser.startup.page", type: "int" },
+@@ -466,13 +459,6 @@ var gMainPane = {
+ 
+       OS.File.stat(ignoreSeparateProfile).then(() => separateProfileModeCheckbox.checked = false,
+         () => separateProfileModeCheckbox.checked = true);
+-
+-      if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+-        document.getElementById("sync-dev-edition-root").hidden = false;
+-        fxAccounts.getSignedInUser().then(data => {
+-          document.getElementById("getStarted").selectedIndex = data ? 1 : 0;
+-        }).catch(Cu.reportError);
+-      }
+     }
+ 
+     // Initialize the Firefox Updates section.
+@@ -729,15 +715,6 @@ var gMainPane = {
+     if (!win) {
+       return;
+     }
+-    const user = await fxAccounts.getSignedInUser();
+-    if (user) {
+-      // We have a user, open Sync preferences in the same tab
+-      win.openUILinkIn("about:preferences#sync", "current");
+-      return;
+-    }
+-    let url = await FxAccounts.config.promiseSignInURI("dev-edition-setup");
+-    let accountsTab = win.gBrowser.addTab(url);
+-    win.gBrowser.selectedTab = accountsTab;
+   },
+ 
+   // HOME PAGE
+diff --git a/browser/components/preferences/in-content/preferences.js b/browser/components/preferences/in-content/preferences.js
+--- a/browser/components/preferences/in-content/preferences.js
++++ b/browser/components/preferences/in-content/preferences.js
+@@ -55,11 +55,6 @@ function init_all() {
+   register_module("paneSearch", gSearchPane);
+   register_module("panePrivacy", gPrivacyPane);
+   register_module("paneContainers", gContainersPane);
+-  if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+-    document.getElementById("category-sync").hidden = false;
+-    document.getElementById("weavePrefsDeck").removeAttribute("data-hidden-from-search");
+-    register_module("paneSync", gSyncPane);
+-  }
+   register_module("paneSearchResults", gSearchResultsPane);
+   gSearchResultsPane.init();
+   gMainPane.preInit();
+diff --git a/browser/extensions/onboarding/bootstrap.js b/browser/extensions/onboarding/bootstrap.js
+--- a/browser/extensions/onboarding/bootstrap.js
++++ b/browser/extensions/onboarding/bootstrap.js
+@@ -98,9 +98,7 @@ let syncTourChecker = {
+   },
+ 
+   init() {
+-    if (!Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+       return;
+-    }
+     // Check if we've already logged in at startup.
+     const state = UIState.get();
+     if (state.status != UIState.STATUS_NOT_CONFIGURED) {
+diff --git a/browser/extensions/onboarding/content/onboarding.js b/browser/extensions/onboarding/content/onboarding.js
+--- a/browser/extensions/onboarding/content/onboarding.js
++++ b/browser/extensions/onboarding/content/onboarding.js
+@@ -560,10 +560,7 @@ class Onboarding {
+   _getTourIDList() {
+     let tours = Services.prefs.getStringPref(`browser.onboarding.${this._tourType}tour`, "");
+     return tours.split(",").filter(tourId => {
+-      if (tourId === "sync" && !Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+         return false;
+-      }
+-      return tourId !== "";
+     }).map(tourId => tourId.trim());
+   }
+ 
+diff --git a/browser/modules/PageActions.jsm b/browser/modules/PageActions.jsm
+--- a/browser/modules/PageActions.jsm
++++ b/browser/modules/PageActions.jsm
+@@ -1221,7 +1221,7 @@ var gBuiltInActions = [
+   }
+ ];
+ 
+-if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
++if (false) {
+   gBuiltInActions.push(
+   // send to device
+   {
+diff --git a/services/fxaccounts/FxAccounts.jsm b/services/fxaccounts/FxAccounts.jsm
+--- a/services/fxaccounts/FxAccounts.jsm
++++ b/services/fxaccounts/FxAccounts.jsm
+@@ -36,8 +36,7 @@ ChromeUtils.defineModuleGetter(this, "Fx
+ ChromeUtils.defineModuleGetter(this, "Utils",
+   "resource://services-sync/util.js");
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(this, "FXA_ENABLED",
+-    "identity.fxaccounts.enabled", true);
++var FXA_ENABLED = false;
+ 
+ // All properties exposed by the public FxAccounts API.
+ var publicProperties = [
+diff --git a/services/sync/Weave.js b/services/sync/Weave.js
+--- a/services/sync/Weave.js
++++ b/services/sync/Weave.js
+@@ -123,7 +123,7 @@ WeaveService.prototype = {
+    * For that, you'll want to check Weave.Status.checkSetup().
+    */
+   get enabled() {
+-    return !!syncUsername && Services.prefs.getBoolPref("identity.fxaccounts.enabled");
++    return false;
+   }
+ };
+ 

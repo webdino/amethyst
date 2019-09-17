@@ -1,3 +1,29 @@
+diff --git a/security/certverifier/NSSCertDBTrustDomain.cpp b/security/certverifier/NSSCertDBTrustDomain.cpp
+--- a/security/certverifier/NSSCertDBTrustDomain.cpp
++++ b/security/certverifier/NSSCertDBTrustDomain.cpp
+@@ -587,10 +587,7 @@ NSSCertDBTrustDomain::CheckRevocation(En
+     // Owned by arena
+     SECItem* responseSECItem = nullptr;
+     Result tempRV =
+-      DoOCSPRequest(arena, url, mOriginAttributes, &ocspRequestItem,
+-                    GetOCSPTimeout(),
+-                    mOCSPGetConfig == CertVerifier::ocspGetEnabled,
+-                    responseSECItem);
++      Result::ERROR_OCSP_SERVER_ERROR;
+     MOZ_ASSERT((tempRV != Success) || responseSECItem);
+     if (tempRV != Success) {
+       rv = tempRV;
+diff --git a/security/certverifier/moz.build b/security/certverifier/moz.build
+--- a/security/certverifier/moz.build
++++ b/security/certverifier/moz.build
+@@ -35,7 +35,6 @@ UNIFIED_SOURCES += [
+     'MultiLogCTVerifier.cpp',
+     'NSSCertDBTrustDomain.cpp',
+     'OCSPCache.cpp',
+-    'OCSPRequestor.cpp',
+     'OCSPVerificationTrustDomain.cpp',
+     'SignedCertificateTimestamp.cpp',
+ ]
 diff --git a/security/manager/ssl/nsNSSComponent.cpp b/security/manager/ssl/nsNSSComponent.cpp
 --- a/security/manager/ssl/nsNSSComponent.cpp
 +++ b/security/manager/ssl/nsNSSComponent.cpp
@@ -10,3 +36,56 @@ diff --git a/security/manager/ssl/nsNSSComponent.cpp b/security/manager/ssl/nsNS
    switch (ocspLevel) {
      case 0: *odc = CertVerifier::ocspOff; break;
      case 2: *odc = CertVerifier::ocspEVOnly; break;
+diff --git a/security/nss/lib/certhigh/certhigh.gyp b/security/nss/lib/certhigh/certhigh.gyp
+--- a/security/nss/lib/certhigh/certhigh.gyp
++++ b/security/nss/lib/certhigh/certhigh.gyp
+@@ -16,8 +16,6 @@
+         'certvfy.c',
+         'certvfypkix.c',
+         'crlv2.c',
+-        'ocsp.c',
+-        'ocspsig.c',
+         'xcrldist.c'
+       ],
+       'dependencies': [
+@@ -28,4 +26,4 @@
+   'variables': {
+     'module': 'nss'
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/security/nss/lib/certhigh/manifest.mn b/security/nss/lib/certhigh/manifest.mn
+--- a/security/nss/lib/certhigh/manifest.mn
++++ b/security/nss/lib/certhigh/manifest.mn
+@@ -20,8 +20,6 @@ CSRCS = \
+ 	certhtml.c \
+ 	certreq.c \
+ 	crlv2.c \
+-	ocsp.c \
+-	ocspsig.c \
+ 	certhigh.c \
+  	certvfy.c \
+  	certvfypkix.c \
+diff --git a/security/nss/lib/nss/nssinit.c b/security/nss/lib/nss/nssinit.c
+--- a/security/nss/lib/nss/nssinit.c
++++ b/security/nss/lib/nss/nssinit.c
+@@ -616,10 +616,6 @@ nss_Init(const char *configdir, const ch
+         if (SECSuccess != InitCRLCache()) {
+             goto loser;
+         }
+-
+-        if (SECSuccess != OCSP_InitGlobal()) {
+-            goto loser;
+-        }
+     }
+ 
+     if (noSingleThreadedModules || allowAlreadyInitializedModules ||
+@@ -1152,7 +1148,6 @@ nss_Shutdown(void)
+     }
+     cert_DestroyLocks();
+     ShutdownCRLCache();
+-    OCSP_ShutdownGlobal();
+ #ifndef NSS_DISABLE_LIBPKIX
+     PKIX_Shutdown(plContext);
+ #endif /* NSS_DISABLE_LIBPKIX */

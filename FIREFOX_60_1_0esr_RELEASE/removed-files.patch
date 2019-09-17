@@ -60,7 +60,15 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
  XPCOMUtils.defineLazyScriptGetter(this, "gBrowserThumbnails",
                                    "chrome://browser/content/browser-thumbnails.js");
  XPCOMUtils.defineLazyScriptGetter(this, ["setContextMenuContentData",
-@@ -1740,11 +1733,6 @@ var gBrowserInit = {
+@@ -1302,7 +1295,6 @@ var gBrowserInit = {
+     mm.loadFrameScript("chrome://browser/content/tab-content.js", true);
+     mm.loadFrameScript("chrome://browser/content/content.js", true);
+     mm.loadFrameScript("chrome://browser/content/content-UITour.js", true);
+-    mm.loadFrameScript("chrome://global/content/content-HybridContentTelemetry.js", true);
+     mm.loadFrameScript("chrome://global/content/manifestMessages.js", true);
+ 
+     window.messageManager.addMessageListener("Browser:LoadURI", RedirectLoad);
+@@ -1740,11 +1732,6 @@ var gBrowserInit = {
      }
  
      scheduleIdleTask(() => {
@@ -72,7 +80,7 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
        CombinedStopReload.startAnimationPrefMonitoring();
      });
  
-@@ -1847,8 +1835,6 @@ var gBrowserInit = {
+@@ -1847,8 +1834,6 @@ var gBrowserInit = {
  
      FullScreen.uninit();
  
@@ -81,7 +89,7 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
      gExtensionsNotifications.uninit();
  
      Services.obs.removeObserver(gPluginHandler.NPAPIPluginCrashed, "plugin-crashed");
-@@ -4032,10 +4018,6 @@ const BrowserSearch = {
+@@ -4032,10 +4017,6 @@ const BrowserSearch = {
     * BrowserSearch.loadSearch for the preferred API.
     */
    loadSearchFromContext(terms) {
@@ -92,7 +100,7 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
    },
  
    pasteAndSearch(event) {
-@@ -4090,12 +4072,6 @@ const BrowserSearch = {
+@@ -4090,12 +4071,6 @@ const BrowserSearch = {
     *        selected it: {selection: {index: The selected index, kind: "key" or "mouse"}}
     */
    recordSearchInTelemetry(engine, source, details = {}) {
@@ -105,7 +113,7 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
    },
  
    /**
-@@ -4114,14 +4090,6 @@ const BrowserSearch = {
+@@ -4114,14 +4089,6 @@ const BrowserSearch = {
     *        (string) Where was the search link opened (e.g. new tab, current tab, ..).
     */
    recordOneoffSearchInTelemetry(engine, source, type, where) {
@@ -120,7 +128,7 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
    }
  };
  
-@@ -7358,7 +7326,6 @@ function checkEmptyPageOrigin(browser = 
+@@ -7358,7 +7325,6 @@ function checkEmptyPageOrigin(browser = 
  }
  
  function BrowserOpenSyncTabs() {
@@ -128,7 +136,7 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
  }
  
  function ReportFalseDeceptiveSite() {
-@@ -8988,8 +8955,6 @@ var TabContextMenu = {
+@@ -8988,8 +8954,6 @@ var TabContextMenu = {
  
      this.contextTab.addEventListener("TabAttrModified", this);
      aPopupMenu.addEventListener("popuphiding", this);
@@ -167,6 +175,22 @@ diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsCont
      };
      let activationHandler = (e) => {
        // Deal with command events being routed to command elements; figure out
+diff --git a/browser/base/content/tabbrowser.xml b/browser/base/content/tabbrowser.xml
+--- a/browser/base/content/tabbrowser.xml
++++ b/browser/base/content/tabbrowser.xml
+@@ -1926,12 +1926,10 @@
+             if (browser.audioMuted) {
+               browser.unmute();
+               this.removeAttribute("muted");
+-              BrowserUITelemetry.countTabMutingEvent("unmute", aMuteReason);
+               hist.add(1 /* unmute */);
+             } else {
+               browser.mute();
+               this.setAttribute("muted", "true");
+-              BrowserUITelemetry.countTabMutingEvent("mute", aMuteReason);
+               hist.add(0 /* mute */);
+             }
+             this.muteReason = aMuteReason || null;
 diff --git a/browser/base/content/urlbarBindings.xml b/browser/base/content/urlbarBindings.xml
 --- a/browser/base/content/urlbarBindings.xml
 +++ b/browser/base/content/urlbarBindings.xml
@@ -249,6 +273,128 @@ diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/a
        // fall back to the specified url in the map
        if (url.IsEmpty()) {
          url.AssignASCII(redir.url);
+diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
+--- a/browser/components/customizableui/CustomizableWidgets.jsm
++++ b/browser/components/customizableui/CustomizableWidgets.jsm
+@@ -12,7 +12,6 @@ ChromeUtils.import("resource://gre/modul
+ ChromeUtils.import("resource://gre/modules/AppConstants.jsm");
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+-  BrowserUITelemetry: "resource:///modules/BrowserUITelemetry.jsm",
+   PanelView: "resource:///modules/PanelMultiView.jsm",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
+   PlacesUIUtils: "resource:///modules/PlacesUIUtils.jsm",
+@@ -770,7 +769,6 @@ if (Services.prefs.getBoolPref("identity
+         } else {
+           CustomizableUI.hidePanelForNode(item);
+         }
+-        BrowserUITelemetry.countSyncedTabEvent("open", "toolbarbutton-subview");
+       });
+       return item;
+     },
+@@ -827,7 +825,6 @@ if (Services.prefs.getBoolPref("privacy.
+     forgetButtonCalled(aEvent) {
+       let doc = aEvent.target.ownerDocument;
+       let group = doc.getElementById("PanelUI-panic-timeSpan");
+-      BrowserUITelemetry.countPanicEvent(group.selectedItem.id);
+       let itemsToClear = [
+         "cookies", "history", "openWindows", "formdata", "sessions", "cache", "downloads"
+       ];
+diff --git a/browser/components/customizableui/CustomizeMode.jsm b/browser/components/customizableui/CustomizeMode.jsm
+--- a/browser/components/customizableui/CustomizeMode.jsm
++++ b/browser/components/customizableui/CustomizeMode.jsm
+@@ -31,8 +31,6 @@ Cu.importGlobalProperties(["CSS"]);
+ 
+ ChromeUtils.defineModuleGetter(this, "DragPositionManager",
+                                "resource:///modules/DragPositionManager.jsm");
+-ChromeUtils.defineModuleGetter(this, "BrowserUITelemetry",
+-                               "resource:///modules/BrowserUITelemetry.jsm");
+ ChromeUtils.defineModuleGetter(this, "BrowserUtils",
+                                "resource://gre/modules/BrowserUtils.jsm");
+ ChromeUtils.defineModuleGetter(this, "LightweightThemeManager",
+@@ -1081,7 +1079,6 @@ CustomizeMode.prototype = {
+     this.resetting = true;
+     // Disable the reset button temporarily while resetting:
+     let btn = this.document.getElementById("customization-reset-button");
+-    BrowserUITelemetry.countCustomizationEvent("reset");
+     btn.disabled = true;
+     return (async () => {
+       await this.depopulatePalette();
+@@ -1908,7 +1905,6 @@ CustomizeMode.prototype = {
+         }
+ 
+         CustomizableUI.removeWidgetFromArea(aDraggedItemId);
+-        BrowserUITelemetry.countCustomizationEvent("remove");
+         // Special widgets are removed outright, we can return here:
+         if (CustomizableUI.isSpecialWidget(aDraggedItemId)) {
+           return;
+@@ -1950,7 +1946,6 @@ CustomizeMode.prototype = {
+         this.wrapToolbarItem(aTargetNode, place);
+       }
+       this.wrapToolbarItem(draggedItem, place);
+-      BrowserUITelemetry.countCustomizationEvent("move");
+       return;
+     }
+ 
+@@ -1958,12 +1953,6 @@ CustomizeMode.prototype = {
+     // widget to the end of the area.
+     if (aTargetNode == aTargetArea.customizationTarget) {
+       CustomizableUI.addWidgetToArea(aDraggedItemId, aTargetArea.id);
+-      // For the purposes of BrowserUITelemetry, we consider both moving a widget
+-      // within the same area, and adding a widget from one area to another area
+-      // as a "move". An "add" is only when we move an item from the palette into
+-      // an area.
+-      let custEventType = aOriginArea.id == kPaletteId ? "add" : "move";
+-      BrowserUITelemetry.countCustomizationEvent(custEventType);
+       this._onDragEnd(aEvent);
+       return;
+     }
+@@ -2008,11 +1997,6 @@ CustomizeMode.prototype = {
+ 
+     this._onDragEnd(aEvent);
+ 
+-    // For BrowserUITelemetry, an "add" is only when we move an item from the palette
+-    // into an area. Otherwise, it's a move.
+-    let custEventType = aOriginArea.id == kPaletteId ? "add" : "move";
+-    BrowserUITelemetry.countCustomizationEvent(custEventType);
+-
+     // If we dropped onto a skipintoolbarset item, manually correct the drop location:
+     if (aTargetNode != itemForPlacement) {
+       let draggedWrapper = draggedItem.parentNode;
+diff --git a/browser/components/newtab/aboutNewTabService.js b/browser/components/newtab/aboutNewTabService.js
+--- a/browser/components/newtab/aboutNewTabService.js
++++ b/browser/components/newtab/aboutNewTabService.js
+@@ -10,9 +10,6 @@ ChromeUtils.import("resource://gre/modul
+ ChromeUtils.import("resource://gre/modules/Services.jsm");
+ ChromeUtils.import("resource://gre/modules/AppConstants.jsm");
+ 
+-ChromeUtils.defineModuleGetter(this, "AboutNewTab",
+-                               "resource:///modules/AboutNewTab.jsm");
+-
+ // Dummy references to the files that this service no longer allows loading.
+ // Bug 1409054 to remove "chrome://browser/content/abouthome/aboutHome.xhtml"
+ 
+@@ -44,10 +41,6 @@ function AboutNewTabService() {
+   // More initialization happens here
+   this.toggleActivityStream(true);
+   this.initialized = true;
+-
+-  if (IS_MAIN_PROCESS) {
+-    AboutNewTab.init();
+-  }
+ }
+ 
+ /*
+@@ -114,9 +107,6 @@ AboutNewTabService.prototype = {
+         break;
+       case TOPIC_APP_QUIT:
+         this.uninit();
+-        if (IS_MAIN_PROCESS) {
+-          AboutNewTab.uninit();
+-        }
+         break;
+       case TOPIC_LOCALES_CHANGE:
+         this.updatePrerenderedPath();
 diff --git a/browser/components/nsBrowserContentHandler.js b/browser/components/nsBrowserContentHandler.js
 --- a/browser/components/nsBrowserContentHandler.js
 +++ b/browser/components/nsBrowserContentHandler.js
@@ -567,6 +713,76 @@ diff --git a/browser/components/search/content/search.xml b/browser/components/s
            return true;
          ]]></body>
        </method>
+diff --git a/browser/components/syncedtabs/TabListComponent.js b/browser/components/syncedtabs/TabListComponent.js
+--- a/browser/components/syncedtabs/TabListComponent.js
++++ b/browser/components/syncedtabs/TabListComponent.js
+@@ -11,7 +11,6 @@ let log = ChromeUtils.import("resource:/
+             .Log.repository.getLogger("Sync.RemoteTabs");
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+-  BrowserUITelemetry: "resource:///modules/BrowserUITelemetry.jsm",
+   OpenInTabsUtils: "resource:///modules/OpenInTabsUtils.jsm",
+ });
+ 
+@@ -114,7 +113,6 @@ TabListComponent.prototype = {
+ 
+   onOpenTab(url, where, params) {
+     this._window.openUILinkIn(url, where, params);
+-    BrowserUITelemetry.countSyncedTabEvent("open", "sidebar");
+   },
+ 
+   onOpenTabs(urls, where) {
+@@ -132,7 +130,6 @@ TabListComponent.prototype = {
+         triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
+       });
+     }
+-    BrowserUITelemetry.countSyncedTabEvent("openmultiple", "sidebar");
+   },
+ 
+   onCopyTabLocation(url) {
+diff --git a/browser/components/uitour/UITour.jsm b/browser/components/uitour/UITour.jsm
+--- a/browser/components/uitour/UITour.jsm
++++ b/browser/components/uitour/UITour.jsm
+@@ -14,8 +14,6 @@ ChromeUtils.import("resource://gre/modul
+ 
+ Cu.importGlobalProperties(["URL"]);
+ 
+-ChromeUtils.defineModuleGetter(this, "BrowserUITelemetry",
+-  "resource:///modules/BrowserUITelemetry.jsm");
+ ChromeUtils.defineModuleGetter(this, "CustomizableUI",
+   "resource:///modules/CustomizableUI.jsm");
+ ChromeUtils.defineModuleGetter(this, "FxAccounts",
+@@ -391,13 +389,6 @@ var UITour = {
+           break;
+         }
+ 
+-        // We don't want to allow BrowserUITelemetry.BUCKET_SEPARATOR in the
+-        // pageID, as it could make parsing the telemetry bucket name difficult.
+-        if (data.pageID.includes(BrowserUITelemetry.BUCKET_SEPARATOR)) {
+-          log.warn("registerPageID: Invalid page ID specified");
+-          break;
+-        }
+-
+         this.addSeenPageID(data.pageID);
+         this.pageIDSourceBrowsers.set(browser, data.pageID);
+         this.setTelemetryBucket(data.pageID);
+@@ -818,16 +809,9 @@ var UITour = {
+   },
+ 
+   setTelemetryBucket(aPageID) {
+-    let bucket = BUCKET_NAME + BrowserUITelemetry.BUCKET_SEPARATOR + aPageID;
+-    BrowserUITelemetry.setBucket(bucket);
+   },
+ 
+   setExpiringTelemetryBucket(aPageID, aType) {
+-    let bucket = BUCKET_NAME + BrowserUITelemetry.BUCKET_SEPARATOR + aPageID +
+-                 BrowserUITelemetry.BUCKET_SEPARATOR + aType;
+-
+-    BrowserUITelemetry.setExpiringBucket(bucket,
+-                                         BUCKET_TIMESTEPS);
+   },
+ 
+   // This is registered with UITelemetry by BrowserUITelemetry, so that UITour
 diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
 --- a/browser/extensions/moz.build
 +++ b/browser/extensions/moz.build
@@ -693,7 +909,13 @@ diff --git a/browser/modules/ContentSearch.jsm b/browser/modules/ContentSearch.j
 diff --git a/browser/modules/moz.build b/browser/modules/moz.build
 --- a/browser/modules/moz.build
 +++ b/browser/modules/moz.build
-@@ -46,9 +46,6 @@ with Files("AboutNewTab.jsm"):
+@@ -40,15 +40,9 @@ with Files("test/unit/test_LaterRun.js")
+ with Files("test/unit/test_SitePermissions.js"):
+     BUG_COMPONENT = ("Firefox", "Site Identity and Permission Panels")
+ 
+-with Files("AboutNewTab.jsm"):
+-    BUG_COMPONENT = ("Firefox", "New Tab Page")
+-
  with Files('AsyncTabSwitcher.jsm'):
      BUG_COMPONENT = ('Firefox', 'Tabbed Browser')
  
@@ -703,12 +925,12 @@ diff --git a/browser/modules/moz.build b/browser/modules/moz.build
  with Files("*Telemetry.jsm"):
      BUG_COMPONENT = ("Toolkit", "Telemetry")
  
-@@ -123,13 +120,8 @@ BROWSER_CHROME_MANIFESTS += [
+@@ -123,13 +117,7 @@ BROWSER_CHROME_MANIFESTS += [
  XPCSHELL_TESTS_MANIFESTS += ['test/unit/xpcshell.ini']
  
  EXTRA_JS_MODULES += [
 -    'AboutHome.jsm',
-     'AboutNewTab.jsm',
+-    'AboutNewTab.jsm',
      'AsyncTabSwitcher.jsm',
 -    'AttributionCode.jsm',
 -    'BrowserErrorReporter.jsm',
@@ -717,7 +939,7 @@ diff --git a/browser/modules/moz.build b/browser/modules/moz.build
      'ContentClick.jsm',
      'ContentCrashHandlers.jsm',
      'ContentLinkHandler.jsm',
-@@ -147,7 +139,6 @@ EXTRA_JS_MODULES += [
+@@ -147,7 +135,6 @@ EXTRA_JS_MODULES += [
      'OpenInTabsUtils.jsm',
      'PageActions.jsm',
      'PermissionUI.jsm',

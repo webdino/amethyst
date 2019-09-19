@@ -11,7 +11,7 @@ WebViewer 本体です。Firefox ブラウザのメインウィンドウを実�
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 ```
 cd /path/to/mozilla-esr60
-patch -p1 -i /path/to/amethyst/webviewer.patch
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/webviewer.patch
 ```
 
 メインウィンドウ以外のコードを残すことで、必要に応じて `about:config` や `about:preferences` などの画面を使って設定変更を行ったり、ブラウザが搭載する各種の機能を温存することが出来ます。但し、メインウィンドウの実装に依存するような機能や WebAPI は (そのままでは) すべて動作しなくなります。
@@ -34,7 +34,152 @@ modificationTime=1561519336884 -- Date.now()
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 ```
 cd /path/to/mozilla-esr60
-patch -p1 -i /path/to/amethyst/enable-webrtc.patch
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/enable-webrtc.patch
+```
+
+### enable-form-validation.patch
+フォームバリデーションを有効にするパッチです。通常の Firefox と同様に、form の submit イベントに介入し、フォームに入力された内容が要件を満たすかどうかを判定、満たされない項目にエラーを示すポップアップを表示するようになります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/enable-form-validation.patch
+```
+
+### disable-crashreporter.patch
+ビルドオプションに関係なくクラッシュレポートの送信を強制的に無効にするパッチです。送信モジュールがビルドされなくなり、applicaiton.ini の設定や環境変数 MOZ_CRASHREPORTER の値も無視されるようになります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-crashreporter.patch
+```
+
+### disable-updater.patch
+ビルドオプションに関係なくブラウザー本体の自動更新機能を無効にするパッチです。更新モジュールがビルドされなくなるほか、about:support の更新履歴の行も表示されなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-updater.patch
+```
+
+### disable-addon-autoupdate.patch
+拡張機能の自動更新とメタデータの更新、ブロックリストの更新を無効にするパッチです。また、about:addons を開いたときにおすすめのアドオンも表示されなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-addon-autoupdate.patch
+```
+
+### disable-telemetry.patch
+Telemetry と Studies を無効にするパッチです。設定値に関係なくデータの収集と送信が行われなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-telemetry.patch
+```
+
+### disable-webpush.patch
+Web Push API を無効にするパッチです。設定値に関係なく mozilla のサーバーを介したプッシュ通信が行われなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-webpush.patch
+```
+
+### disable-wifigeo.patch
+Geolocation API を無効にするパッチです。設定値に関係なく mozilla または google のサーバーを介した、接続ネットワークによる位置情報の取得が行われなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-wifigeo.patch
+```
+
+### disable-captivedetect.patch
+Captive Portal を検知する機能を無効にするパッチです。通常は一定間隔で mozilla の特定のサーバーに通信して Captive Portal を検知していますが、この通信を停止させます。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-captivedetect.patch
+```
+
+### disable-ocsp.patch
+OCSP による証明書の自動更新を無効にするパッチです。通常は一定間隔で OCSP プロトコルで認証局の各サーバーにアクセスして、更新可能な証明書を確認していますが、設定値に関係なく確認と更新を行われないようになります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-ocsp.patch
+```
+
+### disable-safebrowsing.patch
+セーフブラウジングに関する機能を無効にするパッチです。mozilla または google へのアクセス URL の確認、ダウンロードファイルの確認、フィッシング詐欺対策とマルウェア保護リストの更新、トラッキング保護リストの更新が、設定値に関係なく行われないようになります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-safebrowsing.patch
+```
+
+### disable-searchengine-update.patch
+検索エンジンの自動更新を無効にするパッチです。通常は初回起動時と一定間隔で、地域に応じた検索エンジンを選定し、検索エンジンプラグインを最新にするための通信を行いますが、設定値に関係なく行われないようになります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-searchengine-update.patch
+```
+
+### disable-snippets.patch
+about:home に表示されるスニペットの取得を無効にするパッチです。設定値に関係なく、スニペットの取得失敗となります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-snippets.patch
+```
+
+### disable-homepage-override.patch
+ブラウザーの更新情報の自動表示を無効にするパッチです。通常は初回起動時やブラウザーの更新時に更新内容を知らせるウェブページを新規タブに自動的に表示しますが、設定値に関係なくウェブページが表示されなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-homepage-override.patch
+```
+
+### disable-attribution-code.patch
+mozilla のマーケティングを測定および支援を無効にするパッチです。インストール時に利用端末に配置されたキャンペーンおよび参照データの読み込みが行われなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-attribution-code.patch
+```
+
+### disable-fxaccounts.patch
+Firefox Account と Firefox Sync を無効にするパッチです。設定値に関係なく常に無効と判断され、about:preferences#sync が表示されなくなるほか、タブや URL バー、コンテキストメニューなどから、Firefox Account と Firefox Sync に関連する項目が表示されなくなります。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/disable-fxaccounts.patch
+```
+
+### removed-files.patch
+これらの無効化された機能をビルドから排除し、ビルド工程の短縮と、バイナリサイズとメモリフットプリントの減少に寄与します。
+なお、無効化されたすべての機能に関するモジュールが排除されるわけではありません。
+
+以下のコマンドで Firefox のソースツリーにパッチを当てます。
+```
+cd /path/to/mozilla-esr60
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/removed-files.patch
 ```
 
 ### about-dialog.patch
@@ -44,7 +189,7 @@ patch -p1 -i /path/to/amethyst/enable-webrtc.patch
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 ```
 cd /path/to/mozilla-esr60
-patch -p1 -i /path/to/amethyst/about-dialog.patch
+patch -p1 -i /path/to/amethyst/FIREFOX_60_1_0esr_RELEASE/about-dialog.patch
 ```
 
 ### browser/amethyst/branding

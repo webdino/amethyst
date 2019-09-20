@@ -1,0 +1,44 @@
+[4329:Main Thread]: D/nsHostResolver nsHostResolver::Init this=0xffff8e758940
+[4329:Main Thread]: D/nsHostResolver Initialized TRRService
+[4329:Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[4329:Main Thread]: D/nsSocketTransport STS dispatch [0xffff87281b40]
+[4329:Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[4329:Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[4329:Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[4329:Socket Thread]: D/nsSocketTransport STS poll iter
+[4329:Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[4329:Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[4329:Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[4329:Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[4329:Socket Thread]: D/nsSocketTransport PollableEvent::Signal PR_Read 1
+[4329:Socket Thread]: D/nsSocketTransport STS dispatch [0xffff87281c00]
+[4329:Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[4329:Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[4329:Socket Thread]: D/nsSocketTransport STS poll iter
+[4329:Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[4329:Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[4329:Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff7e3c3400].
+[4329:Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.13-cip1-yocto-standard
+[4329:Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[4329:Main Thread]: D/nsHttp nsHttpHandler::Init
+[4329:Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[4329:Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[4329:Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff7e3c3400 child=0
+[4329:Main Thread]: V/nsHttp Creating nsHttpConnectionMgr @0xffff7e71abb0
+[4329:Main Thread]: V/nsHttp nsHttpConnectionMgr::Init
+[4329:Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff7e3c3400 child=0
+[4329:Main Thread]: D/nsSocketTransport EventTokenBucket::SetRate 0xffff7e74e100 80 10
+[4329:Main Thread]: D/nsSocketTransport STS dispatch [0xffff802602c0]
+[4329:Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[4329:Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[4329:Socket Thread]: D/nsSocketTransport     ...returned after 2077 milliseconds
+[4329:Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[4329:Socket Thread]: D/nsSocketTransport PollableEvent::Signal PR_Read 1
+[4329:Socket Thread]: D/nsSocketTransport STS dispatch [0xffff80260340]
+[4329:Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[4329:Socket Thread]: D/nsSocketTransport STS poll iter
+[4329:Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[4329:Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[4329:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff76273238]
+[4329:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff762733b8]
+Attempting load of libEGL.so

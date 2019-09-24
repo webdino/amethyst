@@ -200,6 +200,7 @@ Geolocation API が利用できない。
 
 https://github.com/webdino/amethyst/issues/19#issuecomment-532148705
 
+
 ## Web Push API の無効化
 
 Mozilla の Push Service へのアクセスが発生しない。

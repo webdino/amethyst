@@ -1,11 +1,13 @@
 # 外部への情報送信機能の無効化
 
-- 環境: RZ/G2E
+通常の Firefox には個人情報や統計データ、クラッシュレポートなどを外部に送信する機能がある。
+Web/HTML Viewer for RZ/G では、そういった外部への情報送信機能を無効化して、プライバシーへの配慮と軽量化を図っている。
+本文書では Web/HTML Viewer for RZ/G での情報送信機能の無効化とそれを確認するための手順を記す。
 
-## [Telemetry portal](https://telemetry.mozilla.org/) へのデータ送信の無効化
+## Telemetry portal へのデータ送信の無効化
 
-パフォーマンス情報は送信されません。
-また、いくつかの内部向けページを削除しています。
+https://telemetry.mozilla.org/ へのパフォーマンス情報の送信をしない。
+また、いくつかの内部向けページを削除してある。
 
 - 送信されるパフォーマンス情報の内容を確認するページ about:telemetry
 - 参加している調査の内容を確認するためのページ about:studies
@@ -98,7 +100,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' 1yearlater.log | wc -l
 
 ### マルウェアチェック機能の無効化
 
-Google や Mozilla との通信を伴うセーフブラウジング機能は無効。
+Google や Mozilla との通信を伴うセーフブラウジング機能が無効。
 
 ### 確認内容
 
@@ -141,7 +143,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' malware.log | wc -l
 
 ## クラッシュレポートの無効化
 
-実際にクラッシュさせ Mozilla Crash Reporter が起動しない。
+Mozilla Crash Reporter が起動しない。
 
 ### 確認内容
 
@@ -198,8 +200,21 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' /path/to/logfile | wc -l
 
 Geolocation API が利用できない。
 
-https://github.com/webdino/amethyst/issues/19#issuecomment-532148705
+### 確認内容
 
+Geolocation API を使用するサンプルページにアクセスし、通常の動作が無効化されて利用できないことを確認。
+またその時の HTTP 通信ログにホスト googleapis.com などへのリクエストが発生しない。
+
+サンプルページ: https://ypvfr.csb.app
+
+ログ:
+
+```log
+root@ek874:~# NSPR_LOG_MODULES=nsHttp:3 webviewer 'https://ypvfr.csb.app/' > ns-http.log 2>&1
+^C
+root@ek874:~# grep 'Host' ns-http.log
+[5303:Main Thread]: I/nsHttp   Host: ypvfr.csb.app
+```
 
 ## Web Push API の無効化
 
@@ -238,8 +253,54 @@ root@ek874:~# grep 'Host' ns-http.log
 ## アドオンマネージャのデータ送信の無効化
 
 about:addons にアクセスして、おすすめアドオンの表示など通信が無い。
-https://github.com/webdino/amethyst/issues/21#issuecomment-533035873
+
+### 確認内容
+
+about:addons にアクセスした際、通信ログにホスト discovery.addons.mozilla.org などが存在しない。
+
+ログを取得する際に実際に使用したコマンド:
+
+```log
+# export NSPR_LOG_MODULES=nsHttp:5,nsSocketTransport:5,nsHostResolver:5
+# webviewer about:addons 2>addons.log
+```
+
+アクセスする回数を計測するために使用したコマンド:
+
+```sh
+grep -E 'Host:[[:space:]]+[^[:space:]]+' addons.log | wc -l
+```
+
+結果一覧:
+
+| 環境                              | 結果 | アクセス先                                                                                                                                                                                                                                                                                                                                                                     | 実際のログファイル |
+| --------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| Linux (x86_64) PC 環境 Firefox 60 | 38   | addons-discovery.cdn.mozilla.net addons.cdn.mozilla.net api.getpocket.com assets-cdn.github.com detectportal.firefox.com discovery.addons.mozilla.org firefoxusercontent.com ocsp.digicert.com ocsp.pki.goog ocsp.sca1b.amazontrust.com profile.accounts.firefox.com push.services.mozilla.com safebrowsing.googleapis.com tiles.services.mozilla.com www.google-analytics.com |
+| RZ/G2E webviewer 8746d4c5         | 0    | [webviewer-addons.log](webviewer-addons.log)                                                                                                                                                                                                                                                                                                                                   |
 
 ## Captive Portal の無効化
 
-https://github.com/webdino/amethyst/issues/41#issuecomment-532130592
+http://detectportal.firefox.com/success.txt へのアクセスが発生しない。
+
+### 確認内容
+
+引数に内部向けページのアドレス about:blank を与えて初回起動し、その時の HTTP 通信ログにホスト detectportal.firefox.com が存在しない。
+
+ログを取得する際に実際に使用したコマンド:
+
+```log
+# export NSPR_LOG_MODULES=nsHttp:5,nsSocketTransport:5,nsHostResolver:5
+# webviewer about:blank 2>firstrun.log
+```
+
+アクセスする回数を計測するために使用したコマンド:
+
+```sh
+grep -E 'Host:[[:space:]]+[^[:space:]]+' firstrun.log | wc -l
+```
+
+結果の一覧:
+
+| 環境             | 結果 | アクセス先 | 実際のログファイル                               |
+| ---------------- | ---- | ---------- | ------------------------------------------------ |
+| RG/G2E webviewer | 0    |            | [webviewer-firstrun.log](webviewer-firstrun.log) |

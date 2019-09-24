@@ -31,11 +31,9 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' webviewer-telemetry-sample.log | wc -l
 
 結果の一覧:
 
-| 環境             | 結果 |
-| ---------------- | ---- |
-| RG/G2E WebViewer | 0    |
-
-実際のログファイル: [webviewer-telemetry-sample.log](webviewer-telemetry-sample.log)
+| 環境             | 結果 | 実際のログファイル                                               |
+| ---------------- | ---- | ---------------------------------------------------------------- |
+| RG/G2E WebViewer | 0    | [webviewer-telemetry-sample.log](webviewer-telemetry-sample.log) |
 
 ## 初回起動時のデータ取得・送信の無効化
 

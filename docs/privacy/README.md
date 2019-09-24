@@ -4,7 +4,7 @@
 Web/HTML Viewer for RZ/G では、そういった外部への情報送信機能を無効化して、プライバシーへの配慮と軽量化を図っている。
 本文書では Web/HTML Viewer for RZ/G での情報送信機能の無効化とそれを確認するための手順を記す。
 
-## Telemetry portal へのデータ送信の無効化
+## Telemetry portal へのデータ送信の無効化 [#11](https://github.com/webdino/amethyst/issues/11)
 
 https://telemetry.mozilla.org/ へのパフォーマンス情報の送信をしない。
 また、いくつかの内部向けページを削除してある。
@@ -35,7 +35,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' webviewer-telemetry-sample.log | wc -l
 | ---------------- | ---- | ---------------------------------------------------------------- |
 | RG/G2E WebViewer | 0    | [webviewer-telemetry-sample.log](webviewer-telemetry-sample.log) |
 
-## 初回起動時のデータ取得・送信の無効化
+## 初回起動時のデータ取得・送信の無効化 [#12](https://github.com/webdino/amethyst/issues/12)
 
 初回起動時に外部への通信がない。
 
@@ -63,7 +63,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' firstrun.log | wc -l
 | RZ/G2E Firefox 60.1.0 | 56   | classify-client.services.mozilla.com content-signature-2.cdn.mozilla.net detectportal.firefox.com location.services.mozilla.com mozilla.org normandy.cdn.mozilla.net ocsp.digicert.com search.services.mozilla.com shavar.services.mozilla.com snippets.cdn.mozilla.net tiles.services.mozilla.com tracking-protection.cdn.mozilla.net www.mozilla.org | [firefox-firstrun.log](firefox-firstrun.log)     |
 | RG/G2E webviewer      | 0    |                                                                                                                                                                                                                                                                                                                                                        | [webviewer-firstrun.log](webviewer-firstrun.log) |
 
-## セキュリティ強化のための通信の無効化
+## セキュリティ強化のための通信の無効化 [#14](https://github.com/webdino/amethyst/issues/14)
 
 前回起動時から一定時間経過後起動時に通信が無い。
 
@@ -96,7 +96,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' 1yearlater.log | wc -l
 | RZ/G2E Firefox 60.1.0 | 11   | detectportal.firefox.com normandy.cdn.mozilla.net ocsp.digicert.com search.services.mozilla.com shavar.services.mozilla.com tiles.services.mozilla.com tracking-protection.cdn.mozilla.net | [firefox-1yearlater.log](firefox-1yearlater.log) |
 | RG/G2E webviewer      | 0    | [webviewer-1yearlater.log](webviewer-1yearlater.log)                                                                                                                                       |
 
-### マルウェアチェック機能の無効化
+## マルウェアチェック機能の無効化 [#42](https://github.com/webdino/amethyst/issues/42)
 
 Google や Mozilla との通信を伴うセーフブラウジング機能が無効。
 
@@ -139,7 +139,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' malware.log | wc -l
 | ---- | ---------------------------------------------------- | ---------------------------------------------- |
 | 1    | file-examples.com (ダウンロードするファイルのホスト) | [webviewer-malware.log](webviewer-malware.log) |
 
-## クラッシュレポートの無効化
+## クラッシュレポートの無効化 [#15](https://github.com/webdino/amethyst/issues/15)
 
 Mozilla Crash Reporter が起動しない。
 
@@ -153,7 +153,7 @@ crashreporter のバイナリが /usr/lib64/webviewer ディレクトリ以下�
    - リモートデバッガで接続する方法: https://github.com/webdino/amethyst/wiki/Remote-Debug
 2. chrome://browser/content/browser.xul のコンテクストで Components.utils.crashIfNotInAutomation() を実行
 
-## Mozilla のサービス連携の無効化
+## Mozilla のサービス連携の無効化 [#18](https://github.com/webdino/amethyst/issues/18)
 
 Firefox アカウント、Pocket への通信がない。
 また、Firefox Sync の設定項目 about:preferences#sync にアクセスすることが出来ない。
@@ -194,7 +194,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' /path/to/logfile | wc -l
 | Linux PC                  | about:preferences | 14   | api.accounts.firefox.com api.getpocket.com assets-cdn.github.com aus5.mozilla.org detectportal.firefox.com firefoxusercontent.com ocsp.digicert.com ocsp.sca1b.amazontrust.com profile.accounts.firefox.com push.services.mozilla.com tiles.services.mozilla.com token.services.mozilla.com |
 | RZ/G2E webviewer 8746d4c5 | about:preferences | 0    |                                                                                                                                                                                                                                                                                             | [webviewer-mozilla-services-preferences.log](webviewer-mozilla-services-preferences.log) |
 
-## Geolocation API の無効化
+## Geolocation API の無効化 [#19](https://github.com/webdino/amethyst/issues/19)
 
 Geolocation API が利用できない。
 
@@ -214,7 +214,7 @@ root@ek874:~# grep 'Host' ns-http.log
 [5303:Main Thread]: I/nsHttp   Host: ypvfr.csb.app
 ```
 
-## Web Push API の無効化
+## Web Push API の無効化 [#20](https://github.com/webdino/amethyst/issues/20)
 
 Mozilla の Push Service へのアクセスが発生しない。
 
@@ -248,7 +248,7 @@ root@ek874:~# grep 'Host' ns-http.log
 [5076:Main Thread]: I/nsHttp   Host: www.google-analytics.com
 ```
 
-## アドオンマネージャのデータ送信の無効化
+## アドオンマネージャのデータ送信の無効化 [#21](https://github.com/webdino/amethyst/issues/21)
 
 about:addons にアクセスして、おすすめアドオンの表示など通信が無い。
 
@@ -276,7 +276,7 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' addons.log | wc -l
 | Linux (x86_64) PC 環境 Firefox 60 | 38   | addons-discovery.cdn.mozilla.net addons.cdn.mozilla.net api.getpocket.com assets-cdn.github.com detectportal.firefox.com discovery.addons.mozilla.org firefoxusercontent.com ocsp.digicert.com ocsp.pki.goog ocsp.sca1b.amazontrust.com profile.accounts.firefox.com push.services.mozilla.com safebrowsing.googleapis.com tiles.services.mozilla.com www.google-analytics.com |
 | RZ/G2E webviewer 8746d4c5         | 0    |                                                                                                                                                                                                                                                                                                                                                                                | [webviewer-addons.log](webviewer-addons.log) |
 
-## Captive Portal の無効化
+## Captive Portal の無効化 [#41](https://github.com/webdino/amethyst/issues/41)
 
 http://detectportal.firefox.com/success.txt へのアクセスが発生しない。
 

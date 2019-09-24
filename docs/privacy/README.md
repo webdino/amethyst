@@ -1,8 +1,8 @@
 # 外部への情報送信機能の無効化
 
 通常の Firefox には個人情報や統計データ、クラッシュレポートなどを外部に送信する機能がある。
-Web/HTML Viewer for RZ/G では、そういった外部への情報送信機能を無効化して、プライバシーへの配慮と軽量化を図っている。
-本文書では Web/HTML Viewer for RZ/G での情報送信機能の無効化とそれを確認するための手順を記す。
+WebViewer for RZ/G では、そういった外部への情報送信機能を無効化して、プライバシーへの配慮と軽量化を図っている。
+本文書では WebViewer for RZ/G での情報送信機能の無効化とそれを確認するための手順を記す。
 
 ## Telemetry portal へのデータ送信の無効化 [#11](https://github.com/webdino/amethyst/issues/11)
 

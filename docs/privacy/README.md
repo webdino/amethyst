@@ -137,9 +137,9 @@ NSPR_LOG_MODULES=nsHttp:5,nsSocketTransport:5,nsHostResolver:5 webviewer https:/
 grep -E 'Host:[[:space:]]+[^[:space:]]+' malware.log | wc -l
 ```
 
-結果: 1
-アクセス先: file-examples.com (ダウンロードするファイルのホスト)
-実際のログファイル: [webviewer-malware.log](webviewer-malware.log)
+| 結果 | アクセス先                                           | 実際のログファイル                             |
+| ---- | ---------------------------------------------------- | ---------------------------------------------- |
+| 1    | file-examples.com (ダウンロードするファイルのホスト) | [webviewer-malware.log](webviewer-malware.log) |
 
 ## クラッシュレポートの無効化
 

@@ -2,7 +2,14 @@
 
 WebViewer for RZ/G (patches for Firefox/Gecko)
 
-# パッチファイルの解説
+## 仕様と設計
+
+Gecko エンジンを使い、HTML ページを読み込み表示するためのシンプル・軽量・不要な通信のない WebViewer (HTML ビューアクライアント) です。
+
+- 制限事項: https://github.com/webdino/amethyst/wiki/Limitations
+- リモートデバッグ手順: https://github.com/webdino/amethyst/wiki/Remote-Debug
+
+## パッチファイルの解説
 
 各パッチファイルで実装する機能の設計および Firefox のソースツリーへの適用手順を説明します。
 

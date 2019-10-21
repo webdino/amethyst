@@ -1,0 +1,15 @@
+# Names should be added to this file with this pattern:
+#
+# For individuals:
+#   Name <email address>
+#
+# For organizations:
+#   Organization <fnmatch pattern>
+#
+# See python fnmatch module documentation for more information.
+
+Hiroki Abe <h.rayflood@gmail.com>
+Kohei Watanabe <kou029w@gmail.com>
+Tomoya Asai <dynamis@firehacks.org>
+Yoshikuni Kamimiya <yoshikuni.kamimiya.xw@renesas.com>
+WebDINO Japan <*@webdino.org>

@@ -1,0 +1,155 @@
+diff --git a/security/manager/ssl/nsNSSCallbacks.cpp b/security/manager/ssl/nsNSSCallbacks.cpp
+--- a/security/manager/ssl/nsNSSCallbacks.cpp
++++ b/security/manager/ssl/nsNSSCallbacks.cpp
+@@ -433,49 +433,7 @@ mozilla::pkix::Result DoOCSPRequest(
+     const nsCString& aiaLocation, const OriginAttributes& originAttributes,
+     uint8_t (&ocspRequest)[OCSP_REQUEST_MAX_LENGTH], size_t ocspRequestLength,
+     TimeDuration timeout, /*out*/ Vector<uint8_t>& result) {
+-  MOZ_ASSERT(!NS_IsMainThread());
+-  if (NS_IsMainThread()) {
+-    return mozilla::pkix::Result::ERROR_OCSP_UNKNOWN_CERT;
+-  }
+-
+-  if (ocspRequestLength > OCSP_REQUEST_MAX_LENGTH) {
+-    return mozilla::pkix::Result::FATAL_ERROR_LIBRARY_FAILURE;
+-  }
+-
+-  result.clear();
+-  MOZ_LOG(gPIPNSSLog, LogLevel::Debug,
+-          ("DoOCSPRequest to '%s'", aiaLocation.get()));
+-
+-  nsCOMPtr<nsIEventTarget> sts =
+-      do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID);
+-  MOZ_ASSERT(sts);
+-  if (!sts) {
+-    return mozilla::pkix::Result::FATAL_ERROR_INVALID_STATE;
+-  }
+-  bool onSTSThread;
+-  nsresult rv = sts->IsOnCurrentThread(&onSTSThread);
+-  if (NS_FAILED(rv)) {
+-    return mozilla::pkix::Result::FATAL_ERROR_LIBRARY_FAILURE;
+-  }
+-  MOZ_ASSERT(!onSTSThread);
+-  if (onSTSThread) {
+-    return mozilla::pkix::Result::FATAL_ERROR_INVALID_STATE;
+-  }
+-
+-  RefPtr<OCSPRequest> request(new OCSPRequest(
+-      aiaLocation, originAttributes, ocspRequest, ocspRequestLength, timeout));
+-  rv = request->DispatchToMainThreadAndWait();
+-  if (NS_FAILED(rv)) {
+-    return mozilla::pkix::Result::FATAL_ERROR_LIBRARY_FAILURE;
+-  }
+-  rv = request->GetResponse(result);
+-  if (NS_FAILED(rv)) {
+-    if (rv == NS_ERROR_MALFORMED_URI) {
+-      return mozilla::pkix::Result::ERROR_CERT_BAD_ACCESS_LOCATION;
+-    }
+     return mozilla::pkix::Result::ERROR_OCSP_SERVER_ERROR;
+-  }
+-  return Success;
+ }
+ 
+ static char* ShowProtectedAuthPrompt(PK11SlotInfo* slot,
+diff --git a/security/manager/ssl/nsNSSComponent.cpp b/security/manager/ssl/nsNSSComponent.cpp
+--- a/security/manager/ssl/nsNSSComponent.cpp
++++ b/security/manager/ssl/nsNSSComponent.cpp
+@@ -157,7 +157,7 @@ static void GetRevocationBehaviorFromPre
+   // 0 = disabled
+   // 1 = enabled for everything (default)
+   // 2 = enabled for EV certificates only
+-  int32_t ocspLevel = Preferences::GetInt("security.OCSP.enabled", 1);
++  int32_t ocspLevel = 0;
+   switch (ocspLevel) {
+     case 0:
+       *odc = CertVerifier::ocspOff;
+diff --git a/security/nss/lib/certhigh/certhigh.gyp b/security/nss/lib/certhigh/certhigh.gyp
+--- a/security/nss/lib/certhigh/certhigh.gyp
++++ b/security/nss/lib/certhigh/certhigh.gyp
+@@ -16,8 +16,6 @@
+         'certvfy.c',
+         'certvfypkix.c',
+         'crlv2.c',
+-        'ocsp.c',
+-        'ocspsig.c',
+         'xcrldist.c'
+       ],
+       'dependencies': [
+@@ -28,4 +26,4 @@
+   'variables': {
+     'module': 'nss'
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/security/nss/lib/certhigh/manifest.mn b/security/nss/lib/certhigh/manifest.mn
+--- a/security/nss/lib/certhigh/manifest.mn
++++ b/security/nss/lib/certhigh/manifest.mn
+@@ -20,8 +20,6 @@ CSRCS = \
+ 	certhtml.c \
+ 	certreq.c \
+ 	crlv2.c \
+-	ocsp.c \
+-	ocspsig.c \
+ 	certhigh.c \
+  	certvfy.c \
+  	certvfypkix.c \
+diff --git a/security/nss/lib/nss/nssinit.c b/security/nss/lib/nss/nssinit.c
+--- a/security/nss/lib/nss/nssinit.c
++++ b/security/nss/lib/nss/nssinit.c
+@@ -616,10 +616,6 @@ nss_Init(const char *configdir, const ch
+         if (SECSuccess != InitCRLCache()) {
+             goto loser;
+         }
+-
+-        if (SECSuccess != OCSP_InitGlobal()) {
+-            goto loser;
+-        }
+     }
+ 
+     if (noSingleThreadedModules || allowAlreadyInitializedModules ||
+@@ -1152,7 +1148,6 @@ nss_Shutdown(void)
+     }
+     cert_DestroyLocks();
+     ShutdownCRLCache();
+-    OCSP_ShutdownGlobal();
+ #ifndef NSS_DISABLE_LIBPKIX
+     PKIX_Shutdown(plContext);
+ #endif /* NSS_DISABLE_LIBPKIX */
+diff --git a/security/nss/lib/ssl/sslauth.c b/security/nss/lib/ssl/sslauth.c
+--- a/security/nss/lib/ssl/sslauth.c
++++ b/security/nss/lib/ssl/sslauth.c
+@@ -8,7 +8,6 @@
+ #include "sslimpl.h"
+ #include "sslproto.h"
+ #include "pk11func.h"
+-#include "ocsp.h"
+ 
+ /* NEED LOCKS IN HERE.  */
+ CERTCertificate *
+@@ -246,7 +245,6 @@ SSL_AuthCertificate(void *arg, PRFileDes
+     SECCertUsage certUsage;
+     const char *hostname = NULL;
+     PRTime now = PR_Now();
+-    SECItemArray *certStatusArray;
+ 
+     ss = ssl_FindSocket(fd);
+     PORT_Assert(ss != NULL);
+@@ -255,17 +253,6 @@ SSL_AuthCertificate(void *arg, PRFileDes
+     }
+ 
+     handle = (CERTCertDBHandle *)arg;
+-    certStatusArray = &ss->sec.ci.sid->peerCertStatus;
+-
+-    if (certStatusArray->len) {
+-        PORT_SetError(0);
+-        if (CERT_CacheOCSPResponseFromSideChannel(handle, ss->sec.peerCert, now,
+-                                                  &certStatusArray->items[0],
+-                                                  ss->pkcs11PinArg) !=
+-            SECSuccess) {
+-            PORT_Assert(PR_GetError() != 0);
+-        }
+-    }
+ 
+     /* this may seem backwards, but isn't. */
+     certUsage = isServer ? certUsageSSLClient : certUsageSSLServer;

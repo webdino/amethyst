@@ -261,6 +261,43 @@ diff --git a/toolkit/mozapps/extensions/Blocklist.jsm b/toolkit/mozapps/extensio
            case PREF_BLOCKLIST_LEVEL:
              gBlocklistLevel = Math.min(
                Services.prefs.getIntPref(PREF_BLOCKLIST_LEVEL, DEFAULT_LEVEL),
+diff --git a/toolkit/mozapps/extensions/content/aboutaddons.js b/toolkit/mozapps/extensions/content/aboutaddons.js
+--- a/toolkit/mozapps/extensions/content/aboutaddons.js
++++ b/toolkit/mozapps/extensions/content/aboutaddons.js
+@@ -504,22 +504,7 @@ var DiscoveryAPI = {
+   },
+ 
+   async _fetchRecommendedAddons(useClientId) {
+-    let discoveryApiUrl = new URL(
+-      Services.urlFormatter.formatURLPref(PREF_DISCOVERY_API_URL)
+-    );
+-
+-    if (useClientId) {
+-      let clientId = await ClientID.getClientIdHash();
+-      discoveryApiUrl.searchParams.set("telemetry-client-id", clientId);
+-    }
+-    let res = await fetch(discoveryApiUrl.href, {
+-      credentials: "omit",
+-    });
+-    if (!res.ok) {
+       throw new Error(`Failed to fetch recommended add-ons, ${res.status}`);
+-    }
+-    let { results } = await res.json();
+-    return results.map(details => new DiscoAddonWrapper(details));
+   },
+ };
+ 
+@@ -2552,10 +2537,6 @@ customElements.define("addon-list", Addo
+ 
+ class RecommendedAddonList extends HTMLElement {
+   connectedCallback() {
+-    if (this.isConnected) {
+-      this.loadCardsIfNeeded();
+-      this.updateCardsWithAddonManager();
+-    }
+     AddonManager.addAddonListener(this);
+   }
+ 
 diff --git a/toolkit/mozapps/extensions/content/extensions.js b/toolkit/mozapps/extensions/content/extensions.js
 --- a/toolkit/mozapps/extensions/content/extensions.js
 +++ b/toolkit/mozapps/extensions/content/extensions.js

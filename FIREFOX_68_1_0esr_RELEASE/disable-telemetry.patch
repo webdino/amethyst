@@ -1150,6 +1150,52 @@ diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/component
    return NS_OK;
  }
  
+diff --git a/toolkit/components/telemetry/core/TelemetryCommon.cpp b/toolkit/components/telemetry/core/TelemetryCommon.cpp
+--- a/toolkit/components/telemetry/core/TelemetryCommon.cpp
++++ b/toolkit/components/telemetry/core/TelemetryCommon.cpp
+@@ -45,32 +45,12 @@ bool IsInDataset(uint32_t aDataset, uint
+ 
+ bool CanRecordDataset(uint32_t aDataset, bool aCanRecordBase,
+                       bool aCanRecordExtended) {
+-  // If we are extended telemetry is enabled, we are allowed to record
+-  // regardless of the dataset.
+-  if (aCanRecordExtended) {
+-    return true;
+-  }
+-
+-  // If base telemetry data is enabled and we're trying to record base
+-  // telemetry, allow it.
+-  if (aCanRecordBase &&
+-      IsInDataset(aDataset, nsITelemetry::DATASET_ALL_CHANNELS)) {
+-    return true;
+-  }
+-
+-  // We're not recording extended telemetry or this is not the base
+-  // dataset. Bail out.
+   return false;
+ }
+ 
+ bool CanRecordInProcess(RecordedProcessType processes,
+                         GeckoProcessType processType) {
+-  // We can use (1 << ProcessType) due to the way RecordedProcessType is
+-  // defined.
+-  bool canRecordProcess =
+-      !!(processes & static_cast<RecordedProcessType>(1 << processType));
+-
+-  return canRecordProcess;
++  return false;
+ }
+ 
+ bool CanRecordInProcess(RecordedProcessType processes, ProcessID processId) {
+@@ -78,7 +58,7 @@ bool CanRecordInProcess(RecordedProcessT
+ }
+ 
+ bool CanRecordProduct(SupportedProduct aProducts) {
+-  return !!(aProducts & GetCurrentProduct());
++  return false;
+ }
+ 
+ nsresult MsSinceProcessStart(double* aResult) {
 diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/components/telemetry/core/TelemetryEvent.cpp
 --- a/toolkit/components/telemetry/core/TelemetryEvent.cpp
 +++ b/toolkit/components/telemetry/core/TelemetryEvent.cpp
@@ -1715,28 +1761,47 @@ diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/c
  
  var gWasDebuggerAttached = false;
  
-@@ -986,15 +983,9 @@ var Impl = {
-       // Only send the shutdown ping using the pingsender from the second
-       // browsing session on, to mitigate issues with "bot" profiles (see bug 1354482).
-       const sendOnThisSession =
+@@ -980,95 +977,6 @@ var Impl = {
+     // on all pings to be saved after kicking off their collection.
+     let p = [];
+ 
+-    if (IS_UNIFIED_TELEMETRY) {
+-      let shutdownPayload = this.getSessionPayload(REASON_SHUTDOWN, false);
+-
+-      // Only send the shutdown ping using the pingsender from the second
+-      // browsing session on, to mitigate issues with "bot" profiles (see bug 1354482).
+-      const sendOnThisSession =
 -        Services.prefs.getBoolPref(
 -          Utils.Preferences.ShutdownPingSenderFirstSession,
 -          false
 -        ) || !TelemetryReportingPolicy.isFirstRun();
-+        false;
-       let sendWithPingsender =
+-      let sendWithPingsender =
 -        Services.prefs.getBoolPref(
 -          TelemetryUtils.Preferences.ShutdownPingSender,
 -          false
 -        ) && sendOnThisSession;
-+        false;
- 
-       let options = {
-         addClientId: true,
-@@ -1017,15 +1008,7 @@ var Impl = {
-       // Send a duplicate of first-shutdown pings as a new ping type, in order to properly
-       // evaluate first session profiles (see bug 1390095).
-       const sendFirstShutdownPing =
+-
+-      let options = {
+-        addClientId: true,
+-        addEnvironment: true,
+-        usePingSender: sendWithPingsender,
+-      };
+-      p.push(
+-        TelemetryController.submitExternalPing(
+-          getPingType(shutdownPayload),
+-          shutdownPayload,
+-          options
+-        ).catch(e =>
+-          this._log.error(
+-            "saveShutdownPings - failed to submit shutdown ping",
+-            e
+-          )
+-        )
+-      );
+-
+-      // Send a duplicate of first-shutdown pings as a new ping type, in order to properly
+-      // evaluate first session profiles (see bug 1390095).
+-      const sendFirstShutdownPing =
 -        Services.prefs.getBoolPref(
 -          Utils.Preferences.ShutdownPingSender,
 -          false
@@ -1746,10 +1811,52 @@ diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/c
 -          false
 -        ) &&
 -        TelemetryReportingPolicy.isFirstRun();
-+        false;
- 
-       if (sendFirstShutdownPing) {
-         let options = {
+-
+-      if (sendFirstShutdownPing) {
+-        let options = {
+-          addClientId: true,
+-          addEnvironment: true,
+-          usePingSender: true,
+-        };
+-        p.push(
+-          TelemetryController.submitExternalPing(
+-            "first-shutdown",
+-            shutdownPayload,
+-            options
+-          ).catch(e =>
+-            this._log.error(
+-              "saveShutdownPings - failed to submit first shutdown ping",
+-              e
+-            )
+-          )
+-        );
+-      }
+-    }
+-
+-    if (AppConstants.platform == "android" && Telemetry.canRecordExtended) {
+-      let payload = this.getSessionPayload(REASON_SAVED_SESSION, false);
+-
+-      let options = {
+-        addClientId: true,
+-        addEnvironment: true,
+-      };
+-      p.push(
+-        TelemetryController.submitExternalPing(
+-          getPingType(payload),
+-          payload,
+-          options
+-        ).catch(e =>
+-          this._log.error(
+-            "saveShutdownPings - failed to submit saved-session ping",
+-            e
+-          )
+-        )
+-      );
+-    }
+-
+     // Wait on pings to be saved.
+     return Promise.all(p);
+   },
 diff --git a/toolkit/components/telemetry/pings/UpdatePing.jsm b/toolkit/components/telemetry/pings/UpdatePing.jsm
 --- a/toolkit/components/telemetry/pings/UpdatePing.jsm
 +++ b/toolkit/components/telemetry/pings/UpdatePing.jsm

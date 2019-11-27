@@ -95,7 +95,7 @@ diff --git a/browser/components/preferences/in-content/main.js b/browser/compone
 diff --git a/browser/components/preferences/in-content/preferences.js b/browser/components/preferences/in-content/preferences.js
 --- a/browser/components/preferences/in-content/preferences.js
 +++ b/browser/components/preferences/in-content/preferences.js
-@@ -84,13 +84,8 @@ function init_all() {
+@@ -84,13 +84,6 @@ function init_all() {
    register_module("paneSearch", gSearchPane);
    register_module("panePrivacy", gPrivacyPane);
    register_module("paneContainers", gContainersPane);
@@ -103,8 +103,8 @@ diff --git a/browser/components/preferences/in-content/preferences.js b/browser/
 -    document.getElementById("category-sync").hidden = false;
 -    register_module("paneSync", gSyncPane);
 -  } else {
-     // Remove the pane from the DOM so it doesn't get incorrectly included in search results.
-     document.getElementById("template-paneSync").remove();
+-    // Remove the pane from the DOM so it doesn't get incorrectly included in search results.
+-    document.getElementById("template-paneSync").remove();
 -  }
    register_module("paneSearchResults", gSearchResultsPane);
    gSearchResultsPane.init();
@@ -153,3 +153,20 @@ diff --git a/services/sync/Weave.jsm b/services/sync/Weave.jsm
    },
  };
  
+diff --git a/toolkit/components/extensions/ExtensionStorageSync.jsm b/toolkit/components/extensions/ExtensionStorageSync.jsm
+--- a/toolkit/components/extensions/ExtensionStorageSync.jsm
++++ b/toolkit/components/extensions/ExtensionStorageSync.jsm
+@@ -64,12 +64,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   Utils: "resource://services-sync/util.js",
+ });
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "prefPermitsStorageSync",
+-  STORAGE_SYNC_ENABLED_PREF,
+-  true
+-);
++const prefPermitsStorageSync = false;
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+   "prefStorageSyncServerURL",

@@ -1766,14 +1766,6 @@ diff --git a/browser/components/moz.build b/browser/components/moz.build
      'contextualidentity',
      'customizableui',
      'dirprovider',
-@@ -52,7 +51,6 @@ DIRS += [
-     'search',
-     'sessionstore',
-     'shell',
--    'syncedtabs',
-     'uitour',
-     'urlbar',
-     'translation',
 diff --git a/browser/components/newtab/AboutNewTabService.jsm b/browser/components/newtab/AboutNewTabService.jsm
 --- a/browser/components/newtab/AboutNewTabService.jsm
 +++ b/browser/components/newtab/AboutNewTabService.jsm

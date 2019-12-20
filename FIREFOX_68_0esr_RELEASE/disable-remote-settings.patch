@@ -1,0 +1,90 @@
+diff --git a/services/settings/Utils.jsm b/services/settings/Utils.jsm
+--- a/services/settings/Utils.jsm
++++ b/services/settings/Utils.jsm
+@@ -53,82 +53,11 @@ var Utils = {
+    * @param {Object} filters
+    */
+   async fetchLatestChanges(serverUrl, options = {}) {
+-    const { expectedTimestamp, lastEtag = "", filters = {} } = options;
+-
+-    //
+-    // Fetch the list of changes objects from the server that looks like:
+-    // {"data":[
+-    //   {
+-    //     "host":"kinto-ota.dev.mozaws.net",
+-    //     "last_modified":1450717104423,
+-    //     "bucket":"blocklists",
+-    //     "collection":"certificates"
+-    //    }]}
+-
+-    let url = serverUrl + Utils.CHANGES_PATH;
+-
+-    // Use ETag to obtain a `304 Not modified` when no change occurred,
+-    // and `?_since` parameter to only keep entries that weren't processed yet.
+-    const headers = {};
+-    const params = { ...filters };
+-    if (lastEtag != "") {
+-      headers["If-None-Match"] = lastEtag;
+-      params._since = lastEtag;
+-    }
+-    if (expectedTimestamp) {
+-      params._expected = expectedTimestamp;
+-    }
+-    if (params) {
+-      url += "?" + Object.entries(params).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
+-    }
+-    const response = await fetch(url, { headers });
+-
+     let changes = [];
+-    // If no changes since last time, go on with empty list of changes.
+-    if (response.status != 304) {
+-      const ct = response.headers.get("Content-Type");
+-      if (!ct || !ct.includes("application/json")) {
+-        throw new Error(`Unexpected content-type "${ct}"`);
+-      }
+-      let payload;
+-      try {
+-        payload = await response.json();
+-      } catch (e) {
+-        payload = e.message;
+-      }
+-
+-      if (!payload.hasOwnProperty("data")) {
+-        // If the server is failing, the JSON response might not contain the
+-        // expected data. For example, real server errors (Bug 1259145)
+-        // or dummy local server for tests (Bug 1481348)
+-        const is404FromCustomServer = response.status == 404 && Services.prefs.prefHasUserValue("services.settings.server");
+-        if (!is404FromCustomServer) {
+-          throw new Error(`Server error ${response.status} ${response.statusText}: ${JSON.stringify(payload)}`);
+-        }
+-      } else {
+-        changes = payload.data;
+-      }
+-    }
+-    // The server should always return ETag. But we've had situations where the CDN
+-    // was interfering.
+-    const currentEtag = response.headers.has("ETag") ? response.headers.get("ETag") : undefined;
+-    let serverTimeMillis = Date.parse(response.headers.get("Date"));
+-    // Since the response is served via a CDN, the Date header value could have been cached.
+-    const cacheAgeSeconds = response.headers.has("Age") ? parseInt(response.headers.get("Age"), 10) : 0;
+-    serverTimeMillis += cacheAgeSeconds * 1000;
+-
+-    // Age of data (time between publication and now).
+-    let lastModifiedMillis = Date.parse(response.headers.get("Last-Modified"));
+-    const ageSeconds = (serverTimeMillis - lastModifiedMillis) / 1000;
+-
+-    // Check if the server asked the clients to back off.
+-    let backoffSeconds;
+-    if (response.headers.has("Backoff")) {
+-      const value = parseInt(response.headers.get("Backoff"), 10);
+-      if (!isNaN(value)) {
+-        backoffSeconds = value;
+-      }
+-    }
++    const currentEtag = undefined;
++    let serverTimeMillis = undefined;
++    const ageSeconds = undefined;
++    let backoffSeconds = undefined;
+ 
+     return { changes, currentEtag, serverTimeMillis, backoffSeconds, ageSeconds };
+   },

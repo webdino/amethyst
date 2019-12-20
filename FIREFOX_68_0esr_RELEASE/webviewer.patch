@@ -1,0 +1,153 @@
+diff --git a/browser/amethyst/content/browser.css b/browser/amethyst/content/browser.css
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.css
+@@ -0,0 +1,11 @@
++/* browser/base/content/browser.css:981 */
++#invalid-form-popup > description {
++  max-width: 280px;
++}
++
++.popup-anchor {
++  /* should occupy space but not be visible */
++  opacity: 0;
++  pointer-events: none;
++  -moz-stack-sizing: ignore;
++}
+diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/browser.js
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.js
+@@ -0,0 +1,41 @@
++function onload(){
++  window.fullScreen = true;
++
++  let uriToLoad = "";
++  if (window.arguments && window.arguments.length) {
++    let args = window.arguments[0];
++    if (args instanceof Ci.nsIArray && args.length) {
++      for (let i = 0; i < args.length; i++) {
++        uriToLoad = args.queryElementAt(i, Ci.nsISupportsString).data;
++        if (!invalidStartupHomepage(uriToLoad)) break;
++      }
++    }
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = Cc["@mozilla.org/browser/clh;1"].getService(Ci.nsIBrowserHandler).defaultArgs;
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = "https://urls.jp/amethyst";
++  }
++  getSelectedBrowser().src = uriToLoad;
++}
++
++function invalidStartupHomepage(uriToLoad){
++  return !uriToLoad || uriToLoad === "about:home" || uriToLoad === "about:newtab";
++}
++
++function getSelectedBrowser(){
++  return document.getElementById("content");
++}
++
++function getPopupAnchor(){
++  return document.getElementById("invalid-form-popup-anchor");
++}
++
++function BrowserBack(){
++  return getSelectedBrowser().goBack();
++}
++
++function BrowserFullScreen(){
++  window.fullScreen = !window.fullScreen;
++}
+diff --git a/browser/amethyst/content/browser.xul b/browser/amethyst/content/browser.xul
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.xul
+@@ -0,0 +1,42 @@
++<?xml version="1.0"?>
++<!DOCTYPE window [
++<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
++%brandDTD;
++]>
++
++<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
++<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
++
++<window id="main-window"
++        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
++        width="800"
++        height="480"
++        sizemode="maximized"
++        title="&brandFullName;"
++        onload="onload()"
++>
++
++<commandset id="mainCommandSet">
++  <command id="Browser:Back"    oncommand="BrowserBack();"/>
++  <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
++</commandset>
++<keyset id="mainKeyset">
++  <key keycode="VK_BACK" command="Browser:Back"/>
++  <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
++</keyset>
++
++<script type="application/javascript">
++  Components.utils.import("resource://gre/modules/Services.jsm");
++  Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
++</script>
++
++<!-- for invalid form error message -->
++<panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" hidden="true" level="parent">
++  <description/>
++</panel>
++
++<stack flex="1" class="browserStack">
++  <browser id="content" type="content" messagemanagergroup="browsers" />
++  <hbox id="invalid-form-popup-anchor" class="popup-anchor" hidden="true"/>
++</stack>
++</window>
+diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/jar.mn
+@@ -0,0 +1,5 @@
++browser.jar:
++%  content browser %content/browser/ contentaccessible=yes
++        content/browser/browser.css                   (content/browser.css)
++        content/browser/browser.js                    (content/browser.js)
++        content/browser/browser.xul                   (content/browser.xul)
+diff --git a/browser/amethyst/moz.build b/browser/amethyst/moz.build
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/moz.build
+@@ -0,0 +1,1 @@
++JAR_MANIFESTS += ['jar.mn']
+diff --git a/browser/base/jar.mn b/browser/base/jar.mn
+--- a/browser/base/jar.mn
++++ b/browser/base/jar.mn
+@@ -26,13 +26,6 @@ browser.jar:
+         content/browser/aboutTabCrashed.css           (content/aboutTabCrashed.css)
+         content/browser/aboutTabCrashed.js            (content/aboutTabCrashed.js)
+         content/browser/aboutTabCrashed.xhtml         (content/aboutTabCrashed.xhtml)
+-*       content/browser/browser.css                   (content/browser.css)
+-        content/browser/browser.js                    (content/browser.js)
+-#ifdef MOZ_BROWSER_XHTML
+-*       content/browser/browser.xhtml                 (content/browser.xhtml)
+-#else
+-*       content/browser/browser.xul                   (content/browser.xul)
+-#endif
+         content/browser/browser-addons.js             (content/browser-addons.js)
+         content/browser/browser-allTabsMenu.js        (content/browser-allTabsMenu.js)
+         content/browser/browser-captivePortal.js      (content/browser-captivePortal.js)
+diff --git a/browser/moz.build b/browser/moz.build
+--- a/browser/moz.build
++++ b/browser/moz.build
+@@ -12,6 +12,7 @@ with Files('docs/**'):
+     SCHEDULES.exclusive = ['docs']
+ 
+ DIRS += [
++    'amethyst',
+     'actors',
+     'base',
+     'components',

@@ -1,0 +1,149 @@
+diff --git a/browser/base/content/browser-sync.js b/browser/base/content/browser-sync.js
+--- a/browser/base/content/browser-sync.js
++++ b/browser/base/content/browser-sync.js
+@@ -96,8 +96,7 @@ var gSync = {
+         });
+     XPCOMUtils.defineLazyPreferenceGetter(this, "PRODUCT_INFO_BASE_URL",
+         "app.productInfo.baseURL");
+-    XPCOMUtils.defineLazyPreferenceGetter(this, "SYNC_ENABLED",
+-        "identity.fxaccounts.enabled");
++    this.SYNC_ENABLED = false;
+   },
+ 
+   maybeUpdateUIState() {
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -511,7 +511,7 @@ var gNavigatorBundle = {
+ function showFxaToolbarMenu(enable) {
+   // We only show the Firefox Account toolbar menu if the feature is enabled and
+   // if sync is enabled.
+-  const syncEnabled = Services.prefs.getBoolPref("identity.fxaccounts.enabled", false);
++  const syncEnabled = false;
+   const mainWindowEl = document.documentElement;
+   const fxaPanelEl = document.getElementById("PanelUI-fxa");
+ 
+diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
+--- a/browser/components/customizableui/CustomizableWidgets.jsm
++++ b/browser/components/customizableui/CustomizableWidgets.jsm
+@@ -504,7 +504,7 @@ const CustomizableWidgets = [
+     },
+   }];
+ 
+-if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
++if (false) {
+   CustomizableWidgets.push({
+     id: "sync-button",
+     label: "remotetabs-panelmenu.label",
+diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
+--- a/browser/components/newtab/lib/ASRouterTargeting.jsm
++++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
+@@ -204,7 +204,7 @@ const TargetingGetters = {
+     return Services.prefs.prefHasUserValue(FXA_USERNAME_PREF);
+   },
+   get isFxAEnabled() {
+-    return Services.prefs.getBoolPref(FXA_ENABLED_PREF, true);
++    return false;
+   },
+   get sync() {
+     return {
+diff --git a/browser/components/preferences/in-content/main.js b/browser/components/preferences/in-content/main.js
+--- a/browser/components/preferences/in-content/main.js
++++ b/browser/components/preferences/in-content/main.js
+@@ -65,13 +65,6 @@ const APP_ICON_ATTR_NAME = "appHandlerIc
+ ChromeUtils.defineModuleGetter(this, "OS",
+   "resource://gre/modules/osfile.jsm");
+ 
+-if (AppConstants.MOZ_DEV_EDITION) {
+-  ChromeUtils.defineModuleGetter(this, "fxAccounts",
+-    "resource://gre/modules/FxAccounts.jsm");
+-  ChromeUtils.defineModuleGetter(this, "FxAccounts",
+-    "resource://gre/modules/FxAccounts.jsm");
+-}
+-
+ Preferences.addAll([
+   // Startup
+   { id: "browser.startup.page", type: "int" },
+@@ -653,15 +646,6 @@ var gMainPane = {
+     if (!win) {
+       return;
+     }
+-    const user = await fxAccounts.getSignedInUser();
+-    if (user) {
+-      // We have a user, open Sync preferences in the same tab
+-      win.openTrustedLinkIn("about:preferences#sync", "current");
+-      return;
+-    }
+-    let url = await FxAccounts.config.promiseSignInURI("dev-edition-setup");
+-    let accountsTab = win.gBrowser.addWebTab(url);
+-    win.gBrowser.selectedTab = accountsTab;
+   },
+ 
+   // HOME PAGE
+diff --git a/browser/components/preferences/in-content/preferences.js b/browser/components/preferences/in-content/preferences.js
+--- a/browser/components/preferences/in-content/preferences.js
++++ b/browser/components/preferences/in-content/preferences.js
+@@ -76,13 +76,6 @@ function init_all() {
+   register_module("paneSearch", gSearchPane);
+   register_module("panePrivacy", gPrivacyPane);
+   register_module("paneContainers", gContainersPane);
+-  if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+-    document.getElementById("category-sync").hidden = false;
+-    register_module("paneSync", gSyncPane);
+-  } else {
+-    // Remove the pane from the DOM so it doesn't get incorrectly included in search results.
+-    document.getElementById("template-paneSync").remove();
+-  }
+   register_module("paneSearchResults", gSearchResultsPane);
+   gSearchResultsPane.init();
+   gMainPane.preInit();
+diff --git a/browser/modules/PageActions.jsm b/browser/modules/PageActions.jsm
+--- a/browser/modules/PageActions.jsm
++++ b/browser/modules/PageActions.jsm
+@@ -1200,7 +1200,7 @@ var gBuiltInActions = [
+ ];
+ 
+ // send to device
+-if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
++if (false) {
+   gBuiltInActions.push(
+   {
+     id: "sendToDevice",
+diff --git a/services/fxaccounts/FxAccounts.jsm b/services/fxaccounts/FxAccounts.jsm
+--- a/services/fxaccounts/FxAccounts.jsm
++++ b/services/fxaccounts/FxAccounts.jsm
+@@ -33,8 +33,7 @@ ChromeUtils.defineModuleGetter(this, "Fx
+ ChromeUtils.defineModuleGetter(this, "Utils",
+   "resource://services-sync/util.js");
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(this, "FXA_ENABLED",
+-    "identity.fxaccounts.enabled", true);
++const FXA_ENABLED = false;
+ 
+ // All properties exposed by the public FxAccounts API.
+ var publicProperties = [
+diff --git a/services/sync/Weave.jsm b/services/sync/Weave.jsm
+--- a/services/sync/Weave.jsm
++++ b/services/sync/Weave.jsm
+@@ -120,7 +120,7 @@ WeaveService.prototype = {
+    * For that, you'll want to check Weave.Status.checkSetup().
+    */
+   get enabled() {
+-    return !!syncUsername && Services.prefs.getBoolPref("identity.fxaccounts.enabled");
++    return false;
+   },
+ };
+ 
+diff --git a/toolkit/components/extensions/ExtensionStorageSync.jsm b/toolkit/components/extensions/ExtensionStorageSync.jsm
+--- a/toolkit/components/extensions/ExtensionStorageSync.jsm
++++ b/toolkit/components/extensions/ExtensionStorageSync.jsm
+@@ -57,8 +57,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   Utils: "resource://services-sync/util.js",
+ });
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(this, "prefPermitsStorageSync",
+-                                      STORAGE_SYNC_ENABLED_PREF, true);
++const prefPermitsStorageSync = false;
+ XPCOMUtils.defineLazyPreferenceGetter(this, "prefStorageSyncServerURL",
+                                       STORAGE_SYNC_SERVER_URL_PREF,
+                                       KINTO_DEFAULT_SERVER_URL);

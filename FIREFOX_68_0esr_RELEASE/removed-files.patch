@@ -1,0 +1,3109 @@
+diff --git a/browser/actors/NetErrorChild.jsm b/browser/actors/NetErrorChild.jsm
+--- a/browser/actors/NetErrorChild.jsm
++++ b/browser/actors/NetErrorChild.jsm
+@@ -719,9 +719,6 @@ class NetErrorChild extends ActorChild {
+         hideAddExceptionButton,
+       }),
+     }));
+-
+-    this.mm.sendAsyncMessage("Browser:SSLErrorReportTelemetry",
+-                            {reportStatus: TLS_ERROR_REPORT_TELEMETRY_UI_SHOWN});
+   }
+ 
+   onResetPreferences(evt) {
+diff --git a/browser/actors/moz.build b/browser/actors/moz.build
+--- a/browser/actors/moz.build
++++ b/browser/actors/moz.build
+@@ -39,7 +39,6 @@ FINAL_TARGET_FILES.actors += [
+     'PageStyleChild.jsm',
+     'PluginChild.jsm',
+     'RFPHelperChild.jsm',
+-    'SearchTelemetryChild.jsm',
+     'SubframeCrashChild.jsm',
+     'SubframeCrashParent.jsm',
+     'URIFixupChild.jsm',
+diff --git a/browser/base/content/browser-menubar.inc b/browser/base/content/browser-menubar.inc
+--- a/browser/base/content/browser-menubar.inc
++++ b/browser/base/content/browser-menubar.inc
+@@ -213,11 +213,6 @@
+                               key="key_gotoHistory"
+                               oncommand="SidebarUI.toggle('viewHistorySidebar');"
+                               label="&historyButton.label;"/>
+-                    <menuitem id="menu_tabsSidebar"
+-                              type="checkbox"
+-                              class="sync-ui-item"
+-                              oncommand="SidebarUI.toggle('viewTabsSidebar');"
+-                              label="&syncedTabs.sidebar.label;"/>
+                   </menupopup>
+                 </menu>
+                 <menuseparator/>
+diff --git a/browser/base/content/browser-sidebar.js b/browser/base/content/browser-sidebar.js
+--- a/browser/base/content/browser-sidebar.js
++++ b/browser/base/content/browser-sidebar.js
+@@ -26,14 +26,6 @@ var SidebarUI = {
+         buttonId: "sidebar-switcher-history",
+         triggerButtonId: "appMenuViewHistorySidebar",
+       }],
+-      ["viewTabsSidebar", {
+-        title: document.getElementById("sidebar-switcher-tabs")
+-                       .getAttribute("label"),
+-        url: "chrome://browser/content/syncedtabs/sidebar.xhtml",
+-        menuId: "menu_tabsSidebar",
+-        buttonId: "sidebar-switcher-tabs",
+-        triggerButtonId: "PanelUI-remotetabs-view-sidebar",
+-      }],
+     ]);
+   },
+ 
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -12,9 +12,7 @@ ChromeUtils.import("resource://gre/modul
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AddonManager: "resource://gre/modules/AddonManager.jsm",
+-  AMTelemetry: "resource://gre/modules/AddonManager.jsm",
+   NewTabPagePreloading: "resource:///modules/NewTabPagePreloading.jsm",
+-  BrowserUsageTelemetry: "resource:///modules/BrowserUsageTelemetry.jsm",
+   BrowserUtils: "resource://gre/modules/BrowserUtils.jsm",
+   BrowserWindowTracker: "resource:///modules/BrowserWindowTracker.jsm",
+   CFRPageActions: "resource://activity-stream/lib/CFRPageActions.jsm",
+@@ -73,9 +71,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   UrlbarTokenizer: "resource:///modules/UrlbarTokenizer.jsm",
+   UrlbarUtils: "resource:///modules/UrlbarUtils.jsm",
+   UrlbarValueFormatter: "resource:///modules/UrlbarValueFormatter.jsm",
+-  Weave: "resource://services-sync/main.js",
+   WebNavigationFrames: "resource://gre/modules/WebNavigationFrames.jsm",
+-  fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   webrtcUI: "resource:///modules/webrtcUI.jsm",
+   ZoomUI: "resource:///modules/ZoomUI.jsm",
+ });
+@@ -119,8 +115,6 @@ XPCOMUtils.defineLazyScriptGetter(this, 
+                                   "chrome://browser/content/browser-gestureSupport.js");
+ XPCOMUtils.defineLazyScriptGetter(this, "gSafeBrowsing",
+                                   "chrome://browser/content/browser-safebrowsing.js");
+-XPCOMUtils.defineLazyScriptGetter(this, "gSync",
+-                                  "chrome://browser/content/browser-sync.js");
+ XPCOMUtils.defineLazyScriptGetter(this, "gBrowserThumbnails",
+                                   "chrome://browser/content/browser-thumbnails.js");
+ XPCOMUtils.defineLazyScriptGetter(this, ["setContextMenuContentData",
+@@ -516,20 +510,10 @@ function showFxaToolbarMenu(enable) {
+   const fxaPanelEl = document.getElementById("PanelUI-fxa");
+ 
+   mainWindowEl.setAttribute("fxastatus", "not_configured");
+-  fxaPanelEl.addEventListener("ViewShowing", gSync.updateSendToDeviceTitle);
+-
+-  Services.telemetry.setEventRecordingEnabled("fxa_app_menu", true);
+ 
+   if (enable && syncEnabled) {
+     mainWindowEl.setAttribute("fxatoolbarmenu", "visible");
+ 
+-    // We have to manually update the sync state UI when toggling the FxA toolbar
+-    // because it could show an invalid icon if the user is logged in and no sync
+-    // event was performed yet.
+-    gSync.maybeUpdateUIState();
+-
+-    Services.telemetry.setEventRecordingEnabled("fxa_avatar_menu", true);
+-
+     // We set an attribute here so that we can toggle the custom
+     // badge depending on whether the FxA menu was ever accessed.
+     if (!gFxaToolbarAccessed) {
+@@ -1512,7 +1496,6 @@ var gBrowserInit = {
+     let mm = window.getGroupMessageManager("browsers");
+     mm.loadFrameScript("chrome://browser/content/tab-content.js", true, true);
+     mm.loadFrameScript("chrome://browser/content/content.js", true, true);
+-    mm.loadFrameScript("chrome://global/content/content-HybridContentTelemetry.js", true);
+ 
+     window.messageManager.addMessageListener("Browser:LoadURI", RedirectLoad);
+ 
+@@ -1906,11 +1889,6 @@ var gBrowserInit = {
+     }
+ 
+     scheduleIdleTask(() => {
+-      // Initialize the Sync UI
+-      gSync.init();
+-    });
+-
+-    scheduleIdleTask(() => {
+       // Initialize the all tabs menu
+       gTabsPanel.init();
+     });
+@@ -1955,26 +1933,6 @@ var gBrowserInit = {
+       scheduleIdleTask(() => Win7Features.onOpenWindow());
+     }
+ 
+-    scheduleIdleTask(() => {
+-      if (Services.prefs.getBoolPref("privacy.resistFingerprinting")) {
+-        return;
+-      }
+-
+-      setTimeout(() => {
+-        if (window.closed) {
+-          return;
+-        }
+-
+-        let browser = gBrowser.selectedBrowser;
+-        let browserBounds = window.windowUtils.getBoundsWithoutFlushing(browser);
+-
+-        Services.telemetry.keyedScalarAdd(
+-          "resistfingerprinting.content_window_size",
+-          `${browserBounds.width}x${browserBounds.height}`,
+-          1);
+-      }, 300 * 1000);
+-    });
+-
+     scheduleIdleTask(async () => {
+       NewTabPagePreloading.maybeCreatePreloadedBrowser(window);
+     });
+@@ -2066,8 +2024,6 @@ var gBrowserInit = {
+ 
+     FullScreen.uninit();
+ 
+-    gSync.uninit();
+-
+     gExtensionsNotifications.uninit();
+ 
+     Services.obs.removeObserver(gPluginHandler.NPAPIPluginCrashed, "plugin-crashed");
+@@ -2084,8 +2040,6 @@ var gBrowserInit = {
+ 
+     TabletModeUpdater.uninit();
+ 
+-    gTabletModePageCounter.finish();
+-
+     BrowserOnClick.uninit();
+ 
+     CaptivePortalWatcher.uninit();
+@@ -3059,7 +3013,6 @@ var BrowserOnClick = {
+     mm.addMessageListener("Browser:EnableOnlineMode", this);
+     mm.addMessageListener("Browser:SetSSLErrorReportAuto", this);
+     mm.addMessageListener("Browser:ResetSSLPreferences", this);
+-    mm.addMessageListener("Browser:SSLErrorReportTelemetry", this);
+     mm.addMessageListener("Browser:SSLErrorGoBack", this);
+     mm.addMessageListener("Browser:PrimeMitm", this);
+     mm.addMessageListener("Browser:ResetEnterpriseRootsPref", this);
+@@ -3072,7 +3025,6 @@ var BrowserOnClick = {
+     mm.removeMessageListener("Browser:EnableOnlineMode", this);
+     mm.removeMessageListener("Browser:SetSSLErrorReportAuto", this);
+     mm.removeMessageListener("Browser:ResetSSLPreferences", this);
+-    mm.removeMessageListener("Browser:SSLErrorReportTelemetry", this);
+     mm.removeMessageListener("Browser:SSLErrorGoBack", this);
+     mm.removeMessageListener("Browser:PrimeMitm", this);
+     mm.removeMessageListener("Browser:ResetEnterpriseRootsPref", this);
+@@ -3109,16 +3061,6 @@ var BrowserOnClick = {
+       break;
+       case "Browser:SetSSLErrorReportAuto":
+         Services.prefs.setBoolPref("security.ssl.errorReporting.automatic", msg.json.automatic);
+-        let bin = TLS_ERROR_REPORT_TELEMETRY_AUTO_UNCHECKED;
+-        if (msg.json.automatic) {
+-          bin = TLS_ERROR_REPORT_TELEMETRY_AUTO_CHECKED;
+-        }
+-        Services.telemetry.getHistogramById("TLS_ERROR_REPORT_UI").add(bin);
+-      break;
+-      case "Browser:SSLErrorReportTelemetry":
+-        let reportStatus = msg.data.reportStatus;
+-        Services.telemetry.getHistogramById("TLS_ERROR_REPORT_UI")
+-          .add(reportStatus);
+       break;
+       case "Browser:SSLErrorGoBack":
+         goBackFromErrorPage();
+@@ -3288,22 +3230,15 @@ var BrowserOnClick = {
+       sendTelemetry = true;
+       bucketName = "WARNING_HARMFUL_PAGE_";
+     }
+-    let secHistogram = Services.telemetry.getHistogramById("URLCLASSIFIER_UI_EVENTS");
+     let nsISecTel = Ci.IUrlClassifierUITelemetry;
+     bucketName += isTopFrame ? "TOP_" : "FRAME_";
+ 
+     switch (elementId) {
+       case "goBackButton":
+-        if (sendTelemetry) {
+-          secHistogram.add(nsISecTel[bucketName + "GET_ME_OUT_OF_HERE"]);
+-        }
+         getMeOutOfHere();
+         break;
+       case "ignore_warning_link":
+         if (Services.prefs.getBoolPref("browser.safebrowsing.allowOverride")) {
+-          if (sendTelemetry) {
+-            secHistogram.add(nsISecTel[bucketName + "IGNORE_WARNING"]);
+-          }
+           this.ignoreWarningLink(reason, blockedInfo);
+         }
+         break;
+@@ -4370,11 +4305,6 @@ const BrowserSearch = {
+    *        selected it: {selection: {index: The selected index, kind: "key" or "mouse"}}
+    */
+   recordSearchInTelemetry(engine, source, details = {}) {
+-    try {
+-      BrowserUsageTelemetry.recordSearch(gBrowser, engine, source, details);
+-    } catch (ex) {
+-      Cu.reportError(ex);
+-    }
+   },
+ 
+   /**
+@@ -4391,12 +4321,6 @@ const BrowserSearch = {
+    *        (string) Indicates how the user selected the search item.
+    */
+   recordOneoffSearchInTelemetry(engine, source, type) {
+-    try {
+-      const details = {type, isOneOff: true};
+-      BrowserUsageTelemetry.recordSearch(gBrowser, engine, source, details);
+-    } catch (ex) {
+-      Cu.reportError(ex);
+-    }
+   },
+ };
+ 
+@@ -5075,8 +4999,6 @@ var XULBrowserWindow = {
+ 
+       SafeBrowsingNotificationBox.onLocationChange(aLocationURI);
+ 
+-      gTabletModePageCounter.inc();
+-
+       this._updateElementsForContentType();
+ 
+       // Try not to instantiate gCustomizeMode as much as possible,
+@@ -5667,7 +5589,6 @@ var TabsProgressListener = {
+             TelemetryStopwatch.cancel("FX_PAGE_LOAD_MS_2", aBrowser);
+           }
+           TelemetryStopwatch.start("FX_PAGE_LOAD_MS_2", aBrowser);
+-          Services.telemetry.getHistogramById("FX_TOTAL_TOP_VISITS").add(true);
+         } else if (aStateFlags & Ci.nsIWebProgressListener.STATE_STOP &&
+                    stopwatchRunning /* we won't see STATE_START events for pre-rendered tabs */) {
+           TelemetryStopwatch.finish("FX_PAGE_LOAD_MS_2", aBrowser);
+@@ -6152,34 +6073,6 @@ var TabletModeUpdater = {
+   },
+ };
+ 
+-var gTabletModePageCounter = {
+-  enabled: false,
+-  inc() {
+-    this.enabled = AppConstants.isPlatformAndVersionAtLeast("win", "10.0");
+-    if (!this.enabled) {
+-      this.inc = () => {};
+-      return;
+-    }
+-    this.inc = this._realInc;
+-    this.inc();
+-  },
+-
+-  _desktopCount: 0,
+-  _tabletCount: 0,
+-  _realInc() {
+-    let inTabletMode = document.documentElement.hasAttribute("tabletmode");
+-    this[inTabletMode ? "_tabletCount" : "_desktopCount"]++;
+-  },
+-
+-  finish() {
+-    if (this.enabled) {
+-      let histogram = Services.telemetry.getKeyedHistogramById("FX_TABLETMODE_PAGE_LOAD");
+-      histogram.add("tablet", this._tabletCount);
+-      histogram.add("desktop", this._desktopCount);
+-    }
+-  },
+-};
+-
+ function displaySecurityInfo() {
+   BrowserPageInfo(null, "securityTab");
+ }
+@@ -6761,12 +6654,6 @@ var ToolbarContextMenu = {
+       return;
+     }
+     let {remove, report} = promptRemoveExtension(addon);
+-    AMTelemetry.recordActionEvent({
+-      object: "browserAction",
+-      action: "uninstall",
+-      value: remove ? "accepted" : "cancelled",
+-      extra: {addonId: addon.id},
+-    });
+     if (remove) {
+       // Leave the extension in pending uninstall if we are also
+       // reporting the add-on.
+@@ -6795,11 +6682,6 @@ var ToolbarContextMenu = {
+     if (id) {
+       let viewID = "addons://detail/" + encodeURIComponent(id);
+       BrowserOpenAddonsMgr(viewID);
+-      AMTelemetry.recordActionEvent({
+-        object: "browserAction",
+-        action: "manage",
+-        extra: {addonId: id},
+-      });
+     }
+   },
+ };
+@@ -7873,7 +7755,6 @@ const gAccessibilityServiceIndicator = {
+         Services.urlFormatter.formatURLPref("accessibility.support.url");
+       // This is a known URL coming from trusted UI
+       openTrustedLinkIn(a11yServicesSupportURL, "tab");
+-      Services.telemetry.scalarSet("a11y.indicator_acted_on", true);
+     }
+   },
+ 
+diff --git a/browser/base/content/browser.xul b/browser/base/content/browser.xul
+--- a/browser/base/content/browser.xul
++++ b/browser/base/content/browser.xul
+@@ -373,11 +373,6 @@
+                      class="subviewbutton subviewbutton-iconic"
+                      key="key_gotoHistory"
+                      oncommand="SidebarUI.show('viewHistorySidebar');"/>
+-      <toolbarbutton id="sidebar-switcher-tabs"
+-                     type="checkbox"
+-                     label="&syncedTabs.sidebar.label;"
+-                     class="subviewbutton subviewbutton-iconic sync-ui-item"
+-                     oncommand="SidebarUI.show('viewTabsSidebar');"/>
+       <toolbarseparator/>
+       <!-- Extension toolbarbuttons go here. -->
+       <toolbarseparator id="sidebar-extensions-separator"/>
+diff --git a/browser/base/content/moz.build b/browser/base/content/moz.build
+--- a/browser/base/content/moz.build
++++ b/browser/base/content/moz.build
+@@ -145,9 +145,6 @@ with Files("browser-plugins.js"):
+ with Files("browser-safebrowsing.js"):
+     BUG_COMPONENT = ("Toolkit", "Safe Browsing")
+ 
+-with Files("browser-sync.js"):
+-    BUG_COMPONENT = ("Firefox", "Sync")
+-
+ with Files("contentSearch*"):
+     BUG_COMPONENT = ("Firefox", "Search")
+ 
+diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
+--- a/browser/base/content/nsContextMenu.js
++++ b/browser/base/content/nsContextMenu.js
+@@ -330,7 +330,6 @@ nsContextMenu.prototype = {
+     this.initLeaveDOMFullScreenItems();
+     this.initClickToPlayItems();
+     this.initPasswordManagerItems();
+-    this.initSyncItems();
+   },
+ 
+   initPageMenuSeparator: function CM_initPageMenuSeparator() {
+@@ -776,10 +775,6 @@ nsContextMenu.prototype = {
+     popup.insertBefore(fragment, insertBeforeElement);
+   },
+ 
+-  initSyncItems() {
+-    gSync.updateContentContextMenu(this);
+-  },
+-
+   openPasswordManager() {
+     LoginHelper.openPasswordManager(window, {
+       filterString: gContextMenuContentData.documentURIObject.host,
+diff --git a/browser/base/content/urlbarBindings.xml b/browser/base/content/urlbarBindings.xml
+--- a/browser/base/content/urlbarBindings.xml
++++ b/browser/base/content/urlbarBindings.xml
+@@ -705,9 +705,6 @@ file, You can obtain one at http://mozil
+             return;
+           }
+ 
+-          BrowserUsageTelemetry.recordLegacyUrlbarSelectedResultMethod(
+-            event, this.userSelectionBehavior);
+-
+           let mayInheritPrincipal = false;
+           let postData = null;
+           let browser = gBrowser.selectedBrowser;
+@@ -948,7 +945,6 @@ file, You can obtain one at http://mozil
+           details.isOneOff = isOneOff;
+           details.type = eventType;
+ 
+-          BrowserSearch.recordSearchInTelemetry(engine, "urlbar", details);
+           let submission = engine.getSubmission(query, null, "keyword");
+           return [submission.uri.spec, submission.postData];
+         ]]></body>
+diff --git a/browser/base/jar.mn b/browser/base/jar.mn
+--- a/browser/base/jar.mn
++++ b/browser/base/jar.mn
+@@ -54,7 +54,6 @@ browser.jar:
+         content/browser/browser-sidebar.js            (content/browser-sidebar.js)
+         content/browser/browser-siteIdentity.js       (content/browser-siteIdentity.js)
+         content/browser/browser-siteProtections.js    (content/browser-siteProtections.js)
+-        content/browser/browser-sync.js               (content/browser-sync.js)
+         content/browser/browser-tabsintitlebar.js     (content/browser-tabsintitlebar.js)
+         content/browser/browser-toolbarKeyNav.js      (content/browser-toolbarKeyNav.js)
+         content/browser/browser-thumbnails.js         (content/browser-thumbnails.js)
+diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/BrowserContentHandler.jsm
+--- a/browser/components/BrowserContentHandler.jsm
++++ b/browser/components/BrowserContentHandler.jsm
+@@ -16,7 +16,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+   SessionStartup: "resource:///modules/sessionstore/SessionStartup.jsm",
+   ShellService: "resource:///modules/ShellService.jsm",
+-  UpdatePing: "resource://gre/modules/UpdatePing.jsm",
+   RemotePages: "resource://gre/modules/remotepagemanager/RemotePageManagerParent.jsm",
+ });
+ XPCOMUtils.defineLazyServiceGetter(this, "WindowsUIUtils",
+@@ -564,8 +563,6 @@ nsBrowserContentHandler.prototype = {
+             overridePage = Services.urlFormatter.formatURLPref("startup.homepage_override_url");
+             if (prefb.prefHasUserValue("app.update.postupdate")) {
+               overridePage = getPostUpdateOverridePage(overridePage);
+-              // Send the update ping to signal that the update was successful.
+-              UpdatePing.handleUpdateSuccess(old_mstone, old_buildId);
+             }
+ 
+             overridePage = overridePage.replace("%OLD_VERSION%", old_mstone);
+diff --git a/browser/components/BrowserGlue.jsm b/browser/components/BrowserGlue.jsm
+--- a/browser/components/BrowserGlue.jsm
++++ b/browser/components/BrowserGlue.jsm
+@@ -278,26 +278,6 @@ let LEGACY_ACTORS = {
+     },
+   },
+ 
+-  SearchTelemetry: {
+-    child: {
+-      module: "resource:///actors/SearchTelemetryChild.jsm",
+-      events: {
+-        DOMContentLoaded: {},
+-        "pageshow": {mozSystemGroup: true},
+-      },
+-    },
+-  },
+-
+-  ShieldFrame: {
+-    child: {
+-      module: "resource://normandy-content/ShieldFrameChild.jsm",
+-      events: {
+-        "ShieldPageEvent": {wantUntrusted: true},
+-      },
+-      matches: ["about:studies"],
+-    },
+-  },
+-
+   UITour: {
+     child: {
+       module: "resource:///modules/UITourChild.jsm",
+@@ -404,9 +384,6 @@ let LEGACY_ACTORS = {
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   aboutNewTabService: ["@mozilla.org/browser/aboutnewtab-service;1", "nsIAboutNewTabService"],
+ });
+-XPCOMUtils.defineLazyGetter(this, "WeaveService", () =>
+-  Cc["@mozilla.org/weave/service;1"].getService().wrappedJSObject
+-);
+ 
+ // lazy module getters
+ 
+@@ -420,7 +397,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   Blocklist: "resource://gre/modules/Blocklist.jsm",
+   BookmarkHTMLUtils: "resource://gre/modules/BookmarkHTMLUtils.jsm",
+   BookmarkJSONUtils: "resource://gre/modules/BookmarkJSONUtils.jsm",
+-  BrowserUsageTelemetry: "resource:///modules/BrowserUsageTelemetry.jsm",
+   BrowserWindowTracker: "resource:///modules/BrowserWindowTracker.jsm",
+   ContextualIdentityService: "resource://gre/modules/ContextualIdentityService.jsm",
+   Corroborate: "resource://gre/modules/Corroborate.jsm",
+@@ -428,21 +404,17 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   Discovery: "resource:///modules/Discovery.jsm",
+   ExtensionsUI: "resource:///modules/ExtensionsUI.jsm",
+   FileSource: "resource://gre/modules/L10nRegistry.jsm",
+-  FxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   HomePage: "resource:///modules/HomePage.jsm",
+-  HybridContentTelemetry: "resource://gre/modules/HybridContentTelemetry.jsm",
+   Integration: "resource://gre/modules/Integration.jsm",
+   L10nRegistry: "resource://gre/modules/L10nRegistry.jsm",
+   LiveBookmarkMigrator: "resource:///modules/LiveBookmarkMigrator.jsm",
+   NewTabUtils: "resource://gre/modules/NewTabUtils.jsm",
+-  Normandy: "resource://normandy/Normandy.jsm",
+   ObjectUtils: "resource://gre/modules/ObjectUtils.jsm",
+   OS: "resource://gre/modules/osfile.jsm",
+   PageActions: "resource:///modules/PageActions.jsm",
+   PageThumbs: "resource://gre/modules/PageThumbs.jsm",
+   PdfJs: "resource://pdf.js/PdfJs.jsm",
+   PermissionUI: "resource:///modules/PermissionUI.jsm",
+-  PingCentre: "resource:///modules/PingCentre.jsm",
+   PlacesBackups: "resource://gre/modules/PlacesBackups.jsm",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
+   PluralForm: "resource://gre/modules/PluralForm.jsm",
+@@ -453,13 +425,11 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   SafeBrowsing: "resource://gre/modules/SafeBrowsing.jsm",
+   Sanitizer: "resource:///modules/Sanitizer.jsm",
+   SaveToPocket: "chrome://pocket/content/SaveToPocket.jsm",
+-  SearchTelemetry: "resource:///modules/SearchTelemetry.jsm",
+   SessionStartup: "resource:///modules/sessionstore/SessionStartup.jsm",
+   SessionStore: "resource:///modules/sessionstore/SessionStore.jsm",
+   ShellService: "resource:///modules/ShellService.jsm",
+   TabCrashHandler: "resource:///modules/ContentCrashHandlers.jsm",
+   TabUnloader: "resource:///modules/TabUnloader.jsm",
+-  UIState: "resource://services-sync/UIState.jsm",
+   UITour: "resource:///modules/UITour.jsm",
+   WebChannel: "resource://gre/modules/WebChannel.jsm",
+   WindowsRegistry: "resource://gre/modules/WindowsRegistry.jsm",
+@@ -670,89 +640,6 @@ BrowserGlue.prototype = {
+     Services.prefs.savePrefFile(null);
+   },
+ 
+-  _setSyncAutoconnectDelay: function BG__setSyncAutoconnectDelay() {
+-    // Assume that a non-zero value for services.sync.autoconnectDelay should override
+-    if (Services.prefs.prefHasUserValue("services.sync.autoconnectDelay")) {
+-      let prefDelay = Services.prefs.getIntPref("services.sync.autoconnectDelay");
+-
+-      if (prefDelay > 0)
+-        return;
+-    }
+-
+-    // delays are in seconds
+-    const MAX_DELAY = 300;
+-    let delay = 3;
+-    for (let win of Services.wm.getEnumerator("navigator:browser")) {
+-      // browser windows without a gBrowser almost certainly means we are
+-      // shutting down, so instead of just ignoring that window we abort.
+-      if (win.closed || !win.gBrowser) {
+-        return;
+-      }
+-      delay += win.gBrowser.tabs.length;
+-    }
+-    delay = delay <= MAX_DELAY ? delay : MAX_DELAY;
+-
+-    const {Weave} = ChromeUtils.import("resource://services-sync/main.js");
+-    Weave.Service.scheduler.delayedAutoConnect(delay);
+-  },
+-
+-  /**
+-   * Lazily initialize PingCentre
+-   */
+-  get pingCentre() {
+-    const MAIN_TOPIC_ID = "main";
+-    Object.defineProperty(this, "pingCentre", {
+-      value: new PingCentre({ topic: MAIN_TOPIC_ID }),
+-    });
+-    return this.pingCentre;
+-  },
+-
+-  _sendMainPingCentrePing() {
+-    let newTabSetting;
+-    let homePageSetting;
+-
+-    // Check whether or not about:home and about:newtab have been overridden at this point.
+-    // Different settings are encoded as follows:
+-    //   * Value 0: default
+-    //   * Value 1: about:blank
+-    //   * Value 2: web extension
+-    //   * Value 3: other custom URL(s)
+-    // Settings for about:newtab and about:home are combined in a bitwise manner.
+-
+-    // Note that a user could use about:blank and web extension at the same time
+-    // to overwrite the about:newtab, but the web extension takes priority, so the
+-    // ordering matters in the following check.
+-    if (Services.prefs.getBoolPref("browser.newtabpage.enabled") &&
+-                                   !aboutNewTabService.overridden) {
+-      newTabSetting = 0;
+-    } else if (aboutNewTabService.newTabURL.startsWith("moz-extension://")) {
+-      newTabSetting = 2;
+-    } else if (!Services.prefs.getBoolPref("browser.newtabpage.enabled")) {
+-      newTabSetting = 1;
+-    } else {
+-      newTabSetting = 3;
+-    }
+-
+-    const homePageURL = HomePage.get();
+-    if (homePageURL === "about:home") {
+-      homePageSetting = 0;
+-    } else if (homePageURL === "about:blank") {
+-      homePageSetting = 1;
+-    } else if (homePageURL.startsWith("moz-extension://")) {
+-      homePageSetting = 2;
+-    } else {
+-      homePageSetting = 3;
+-    }
+-
+-    const payload = {
+-      event: "AS_ENABLED",
+-      value: newTabSetting | (homePageSetting << 2),
+-    };
+-    const ACTIVITY_STREAM_ID = "activity-stream";
+-    const options = {filter: ACTIVITY_STREAM_ID};
+-    this.pingCentre.sendPing(payload, options);
+-  },
+-
+   // nsIObserver implementation
+   observe: async function BG_observe(subject, topic, data) {
+     switch (topic) {
+@@ -795,28 +682,6 @@ BrowserGlue.prototype = {
+           this._setPrefToSaveSession();
+         }
+         break;
+-      case "weave:service:ready":
+-        this._setSyncAutoconnectDelay();
+-        break;
+-      case "fxaccounts:onverified":
+-        this._showSyncStartedDoorhanger();
+-        break;
+-      case "fxaccounts:device_connected":
+-        this._onDeviceConnected(data);
+-        break;
+-      case "fxaccounts:verify_login":
+-        this._onVerifyLoginNotification(JSON.parse(data));
+-        break;
+-      case "fxaccounts:device_disconnected":
+-        data = JSON.parse(data);
+-        if (data.isLocalDevice) {
+-          this._onDeviceDisconnected();
+-        }
+-        break;
+-      case "fxaccounts:commands:open-uri":
+-      case "weave:engine:clients:display-uris":
+-        this._onDisplaySyncURIs(subject);
+-        break;
+       case "session-save":
+         this._setPrefToSaveSession(true);
+         subject.QueryInterface(Ci.nsISupportsPRBool);
+@@ -923,9 +788,6 @@ BrowserGlue.prototype = {
+           this._notifyUnsignedAddonsDisabled();
+         }
+         break;
+-      case "sync-ui-state:update":
+-        this._updateFxaBadges();
+-        break;
+       case "handlersvc-store-initialized":
+         // Initialize PdfJs when running in-process and remote. This only
+         // happens once since PdfJs registers global hooks. If the PdfJs
+@@ -936,10 +798,6 @@ BrowserGlue.prototype = {
+         // shim for privileged api access.
+         PdfJs.init(true);
+         break;
+-      case "shield-init-complete":
+-        this._shieldInitComplete = true;
+-        this._sendMainPingCentrePing();
+-        break;
+     }
+   },
+ 
+@@ -976,7 +834,6 @@ BrowserGlue.prototype = {
+     os.addObserver(this, "xpi-signature-changed");
+     os.addObserver(this, "sync-ui-state:update");
+     os.addObserver(this, "handlersvc-store-initialized");
+-    os.addObserver(this, "shield-init-complete");
+ 
+     ActorManagerParent.addActors(ACTORS);
+     ActorManagerParent.addLegacyActors(LEGACY_ACTORS);
+@@ -1033,9 +890,7 @@ BrowserGlue.prototype = {
+     os.removeObserver(this, "flash-plugin-hang");
+     os.removeObserver(this, "xpi-signature-changed");
+     os.removeObserver(this, "sync-ui-state:update");
+-    os.removeObserver(this, "shield-init-complete");
+-
+-    Services.prefs.removeObserver("permissions.eventTelemetry.enabled", this._togglePermissionPromptTelemetry);
++
+     Services.prefs.removeObserver("privacy.trackingprotection", this._matchCBCategory);
+     Services.prefs.removeObserver("network.cookie.cookieBehavior", this._matchCBCategory);
+     Services.prefs.removeObserver(ContentBlockingCategoriesPrefs.PREF_CB_CATEGORY, this._updateCBCategory);
+@@ -1087,8 +942,6 @@ BrowserGlue.prototype = {
+         "firefox-compact-dark@mozilla.org", "1.0",
+         "resource:///modules/themes/dark/");
+ 
+-    Normandy.init();
+-
+     SaveToPocket.init();
+     Services.obs.notifyObservers(null, "browser-ui-startup-complete");
+   },
+@@ -1285,31 +1138,6 @@ BrowserGlue.prototype = {
+       win.gHighPriorityNotificationBox.PRIORITY_WARNING_MEDIUM, buttons);
+   },
+ 
+-  _firstWindowTelemetry(aWindow) {
+-    let scaling = aWindow.devicePixelRatio * 100;
+-    try {
+-      Services.telemetry.getHistogramById("DISPLAY_SCALING").add(scaling);
+-    } catch (ex) {}
+-  },
+-
+-  _collectStartupConditionsTelemetry() {
+-    let nowSeconds = Math.round(Date.now() / 1000);
+-    // Don't include cases where we don't have the pref. This rules out the first install
+-    // as well as the first run of a build since this was introduced. These could by some
+-    // definitions be referred to as "cold" startups, but probably not since we likely
+-    // just wrote many of the files we use to disk. This way we should approximate a lower
+-    // bound to the number of cold startups rather than an upper bound.
+-    let lastCheckSeconds = Services.prefs.getIntPref("browser.startup.lastColdStartupCheck", nowSeconds);
+-    Services.prefs.setIntPref("browser.startup.lastColdStartupCheck", nowSeconds);
+-    try {
+-      let secondsSinceLastOSRestart = Services.startup.secondsSinceLastOSRestart;
+-      let isColdStartup = nowSeconds - secondsSinceLastOSRestart > lastCheckSeconds;
+-      Services.telemetry.scalarSet("startup.is_cold", isColdStartup);
+-    } catch (ex) {
+-      Cu.reportError(ex);
+-    }
+-  },
+-
+   // the first browser window has finished initializing
+   _onFirstWindowLoaded: function BG__onFirstWindowLoaded(aWindow) {
+     TabCrashHandler.init();
+@@ -1369,10 +1197,6 @@ BrowserGlue.prototype = {
+ 
+     AutoCompletePopup.init();
+     DateTimePickerParent.init();
+-    // Check if Sync is configured
+-    if (Services.prefs.prefHasUserValue("services.sync.username")) {
+-      WeaveService.init();
+-    }
+ 
+     PageThumbs.init();
+ 
+@@ -1384,11 +1208,8 @@ BrowserGlue.prototype = {
+ 
+     PageActions.init();
+ 
+-    this._firstWindowTelemetry(aWindow);
+     this._firstWindowLoaded();
+ 
+-    this._collectStartupConditionsTelemetry();
+-
+     // Set the default favicon size for UI views that use the page-icon protocol.
+     PlacesUtils.favicons.setDefaultIconURIPreferredSize(16 * aWindow.devicePixelRatio);
+     this._setPrefExpectationsAndUpdate();
+@@ -1398,16 +1219,10 @@ BrowserGlue.prototype = {
+     Services.prefs.addObserver("privacy.trackingprotection", this._matchCBCategory);
+     Services.prefs.addObserver("network.cookie.cookieBehavior", this._matchCBCategory);
+     Services.prefs.addObserver(ContentBlockingCategoriesPrefs.PREF_CB_CATEGORY, this._updateCBCategory);
+-    Services.prefs.addObserver("media.autoplay.default", this._updateAutoplayPref);
+     Services.prefs.addObserver("privacy.trackingprotection", this._setPrefExpectations);
+     Services.prefs.addObserver("browser.contentblocking.features.strict", this._setPrefExpectationsAndUpdate);
+   },
+ 
+-  _updateAutoplayPref() {
+-    let blocked = Services.prefs.getIntPref("media.autoplay.default", 1);
+-    Services.telemetry.scalarSet("media.autoplay_default_blocked", blocked);
+-  },
+-
+   _setPrefExpectations() {
+     ContentBlockingCategoriesPrefs.setPrefExpectations();
+   },
+@@ -1425,73 +1240,6 @@ BrowserGlue.prototype = {
+     ContentBlockingCategoriesPrefs.updateCBCategory();
+   },
+ 
+-  _togglePermissionPromptTelemetry() {
+-    let enablePermissionPromptTelemetry =
+-      Services.prefs.getBoolPref("permissions.eventTelemetry.enabled", false);
+-
+-    Services.telemetry.setEventRecordingEnabled("security.ui.permissionprompt",
+-      enablePermissionPromptTelemetry);
+-
+-    if (!enablePermissionPromptTelemetry) {
+-      // Remove the saved unique identifier to reduce the (remote) chance
+-      // of leaking it to our servers in the future.
+-      Services.prefs.clearUserPref("permissions.eventTelemetry.uuid");
+-    }
+-  },
+-
+-  _recordContentBlockingTelemetry() {
+-    let recordIdentityPopupEvents = Services.prefs.getBoolPref("security.identitypopup.recordEventElemetry");
+-    Services.telemetry.setEventRecordingEnabled("security.ui.identitypopup", recordIdentityPopupEvents);
+-
+-    let tpEnabled = Services.prefs.getBoolPref("privacy.trackingprotection.enabled");
+-    Services.telemetry.getHistogramById("TRACKING_PROTECTION_ENABLED").add(tpEnabled);
+-
+-    let tpPBDisabled = Services.prefs.getBoolPref("privacy.trackingprotection.pbmode.enabled");
+-    Services.telemetry.getHistogramById("TRACKING_PROTECTION_PBM_DISABLED").add(!tpPBDisabled);
+-
+-    let cookieBehavior = Services.prefs.getIntPref("network.cookie.cookieBehavior");
+-    Services.telemetry.getHistogramById("COOKIE_BEHAVIOR").add(cookieBehavior);
+-
+-    let exceptions = 0;
+-    for (let permission of Services.perms.enumerator) {
+-      if (permission.type == "trackingprotection") {
+-        exceptions++;
+-      }
+-    }
+-    Services.telemetry.scalarSet("contentblocking.exceptions", exceptions);
+-
+-    let fpEnabled = Services.prefs.getBoolPref("privacy.trackingprotection.fingerprinting.enabled");
+-    let cmEnabled = Services.prefs.getBoolPref("privacy.trackingprotection.cryptomining.enabled");
+-    let categoryPref;
+-    switch (Services.prefs.getStringPref("browser.contentblocking.category", null)) {
+-    case "standard":
+-      categoryPref = 0;
+-      break;
+-    case "strict":
+-      categoryPref = 1;
+-      break;
+-    case "custom":
+-      categoryPref = 2;
+-      break;
+-    default:
+-      // Any other value is unsupported.
+-      categoryPref = 3;
+-      break;
+-    }
+-
+-    Services.telemetry.scalarSet("contentblocking.fingerprinting_blocking_enabled", fpEnabled);
+-    Services.telemetry.scalarSet("contentblocking.cryptomining_blocking_enabled", cmEnabled);
+-    Services.telemetry.scalarSet("contentblocking.category", categoryPref);
+-  },
+-
+-  _sendMediaTelemetry() {
+-    let win = Services.wm.getMostRecentWindow("navigator:browser");
+-    if (win) {
+-      let v = win.document.createElementNS("http://www.w3.org/1999/xhtml", "video");
+-      v.reportCanPlayTelemetry();
+-    }
+-  },
+-
+   /**
+    * Application shutdown handler.
+    */
+@@ -1519,13 +1267,6 @@ BrowserGlue.prototype = {
+       }
+     }
+ 
+-    BrowserUsageTelemetry.uninit();
+-    SearchTelemetry.uninit();
+-    // Only uninit PingCentre if the getter has initialized it
+-    if (Object.prototype.hasOwnProperty.call(this, "pingCentre")) {
+-      this.pingCentre.uninit();
+-    }
+-
+     PageThumbs.uninit();
+     NewTabUtils.uninit();
+     AboutNetErrorHandler.uninit();
+@@ -1533,42 +1274,9 @@ BrowserGlue.prototype = {
+     AutoCompletePopup.uninit();
+     DateTimePickerParent.uninit();
+ 
+-    Normandy.uninit();
+     RFPHelper.uninit();
+   },
+ 
+-  // Set up a listener to enable/disable the screenshots extension
+-  // based on its preference.
+-  _monitorScreenshotsPref() {
+-    const PREF = "extensions.screenshots.disabled";
+-    const ID = "screenshots@mozilla.org";
+-    const _checkScreenshotsPref = async () => {
+-      let addon = await AddonManager.getAddonByID(ID);
+-      let disabled = Services.prefs.getBoolPref(PREF, false);
+-      if (disabled) {
+-        await addon.disable({allowSystemAddons: true});
+-      } else {
+-        await addon.enable({allowSystemAddons: true});
+-      }
+-    };
+-    Services.prefs.addObserver(PREF, _checkScreenshotsPref);
+-    _checkScreenshotsPref();
+-  },
+-
+-  _monitorWebcompatReporterPref() {
+-    const PREF = "extensions.webcompat-reporter.enabled";
+-    const ID = "webcompat-reporter@mozilla.org";
+-    Services.prefs.addObserver(PREF, async () => {
+-      let addon = await AddonManager.getAddonByID(ID);
+-      let enabled = Services.prefs.getBoolPref(PREF, false);
+-      if (enabled && !addon.isActive) {
+-        await addon.enable({allowSystemAddons: true});
+-      } else if (!enabled && addon.isActive) {
+-        await addon.disable({allowSystemAddons: true});
+-      }
+-    });
+-  },
+-
+   _showNewInstallModal() {
+     // Allow other observers of the same topic to run while we open the dialog.
+     Services.tm.dispatchToMainThread(() => {
+@@ -1592,9 +1300,6 @@ BrowserGlue.prototype = {
+     }
+     this._windowsWereRestored = true;
+ 
+-    BrowserUsageTelemetry.init();
+-    SearchTelemetry.init();
+-
+     // Show update notification, if needed.
+     if (Services.prefs.prefHasUserValue("app.update.postupdate"))
+       this._showUpdateNotification();
+@@ -1637,9 +1342,6 @@ BrowserGlue.prototype = {
+     this._idleService.addIdleObserver(
+       this._lateTasksIdleObserver, LATE_TASKS_IDLE_TIME_SEC);
+ 
+-    this._monitorScreenshotsPref();
+-    this._monitorWebcompatReporterPref();
+-
+     if (Services.prefs.getBoolPref("corroborator.enabled", true)) {
+       Corroborate.init().catch(Cu.reportError);
+     }
+@@ -1677,22 +1379,6 @@ BrowserGlue.prototype = {
+       Discovery.update();
+     });
+ 
+-    Services.tm.idleDispatchToMainThread(() => {
+-      let enableCertErrorUITelemetry =
+-        Services.prefs.getBoolPref("security.certerrors.recordEventTelemetry", false);
+-      Services.telemetry.setEventRecordingEnabled("security.ui.certerror",
+-        enableCertErrorUITelemetry);
+-    });
+-
+-    Services.tm.idleDispatchToMainThread(() => {
+-      Services.prefs.addObserver("permissions.eventTelemetry.enabled", this._togglePermissionPromptTelemetry);
+-      this._togglePermissionPromptTelemetry();
+-    });
+-
+-    Services.tm.idleDispatchToMainThread(() => {
+-      this._recordContentBlockingTelemetry();
+-    });
+-
+     // Load the Login Manager data from disk off the main thread, some time
+     // after startup.  If the data is required before this runs, for example
+     // because a restored page contains a password field, it will be loaded on
+@@ -1793,22 +1479,6 @@ BrowserGlue.prototype = {
+    */
+   _scheduleArbitrarilyLateIdleTasks() {
+     Services.tm.idleDispatchToMainThread(() => {
+-      this._sendMediaTelemetry();
+-    });
+-
+-    Services.tm.idleDispatchToMainThread(() => {
+-      // Telemetry for master-password - we do this after a delay as it
+-      // can cause IO if NSS/PSM has not already initialized.
+-      let tokenDB = Cc["@mozilla.org/security/pk11tokendb;1"]
+-                .getService(Ci.nsIPK11TokenDB);
+-      let token = tokenDB.getInternalKeyToken();
+-      let mpEnabled = token.hasPassword;
+-      if (mpEnabled) {
+-        Services.telemetry.getHistogramById("MASTER_PASSWORD_ENABLED").add(mpEnabled);
+-      }
+-    });
+-
+-    Services.tm.idleDispatchToMainThread(() => {
+       let obj = {};
+       ChromeUtils.import("resource://gre/modules/GMPInstallManager.jsm", obj);
+       this._gmpInstallManager = new obj.GMPInstallManager();
+@@ -2196,14 +1866,6 @@ BrowserGlue.prototype = {
+           // available backup compared to that session.
+           if (profileLastUse > lastBackupTime) {
+             let backupAge = Math.round((profileLastUse - lastBackupTime) / 86400000);
+-            // Report the age of the last available backup.
+-            try {
+-              Services.telemetry
+-                      .getHistogramById("PLACES_BACKUPS_DAYSFROMLAST")
+-                      .add(backupAge);
+-            } catch (ex) {
+-              Cu.reportError(new Error("Unable to report telemetry."));
+-            }
+ 
+             if (backupAge > BOOKMARKS_BACKUP_MAX_INTERVAL_DAYS)
+               this._bookmarksBackupIdleTime /= 2;
+@@ -2272,21 +1934,6 @@ BrowserGlue.prototype = {
+     notification.persistence = -1; // Until user closes it
+   },
+ 
+-  _showSyncStartedDoorhanger() {
+-    let bundle = Services.strings.createBundle("chrome://browser/locale/accounts.properties");
+-    let productName = gBrandBundle.GetStringFromName("brandShortName");
+-    let title = bundle.GetStringFromName("syncStartNotification.title");
+-    let body = bundle.formatStringFromName("syncStartNotification.body2",
+-                                            [productName], 1);
+-
+-    let clickCallback = (subject, topic, data) => {
+-      if (topic != "alertclickcallback")
+-        return;
+-      this._openPreferences("sync");
+-    };
+-    this.AlertsService.showAlertNotification(null, title, body, true, null, clickCallback);
+-  },
+-
+   /**
+    * Uncollapses PersonalToolbar if its collapsed status is not
+    * persisted, and user customized it or changed default bookmarks.
+@@ -2681,19 +2328,6 @@ BrowserGlue.prototype = {
+       Services.prefs.setIntPref("browser.shell.defaultBrowserCheckCount", promptCount);
+     }
+ 
+-    try {
+-      // Report default browser status on startup to telemetry
+-      // so we can track whether we are the default.
+-      Services.telemetry.getHistogramById("BROWSER_IS_USER_DEFAULT")
+-                        .add(isDefault);
+-      Services.telemetry.getHistogramById("BROWSER_IS_USER_DEFAULT_ERROR")
+-                        .add(isDefaultError);
+-      Services.telemetry.getHistogramById("BROWSER_SET_DEFAULT_ALWAYS_CHECK")
+-                        .add(shouldCheck);
+-      Services.telemetry.getHistogramById("BROWSER_SET_DEFAULT_DIALOG_PROMPT_RAWCOUNT")
+-                        .add(promptCount);
+-    } catch (ex) { /* Don't break the default prompt if telemetry is broken. */ }
+-
+     if (willPrompt) {
+       DefaultBrowserCheck.prompt(BrowserWindowTracker.getTopWindow());
+     }
+@@ -2719,19 +2353,6 @@ BrowserGlue.prototype = {
+     // Firefox 60, the hardcoded default was to show history/bookmarks first.
+     // After 60, it's to show search suggestions first.
+ 
+-    // Wait for Shield init to complete.
+-    await new Promise(resolve => {
+-      if (this._shieldInitComplete) {
+-        resolve();
+-        return;
+-      }
+-      let topic = "shield-init-complete";
+-      Services.obs.addObserver(function obs() {
+-        Services.obs.removeObserver(obs, topic);
+-        resolve();
+-      }, topic);
+-    });
+-
+     // Now get the pref's value.  If the study is active, the value will have
+     // just been set (on the default branch) as part of Shield's init.  The pref
+     // should not exist otherwise (normally).
+@@ -2805,165 +2426,6 @@ BrowserGlue.prototype = {
+     });
+   },
+ 
+-  /**
+-   * Called as an observer when Sync's "display URIs" notification is fired.
+-   *
+-   * We open the received URIs in background tabs.
+-   */
+-  async _onDisplaySyncURIs(data) {
+-    try {
+-      // The payload is wrapped weirdly because of how Sync does notifications.
+-      const URIs = data.wrappedJSObject.object;
+-
+-      // win can be null, but it's ok, we'll assign it later in openTab()
+-      let win = BrowserWindowTracker.getTopWindow({private: false});
+-
+-      const openTab = async (URI) => {
+-        let tab;
+-        if (!win) {
+-          win = await this._openURLInNewWindow(URI.uri);
+-          let tabs = win.gBrowser.tabs;
+-          tab = tabs[tabs.length - 1];
+-        } else {
+-          tab = win.gBrowser.addWebTab(URI.uri);
+-        }
+-        tab.setAttribute("attention", true);
+-        return tab;
+-      };
+-
+-      const firstTab = await openTab(URIs[0]);
+-      await Promise.all(URIs.slice(1).map(URI => openTab(URI)));
+-
+-      const deviceName = URIs[0].sender && URIs[0].sender.name;
+-      let title, body;
+-      const bundle = Services.strings.createBundle("chrome://browser/locale/accounts.properties");
+-      if (URIs.length == 1) {
+-        // Due to bug 1305895, tabs from iOS may not have device information, so
+-        // we have separate strings to handle those cases. (See Also
+-        // unnamedTabsArrivingNotificationNoDevice.body below)
+-        if (deviceName) {
+-          title = bundle.formatStringFromName("tabArrivingNotificationWithDevice.title", [deviceName], 1);
+-        } else {
+-          title = bundle.GetStringFromName("tabArrivingNotification.title");
+-        }
+-        // Use the page URL as the body. We strip the fragment and query (after
+-        // the `?` and `#` respectively) to reduce size, and also format it the
+-        // same way that the url bar would.
+-        body = URIs[0].uri.replace(/([?#]).*$/, "$1");
+-        let wasTruncated = body.length < URIs[0].uri.length;
+-        if (win.gURLBar) {
+-          body = win.gURLBar.trimValue(body);
+-        }
+-        if (wasTruncated) {
+-          body = bundle.formatStringFromName("singleTabArrivingWithTruncatedURL.body", [body], 1);
+-        }
+-      } else {
+-        title = bundle.GetStringFromName("multipleTabsArrivingNotification.title");
+-        const allKnownSender = URIs.every(URI => URI.sender != null);
+-        const allSameDevice = allKnownSender && URIs.every(URI => URI.sender.id == URIs[0].sender.id);
+-        let tabArrivingBody;
+-        if (allSameDevice) {
+-          if (deviceName) {
+-            tabArrivingBody = "unnamedTabsArrivingNotification2.body";
+-          } else {
+-            tabArrivingBody = "unnamedTabsArrivingNotificationNoDevice.body";
+-          }
+-        } else {
+-          tabArrivingBody = "unnamedTabsArrivingNotificationMultiple2.body";
+-        }
+-
+-        body = bundle.GetStringFromName(tabArrivingBody);
+-        body = PluralForm.get(URIs.length, body);
+-        body = body.replace("#1", URIs.length);
+-        body = body.replace("#2", deviceName);
+-      }
+-
+-      const clickCallback = (obsSubject, obsTopic, obsData) => {
+-        if (obsTopic == "alertclickcallback") {
+-          win.gBrowser.selectedTab = firstTab;
+-        }
+-      };
+-
+-      // Specify an icon because on Windows no icon is shown at the moment
+-      let imageURL;
+-      if (AppConstants.platform == "win") {
+-        imageURL = "chrome://branding/content/icon64.png";
+-      }
+-      this.AlertsService.showAlertNotification(imageURL, title, body, true, null, clickCallback);
+-    } catch (ex) {
+-      Cu.reportError("Error displaying tab(s) received by Sync: " + ex);
+-    }
+-  },
+-
+-  async _onVerifyLoginNotification({body, title, url}) {
+-    let tab;
+-    let imageURL;
+-    if (AppConstants.platform == "win") {
+-      imageURL = "chrome://branding/content/icon64.png";
+-    }
+-    let win = BrowserWindowTracker.getTopWindow({private: false});
+-    if (!win) {
+-      win = await this._openURLInNewWindow(url);
+-      let tabs = win.gBrowser.tabs;
+-      tab = tabs[tabs.length - 1];
+-    } else {
+-      tab = win.gBrowser.addWebTab(url);
+-    }
+-    tab.setAttribute("attention", true);
+-    let clickCallback = (subject, topic, data) => {
+-      if (topic != "alertclickcallback")
+-        return;
+-      win.gBrowser.selectedTab = tab;
+-    };
+-
+-    try {
+-      this.AlertsService.showAlertNotification(imageURL, title, body, true, null, clickCallback);
+-    } catch (ex) {
+-      Cu.reportError("Error notifying of a verify login event: " + ex);
+-    }
+-  },
+-
+-  _onDeviceConnected(deviceName) {
+-    let accountsBundle = Services.strings.createBundle(
+-      "chrome://browser/locale/accounts.properties"
+-    );
+-    let title = accountsBundle.GetStringFromName("deviceConnectedTitle");
+-    let body = accountsBundle.formatStringFromName("deviceConnectedBody" +
+-                                                   (deviceName ? "" : ".noDeviceName"),
+-                                                   [deviceName], 1);
+-
+-    let clickCallback = async (subject, topic, data) => {
+-      if (topic != "alertclickcallback")
+-        return;
+-      let url = await FxAccounts.config.promiseManageDevicesURI("device-connected-notification");
+-      let win = BrowserWindowTracker.getTopWindow({private: false});
+-      if (!win) {
+-        this._openURLInNewWindow(url);
+-      } else {
+-        win.gBrowser.addWebTab(url);
+-      }
+-    };
+-
+-    try {
+-      this.AlertsService.showAlertNotification(null, title, body, true, null, clickCallback);
+-    } catch (ex) {
+-      Cu.reportError("Error notifying of a new Sync device: " + ex);
+-    }
+-  },
+-
+-  _onDeviceDisconnected() {
+-    let bundle = Services.strings.createBundle("chrome://browser/locale/accounts.properties");
+-    let title = bundle.GetStringFromName("deviceDisconnectedNotification.title");
+-    let body = bundle.GetStringFromName("deviceDisconnectedNotification.body");
+-
+-    let clickCallback = (subject, topic, data) => {
+-      if (topic != "alertclickcallback")
+-        return;
+-      this._openPreferences("sync");
+-    };
+-    this.AlertsService.showAlertNotification(null, title, body, true, null, clickCallback);
+-  },
+-
+   _handleFlashHang() {
+     ++this._flashHangCount;
+     if (this._flashHangCount < 2) {
+@@ -3005,16 +2467,6 @@ BrowserGlue.prototype = {
+       win.gNotificationBox.PRIORITY_INFO_MEDIUM, buttons);
+   },
+ 
+-  _updateFxaBadges() {
+-    let state = UIState.get();
+-    if (state.status == UIState.STATUS_LOGIN_FAILED ||
+-        state.status == UIState.STATUS_NOT_VERIFIED) {
+-      AppMenuNotifications.showBadgeOnlyNotification("fxa-needs-authentication");
+-    } else {
+-      AppMenuNotifications.removeNotification("fxa-needs-authentication");
+-    }
+-  },
+-
+   QueryInterface: ChromeUtils.generateQI([Ci.nsIObserver,
+                                           Ci.nsISupportsWeakReference]),
+ };
+@@ -3292,41 +2744,6 @@ ContentPermissionPrompt.prototype = {
+       request.cancel();
+       throw ex;
+     }
+-
+-    let schemeHistogram = Services.telemetry.getKeyedHistogramById("PERMISSION_REQUEST_ORIGIN_SCHEME");
+-    let scheme = 0;
+-    try {
+-      // URI is null for system principals.
+-      if (request.principal.URI) {
+-        switch (request.principal.URI.scheme) {
+-          case "http":
+-            scheme = 1;
+-            break;
+-          case "https":
+-            scheme = 2;
+-            break;
+-        }
+-      }
+-    } catch (ex) {
+-      // If the request principal is not available at this point,
+-      // the request has likely been cancelled before being shown to the
+-      // user. We shouldn't record this request.
+-      if (ex.result != Cr.NS_ERROR_FAILURE) {
+-        Cu.reportError(ex);
+-      }
+-      return;
+-    }
+-    schemeHistogram.add(type, scheme);
+-
+-    // request.element should be the browser element in e10s.
+-    if (request.element && request.element.contentPrincipal) {
+-      let thirdPartyHistogram = Services.telemetry.getKeyedHistogramById("PERMISSION_REQUEST_THIRD_PARTY_ORIGIN");
+-      let isThirdParty = request.principal.origin != request.element.contentPrincipal.origin;
+-      thirdPartyHistogram.add(type, isThirdParty);
+-    }
+-
+-    let userInputHistogram = Services.telemetry.getKeyedHistogramById("PERMISSION_REQUEST_HANDLING_USER_INPUT");
+-    userInputHistogram.add(type, request.isHandlingUserInput);
+   },
+ };
+ 
+@@ -3341,7 +2758,6 @@ var DefaultBrowserCheck = {
+ 
+   setAsDefault() {
+     let claimAllTypes = true;
+-    let setAsDefaultError = false;
+     if (AppConstants.platform == "win") {
+       try {
+         // In Windows 8+, the UI for selecting default protocol is much
+@@ -3355,17 +2771,8 @@ var DefaultBrowserCheck = {
+     try {
+       ShellService.setDefaultBrowser(claimAllTypes, false);
+     } catch (ex) {
+-      setAsDefaultError = true;
+       Cu.reportError(ex);
+     }
+-    // Here BROWSER_IS_USER_DEFAULT and BROWSER_SET_USER_DEFAULT_ERROR appear
+-    // to be inverse of each other, but that is only because this function is
+-    // called when the browser is set as the default. During startup we record
+-    // the BROWSER_IS_USER_DEFAULT value without recording BROWSER_SET_USER_DEFAULT_ERROR.
+-    Services.telemetry.getHistogramById("BROWSER_IS_USER_DEFAULT")
+-                      .add(!setAsDefaultError);
+-    Services.telemetry.getHistogramById("BROWSER_SET_DEFAULT_ERROR")
+-                      .add(setAsDefaultError);
+   },
+ 
+   _createPopup(win, notNowStrings, neverStrings) {
+@@ -3474,12 +2881,6 @@ var DefaultBrowserCheck = {
+       } else if (!shouldAsk.value) {
+         ShellService.shouldCheckDefaultBrowser = false;
+       }
+-
+-      try {
+-        let resultEnum = rv * 2 + shouldAsk.value;
+-        Services.telemetry.getHistogramById("BROWSER_SET_DEFAULT_RESULT")
+-                          .add(resultEnum);
+-      } catch (ex) { /* Don't break if Telemetry is acting up. */ }
+     }
+   },
+ 
+@@ -3581,10 +2982,3 @@ var JawsScreenReaderVersionCheck = {
+ Services.mm.addMessageListener("UITour:onPageEvent", function(aMessage) {
+   UITour.onPageEvent(aMessage, aMessage.data);
+ });
+-
+-// Listen for HybridContentTelemetry messages.
+-// Do it here instead of HybridContentTelemetry.init() so that
+-// the module can be lazily loaded on the first message.
+-Services.mm.addMessageListener("HybridContentTelemetry:onTelemetryMessage", aMessage => {
+-  HybridContentTelemetry.onTelemetryMessage(aMessage, aMessage.data);
+-});
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -163,17 +163,6 @@ AboutRedirector::NewChannel(nsIURI* aURI
+     if (!strcmp(path.get(), redir.id)) {
+       nsAutoCString url;
+ 
+-      // Let the aboutNewTabService decide where to redirect for about:home and
+-      // enabled about:newtab. Disabledx about:newtab page uses fallback.
+-      if (path.EqualsLiteral("home") ||
+-          (sNewTabPageEnabled && path.EqualsLiteral("newtab"))) {
+-        nsCOMPtr<nsIAboutNewTabService> aboutNewTabService =
+-            do_GetService("@mozilla.org/browser/aboutnewtab-service;1", &rv);
+-        NS_ENSURE_SUCCESS(rv, rv);
+-        rv = aboutNewTabService->GetDefaultURL(url);
+-        NS_ENSURE_SUCCESS(rv, rv);
+-      }
+-
+       if (!sAboutLoginsEnabled && path.EqualsLiteral("logins")) {
+         return NS_ERROR_NOT_AVAILABLE;
+       }
+diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
+--- a/browser/components/customizableui/CustomizableWidgets.jsm
++++ b/browser/components/customizableui/CustomizableWidgets.jsm
+@@ -522,39 +522,15 @@ if (Services.prefs.getBoolPref("identity
+     onViewShowing(aEvent) {
+       let doc = aEvent.target.ownerDocument;
+       this._tabsList = doc.getElementById("PanelUI-remotetabs-tabslist");
+-      Services.obs.addObserver(this, SyncedTabs.TOPIC_TABS_CHANGED);
+ 
+-      if (SyncedTabs.isConfiguredToSyncTabs) {
+-        if (SyncedTabs.hasSyncedThisSession) {
+-          this.setDeckIndex(this.deckIndices.DECKINDEX_TABS);
+-        } else {
+-          // Sync hasn't synced tabs yet, so show the "fetching" panel.
+-          this.setDeckIndex(this.deckIndices.DECKINDEX_FETCHING);
+-        }
+-        // force a background sync.
+-        SyncedTabs.syncTabs().catch(ex => {
+-          Cu.reportError(ex);
+-        });
+-        // show the current list - it will be updated by our observer.
+-        this._showTabs();
+-      } else {
+         // not configured to sync tabs, so no point updating the list.
+         this.setDeckIndex(this.deckIndices.DECKINDEX_TABSDISABLED);
+-      }
+     },
+     onViewHiding() {
+-      Services.obs.removeObserver(this, SyncedTabs.TOPIC_TABS_CHANGED);
+       this._tabsList = null;
+     },
+     _tabsList: null,
+     observe(subject, topic, data) {
+-      switch (topic) {
+-        case SyncedTabs.TOPIC_TABS_CHANGED:
+-          this._showTabs();
+-          break;
+-        default:
+-          break;
+-      }
+     },
+     setDeckIndex(index) {
+       let deck = this._tabsList.ownerDocument.getElementById("PanelUI-remotetabs-deck");
+@@ -564,66 +540,6 @@ if (Services.prefs.getBoolPref("identity
+       deck.setAttribute("selectedIndex", index);
+     },
+ 
+-    _showTabsPromise: Promise.resolve(),
+-    // Update the tab list after any existing in-flight updates are complete.
+-    _showTabs(paginationInfo) {
+-      this._showTabsPromise = this._showTabsPromise.then(() => {
+-        return this.__showTabs(paginationInfo);
+-      }, e => {
+-        Cu.reportError(e);
+-      });
+-    },
+-    // Return a new promise to update the tab list.
+-    __showTabs(paginationInfo) {
+-      if (!this._tabsList) {
+-        // Closed between the previous `this._showTabsPromise`
+-        // resolving and now.
+-        return undefined;
+-      }
+-      let doc = this._tabsList.ownerDocument;
+-      return SyncedTabs.getTabClients().then(clients => {
+-        // The view may have been hidden while the promise was resolving.
+-        if (!this._tabsList) {
+-          return;
+-        }
+-        if (clients.length === 0 && !SyncedTabs.hasSyncedThisSession) {
+-          // the "fetching tabs" deck is being shown - let's leave it there.
+-          // When that first sync completes we'll be notified and update.
+-          return;
+-        }
+-
+-        if (clients.length === 0) {
+-          this.setDeckIndex(this.deckIndices.DECKINDEX_NOCLIENTS);
+-          return;
+-        }
+-
+-        this.setDeckIndex(this.deckIndices.DECKINDEX_TABS);
+-        this._clearTabList();
+-        SyncedTabs.sortTabClientsByLastUsed(clients);
+-        let fragment = doc.createDocumentFragment();
+-
+-        for (let client of clients) {
+-          // add a menu separator for all clients other than the first.
+-          if (fragment.lastElementChild) {
+-            let separator = doc.createXULElement("menuseparator");
+-            fragment.appendChild(separator);
+-          }
+-          if (paginationInfo && paginationInfo.clientId == client.id) {
+-            this._appendClient(client, fragment, paginationInfo.maxTabs);
+-          } else {
+-            this._appendClient(client, fragment);
+-          }
+-        }
+-        this._tabsList.appendChild(fragment);
+-        PanelView.forNode(this._tabsList.closest("panelview"))
+-                 .descriptionHeightWorkaround();
+-      }).catch(err => {
+-        Cu.reportError(err);
+-      }).then(() => {
+-        // an observer for tests.
+-        Services.obs.notifyObservers(null, "synced-tabs-menu:test:tabs-updated");
+-      });
+-    },
+     _clearTabList() {
+       let list = this._tabsList;
+       while (list.lastChild) {
+@@ -677,13 +593,6 @@ if (Services.prefs.getBoolPref("identity
+           let tabEnt = this._createTabElement(doc, tab);
+           attachFragment.appendChild(tabEnt);
+         }
+-        if (hasNextPage) {
+-          let showAllEnt = this._createShowMoreElement(doc, client.id,
+-                                                       nextPageIsLastPage ?
+-                                                       Infinity :
+-                                                       maxTabs + this.TABS_PER_PAGE);
+-          attachFragment.appendChild(showAllEnt);
+-        }
+       }
+     },
+     _createTabElement(doc, tabInfo) {
+@@ -710,29 +619,6 @@ if (Services.prefs.getBoolPref("identity
+       });
+       return item;
+     },
+-    _createShowMoreElement(doc, clientId, showCount) {
+-      let labelAttr, tooltipAttr;
+-      if (showCount === Infinity) {
+-        labelAttr = "showAllLabel";
+-        tooltipAttr = "showAllTooltipText";
+-      } else {
+-        labelAttr = "showMoreLabel";
+-        tooltipAttr = "showMoreTooltipText";
+-      }
+-      let showAllItem = doc.createXULElement("toolbarbutton");
+-      showAllItem.setAttribute("itemtype", "showmorebutton");
+-      showAllItem.setAttribute("class", "subviewbutton");
+-      let label = this._tabsList.getAttribute(labelAttr);
+-      showAllItem.setAttribute("label", label);
+-      let tooltipText = this._tabsList.getAttribute(tooltipAttr);
+-      showAllItem.setAttribute("tooltiptext", tooltipText);
+-      showAllItem.addEventListener("click", e => {
+-        e.preventDefault();
+-        e.stopPropagation();
+-        this._showTabs({ clientId, maxTabs: showCount });
+-      });
+-      return showAllItem;
+-    },
+   });
+ }
+ 
+diff --git a/browser/components/customizableui/CustomizeMode.jsm b/browser/components/customizableui/CustomizeMode.jsm
+--- a/browser/components/customizableui/CustomizeMode.jsm
++++ b/browser/components/customizableui/CustomizeMode.jsm
+@@ -30,8 +30,6 @@ XPCOMUtils.defineLazyGlobalGetters(this,
+ 
+ ChromeUtils.defineModuleGetter(this, "AddonManager",
+                                "resource://gre/modules/AddonManager.jsm");
+-ChromeUtils.defineModuleGetter(this, "AMTelemetry",
+-                               "resource://gre/modules/AddonManager.jsm");
+ ChromeUtils.defineModuleGetter(this, "DragPositionManager",
+                                "resource:///modules/DragPositionManager.jsm");
+ ChromeUtils.defineModuleGetter(this, "BrowserUtils",
+@@ -1217,13 +1215,11 @@ CustomizeMode.prototype = {
+ 
+   openAddonsManagerThemes(aEvent) {
+     aEvent.target.parentNode.parentNode.hidePopup();
+-    AMTelemetry.recordLinkEvent({object: "customize", value: "manageThemes"});
+     this.window.BrowserOpenAddonsMgr("addons://list/theme");
+   },
+ 
+   getMoreThemes(aEvent) {
+     aEvent.target.parentNode.parentNode.hidePopup();
+-    AMTelemetry.recordLinkEvent({object: "customize", value: "getThemes"});
+     let getMoreURL = Services.urlFormatter.formatURLPref("lightweightThemes.getMoreURL");
+     this.window.openTrustedLinkIn(getMoreURL, "tab");
+   },
+@@ -1383,11 +1379,6 @@ CustomizeMode.prototype = {
+       button.addEventListener("command", async () => {
+         await button.theme.enable();
+         onThemeSelected(panel);
+-        AMTelemetry.recordActionEvent({
+-          object: "customize",
+-          action: "enable",
+-          extra: {type: "theme", addonId: theme.id},
+-        });
+       });
+       panel.insertBefore(button, footer);
+     }
+diff --git a/browser/components/extensions/parent/ext-search.js b/browser/components/extensions/parent/ext-search.js
+--- a/browser/components/extensions/parent/ext-search.js
++++ b/browser/components/extensions/parent/ext-search.js
+@@ -10,10 +10,6 @@
+ ChromeUtils.defineModuleGetter(this, "Services",
+                                "resource://gre/modules/Services.jsm");
+ 
+-XPCOMUtils.defineLazyModuleGetters(this, {
+-  BrowserUsageTelemetry: "resource:///modules/BrowserUsageTelemetry.jsm",
+-});
+-
+ XPCOMUtils.defineLazyPreferenceGetter(this, "searchLoadInBackground",
+                                       "browser.search.context.loadInBackground");
+ 
+@@ -77,20 +73,16 @@ this.search = class extends ExtensionAPI
+             postData: submission.postData,
+             triggeringPrincipal: context.principal,
+           };
+-          let tabbrowser;
+           if (searchProperties.tabId === null) {
+             let {gBrowser} = windowTracker.topWindow;
+             let nativeTab = gBrowser.addTab(submission.uri.spec, options);
+             if (!searchLoadInBackground) {
+               gBrowser.selectedTab = nativeTab;
+             }
+-            tabbrowser = gBrowser;
+           } else {
+             let tab = tabTracker.getTab(searchProperties.tabId);
+             tab.linkedBrowser.loadURI(submission.uri.spec, options);
+-            tabbrowser = tab.linkedBrowser.getTabBrowser();
+           }
+-          BrowserUsageTelemetry.recordSearch(tabbrowser, engine, "webextension");
+         },
+       },
+     };
+diff --git a/browser/components/moz.build b/browser/components/moz.build
+--- a/browser/components/moz.build
++++ b/browser/components/moz.build
+@@ -32,7 +32,6 @@ with Files('controlcenter/**'):
+ DIRS += [
+     'about',
+     'aboutlogins',
+-    'attribution',
+     'contextualidentity',
+     'customizableui',
+     'dirprovider',
+diff --git a/browser/components/newtab/AboutNewTabService.jsm b/browser/components/newtab/AboutNewTabService.jsm
+--- a/browser/components/newtab/AboutNewTabService.jsm
++++ b/browser/components/newtab/AboutNewTabService.jsm
+@@ -10,9 +10,6 @@ const {Services} = ChromeUtils.import("r
+ const {AppConstants} = ChromeUtils.import("resource://gre/modules/AppConstants.jsm");
+ const {E10SUtils} = ChromeUtils.import("resource://gre/modules/E10SUtils.jsm");
+ 
+-ChromeUtils.defineModuleGetter(this, "AboutNewTab",
+-                               "resource:///modules/AboutNewTab.jsm");
+-
+ const TOPIC_APP_QUIT = "quit-application-granted";
+ const TOPIC_LOCALES_CHANGE = "intl:app-locales-changed";
+ const TOPIC_CONTENT_DOCUMENT_INTERACTIVE = "content-document-interactive";
+@@ -49,7 +46,6 @@ function AboutNewTabService() {
+   this.alreadyRecordedTopsitesPainted = false;
+ 
+   if (IS_MAIN_PROCESS) {
+-    AboutNewTab.init();
+   } else if (IS_PRIVILEGED_PROCESS) {
+     Services.obs.addObserver(this, TOPIC_CONTENT_DOCUMENT_INTERACTIVE);
+   }
+@@ -180,7 +176,6 @@ AboutNewTabService.prototype = {
+       case TOPIC_APP_QUIT:
+         this.uninit();
+         if (IS_MAIN_PROCESS) {
+-          AboutNewTab.uninit();
+         } else if (IS_PRIVILEGED_PROCESS) {
+           Services.obs.removeObserver(this, TOPIC_CONTENT_DOCUMENT_INTERACTIVE);
+         }
+diff --git a/browser/components/newtab/lib/ASRouter.jsm b/browser/components/newtab/lib/ASRouter.jsm
+--- a/browser/components/newtab/lib/ASRouter.jsm
++++ b/browser/components/newtab/lib/ASRouter.jsm
+@@ -9,7 +9,6 @@ XPCOMUtils.defineLazyGlobalGetters(this,
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AddonManager: "resource://gre/modules/AddonManager.jsm",
+   UITour: "resource:///modules/UITour.jsm",
+-  FxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+   OS: "resource://gre/modules/osfile.jsm",
+   BookmarkPanelHub: "resource://activity-stream/lib/BookmarkPanelHub.jsm",
+@@ -21,7 +20,6 @@ const {CFRMessageProvider} = ChromeUtils
+ const {OnboardingMessageProvider} = ChromeUtils.import("resource://activity-stream/lib/OnboardingMessageProvider.jsm");
+ const {RemoteSettings} = ChromeUtils.import("resource://services-settings/remote-settings.js");
+ const {CFRPageActions} = ChromeUtils.import("resource://activity-stream/lib/CFRPageActions.jsm");
+-const {AttributionCode} = ChromeUtils.import("resource:///modules/AttributionCode.jsm");
+ 
+ ChromeUtils.defineModuleGetter(this, "ASRouterPreferences",
+   "resource://activity-stream/lib/ASRouterPreferences.jsm");
+@@ -706,12 +704,7 @@ class _ASRouter {
+   }
+ 
+   async _hasAddonAttributionData() {
+-    try {
+-      const data = await AttributionCode.getAttrDataAsync() || {};
+-      return data.source === "addons.mozilla.org";
+-    } catch (e) {
+       return false;
+-    }
+   }
+ 
+   /**
+@@ -1308,8 +1301,6 @@ class _ASRouter {
+     env.set("XPCSHELL_TEST_PROFILE_DIR", "testing");
+ 
+     // Clear and refresh Attribution, and then fetch the messages again to update
+-    AttributionCode._clearCache();
+-    AttributionCode.getAttrDataAsync();
+     this._updateMessageProviders();
+     await this.loadMessagesFromAllProviders();
+   }
+@@ -1345,15 +1336,6 @@ class _ASRouter {
+         target.browser.ownerGlobal.gBrowser.pinTab(tab);
+         target.browser.ownerGlobal.ConfirmationHint.show(tab, "pinTab", {showDescription: true});
+         break;
+-      case ra.SHOW_FIREFOX_ACCOUNTS:
+-        const url = await FxAccounts.config.promiseSignUpURI("snippets");
+-        // We want to replace the current tab.
+-        target.browser.ownerGlobal.openLinkIn(url, "current", {
+-          private: false,
+-          triggeringPrincipal: Services.scriptSecurityManager.createNullPrincipal({}),
+-          csp: null,
+-        });
+-        break;
+     }
+   }
+ 
+diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
+--- a/browser/components/newtab/lib/ASRouterTargeting.jsm
++++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
+@@ -15,8 +15,6 @@ ChromeUtils.defineModuleGetter(this, "Te
+   "resource://gre/modules/TelemetryEnvironment.jsm");
+ ChromeUtils.defineModuleGetter(this, "AppConstants",
+   "resource://gre/modules/AppConstants.jsm");
+-ChromeUtils.defineModuleGetter(this, "AttributionCode",
+-  "resource:///modules/AttributionCode.jsm");
+ 
+ const FXA_USERNAME_PREF = "services.sync.username";
+ const FXA_ENABLED_PREF = "identity.fxaccounts.enabled";
+@@ -188,8 +186,7 @@ const TargetingGetters = {
+     };
+   },
+   get attributionData() {
+-    // Attribution is determined at startup - so we can use the cached attribution at this point
+-    return AttributionCode.getCachedAttributionData();
++    return {};
+   },
+   get currentDate() {
+     return new Date();
+diff --git a/browser/components/newtab/lib/ActivityStreamMessageChannel.jsm b/browser/components/newtab/lib/ActivityStreamMessageChannel.jsm
+--- a/browser/components/newtab/lib/ActivityStreamMessageChannel.jsm
++++ b/browser/components/newtab/lib/ActivityStreamMessageChannel.jsm
+@@ -4,7 +4,6 @@
+ 
+ "use strict";
+ 
+-const {AboutNewTab} = ChromeUtils.import("resource:///modules/AboutNewTab.jsm");
+ /* globals RemotePages */ // Remove when updating eslint-plugin-mozilla 0.14.0+
+ const {RemotePages} = ChromeUtils.import("resource://gre/modules/remotepagemanager/RemotePageManagerParent.jsm");
+ 
+@@ -192,7 +191,7 @@ this.ActivityStreamMessageChannel = clas
+    */
+   createChannel() {
+     //  Receive AboutNewTab's Remote Pages instance, if it exists, on override
+-    const channel = this.pageURL === ABOUT_NEW_TAB_URL && AboutNewTab.override(true);
++    const channel = this.pageURL === ABOUT_NEW_TAB_URL;
+     this.channel = channel || new RemotePages([ABOUT_HOME_URL, ABOUT_NEW_TAB_URL]);
+     this.channel.addMessageListener("RemotePage:Init", this.onNewTabInit);
+     this.channel.addMessageListener("RemotePage:Load", this.onNewTabLoad);
+@@ -220,7 +219,6 @@ this.ActivityStreamMessageChannel = clas
+     this.channel.removeMessageListener("RemotePage:Unload", this.onNewTabUnload);
+     this.channel.removeMessageListener(this.incomingMessageName, this.onMessage);
+     if (this.pageURL === ABOUT_NEW_TAB_URL) {
+-      AboutNewTab.reset(this.channel);
+     } else {
+       this.channel.destroy();
+     }
+diff --git a/browser/components/newtab/lib/BookmarkPanelHub.jsm b/browser/components/newtab/lib/BookmarkPanelHub.jsm
+--- a/browser/components/newtab/lib/BookmarkPanelHub.jsm
++++ b/browser/components/newtab/lib/BookmarkPanelHub.jsm
+@@ -5,8 +5,6 @@
+ 
+ ChromeUtils.defineModuleGetter(this, "DOMLocalization",
+   "resource://gre/modules/DOMLocalization.jsm");
+-ChromeUtils.defineModuleGetter(this, "FxAccounts",
+-  "resource://gre/modules/FxAccounts.jsm");
+ ChromeUtils.defineModuleGetter(this, "Services",
+   "resource://gre/modules/Services.jsm");
+ ChromeUtils.defineModuleGetter(this, "PrivateBrowsingUtils",
+@@ -112,47 +110,6 @@ class _BookmarkPanelHub {
+ 
+     const createElement = elem => target.document.createElementNS("http://www.w3.org/1999/xhtml", elem);
+ 
+-    if (!target.container.querySelector("#cfrMessageContainer")) {
+-      const recommendation = createElement("div");
+-      recommendation.setAttribute("id", "cfrMessageContainer");
+-      recommendation.addEventListener("click", async e => {
+-        target.hidePopup();
+-        const url = await FxAccounts.config.promiseEmailFirstURI("bookmark");
+-        win.ownerGlobal.openLinkIn(url, "tabshifted", {
+-          private: false,
+-          triggeringPrincipal: Services.scriptSecurityManager.createNullPrincipal({}),
+-          csp: null,
+-        });
+-        this.sendUserEventTelemetry("CLICK", win);
+-      });
+-      recommendation.style.color = message.color;
+-      recommendation.style.background = `-moz-linear-gradient(-45deg, ${message.background_color_1} 0%, ${message.background_color_2} 70%)`;
+-      const close = createElement("a");
+-      close.setAttribute("id", "cfrClose");
+-      close.setAttribute("aria-label", "close");
+-      this._l10n.setAttributes(close, message.close_button.tooltiptext);
+-      close.addEventListener("click", e => {
+-        this.sendUserEventTelemetry("DISMISS", win);
+-        this.collapseMessage();
+-        target.close(e);
+-      });
+-      const title = createElement("h1");
+-      title.setAttribute("id", "editBookmarkPanelRecommendationTitle");
+-      this._l10n.setAttributes(title, message.title);
+-      const content = createElement("p");
+-      content.setAttribute("id", "editBookmarkPanelRecommendationContent");
+-      this._l10n.setAttributes(content, message.text);
+-      const cta = createElement("button");
+-      cta.setAttribute("id", "editBookmarkPanelRecommendationCta");
+-      this._l10n.setAttributes(cta, message.cta);
+-      recommendation.appendChild(close);
+-      recommendation.appendChild(title);
+-      recommendation.appendChild(content);
+-      recommendation.appendChild(cta);
+-      this._l10n.translateElements([...recommendation.children]);
+-      target.container.appendChild(recommendation);
+-    }
+-
+     this.toggleRecommendation(true);
+   }
+ 
+diff --git a/browser/components/newtab/lib/OnboardingMessageProvider.jsm b/browser/components/newtab/lib/OnboardingMessageProvider.jsm
+--- a/browser/components/newtab/lib/OnboardingMessageProvider.jsm
++++ b/browser/components/newtab/lib/OnboardingMessageProvider.jsm
+@@ -3,42 +3,11 @@
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ "use strict";
+ const {Localization} = ChromeUtils.import("resource://gre/modules/Localization.jsm");
+-const {FxAccountsConfig} = ChromeUtils.import("resource://gre/modules/FxAccountsConfig.jsm");
+-const {AttributionCode} = ChromeUtils.import("resource:///modules/AttributionCode.jsm");
+ const {AddonRepository} = ChromeUtils.import("resource://gre/modules/addons/AddonRepository.jsm");
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ 
+ async function getAddonInfo() {
+-  try {
+-    let {content, source} = await AttributionCode.getAttrDataAsync();
+-    if (!content || source !== "addons.mozilla.org") {
+-      return null;
+-    }
+-    // Attribution data can be double encoded
+-    while (content.includes("%")) {
+-      try {
+-        const result = decodeURIComponent(content);
+-        if (result === content) {
+-          break;
+-        }
+-        content = result;
+-      } catch (e) {
+-        break;
+-      }
+-    }
+-    const [addon] = await AddonRepository.getAddonsByIDs([content]);
+-    if (addon.sourceURI.scheme !== "https") {
+-      return null;
+-    }
+-    return {
+-      name: addon.name,
+-      url: addon.sourceURI.spec,
+-      iconURL: addon.icons["64"] || addon.icons["32"],
+-    };
+-  } catch (e) {
+-    Cu.reportError("Failed to get the latest add-on version for Return to AMO");
+     return null;
+-  }
+ }
+ 
+ const L10N = new Localization([
+@@ -125,26 +94,6 @@ const ONBOARDING_MESSAGES = async () => 
+     trigger: {id: "showOnboarding"},
+   },
+   {
+-    id: "ONBOARDING_5",
+-    template: "onboarding",
+-    bundled: 3,
+-    order: 4,
+-    content: {
+-      title: {string_id: "onboarding-fxa-title"},
+-      text: {string_id: "onboarding-fxa-text"},
+-      icon: "sync",
+-      primary_button: {
+-        label: {string_id: "onboarding-button-label-get-started"},
+-        action: {
+-          type: "OPEN_URL",
+-          data: {args: await FxAccountsConfig.promiseEmailFirstURI("onboarding"), where: "tabshifted"},
+-        },
+-      },
+-    },
+-    targeting: "trailheadInterrupt == 'control' && attributionData.campaign == 'non-fx-button' && attributionData.source == 'addons.mozilla.org'",
+-    trigger: {id: "showOnboarding"},
+-  },
+-  {
+     id: "TRAILHEAD_1",
+     template: "trailhead",
+     targeting: "trailheadInterrupt == 'join'",
+diff --git a/browser/components/newtab/lib/TelemetryFeed.jsm b/browser/components/newtab/lib/TelemetryFeed.jsm
+--- a/browser/components/newtab/lib/TelemetryFeed.jsm
++++ b/browser/components/newtab/lib/TelemetryFeed.jsm
+@@ -16,8 +16,6 @@ ChromeUtils.defineModuleGetter(this, "AS
+   "resource://activity-stream/lib/ASRouterPreferences.jsm");
+ ChromeUtils.defineModuleGetter(this, "perfService",
+   "resource://activity-stream/common/PerfService.jsm");
+-ChromeUtils.defineModuleGetter(this, "PingCentre",
+-  "resource:///modules/PingCentre.jsm");
+ ChromeUtils.defineModuleGetter(this, "UTEventReporting",
+   "resource://activity-stream/lib/UTEventReporting.jsm");
+ ChromeUtils.defineModuleGetter(this, "UpdateUtils",
+@@ -202,29 +200,6 @@ this.TelemetryFeed = class TelemetryFeed
+   /**
+    * Lazily initialize PingCentre for Activity Stream to send pings
+    */
+-  get pingCentre() {
+-    Object.defineProperty(this, "pingCentre",
+-      {
+-        value: new PingCentre({
+-          topic: ACTIVITY_STREAM_ID,
+-          overrideEndpointPref: ACTIVITY_STREAM_ENDPOINT_PREF,
+-        }),
+-      });
+-    return this.pingCentre;
+-  }
+-
+-  /**
+-   * Lazily initialize a PingCentre client for Activity Stream Router to send pings.
+-   *
+-   * Unlike the PingCentre client for Activity Stream, Activity Stream Router
+-   * uses a separate client with the standard PingCentre endpoint.
+-   */
+-  get pingCentreForASRouter() {
+-    Object.defineProperty(this, "pingCentreForASRouter",
+-      {value: new PingCentre({topic: ACTIVITY_STREAM_ROUTER_ID})});
+-    return this.pingCentreForASRouter;
+-  }
+-
+   /**
+    * Lazily initialize UTEventReporting to send pings
+    */
+@@ -597,10 +572,6 @@ this.TelemetryFeed = class TelemetryFeed
+   }
+ 
+   sendEvent(event_object) {
+-    if (this.telemetryEnabled) {
+-      this.pingCentre.sendPing(event_object,
+-      {filter: ACTIVITY_STREAM_ID});
+-    }
+   }
+ 
+   sendUTEvent(event_object, eventFunction) {
+@@ -628,18 +599,9 @@ this.TelemetryFeed = class TelemetryFeed
+   }
+ 
+   sendStructuredIngestionEvent(event_object, pingType, version) {
+-    if (this.telemetryEnabled && this.structuredIngestionTelemetryEnabled) {
+-      this.pingCentre.sendStructuredIngestionPing(event_object,
+-        this._generateStructuredIngestionEndpoint(pingType, version),
+-        {filter: ACTIVITY_STREAM_ID});
+-    }
+   }
+ 
+   sendASRouterEvent(event_object) {
+-    if (this.telemetryEnabled) {
+-      this.pingCentreForASRouter.sendPing(event_object,
+-      {filter: ACTIVITY_STREAM_ID});
+-    }
+   }
+ 
+   handleImpressionStats(action) {
+@@ -919,15 +881,9 @@ this.TelemetryFeed = class TelemetryFeed
+     }
+ 
+     // Only uninit if the getter has initialized it
+-    if (Object.prototype.hasOwnProperty.call(this, "pingCentre")) {
+-      this.pingCentre.uninit();
+-    }
+     if (Object.prototype.hasOwnProperty.call(this, "utEvents")) {
+       this.utEvents.uninit();
+     }
+-    if (Object.prototype.hasOwnProperty.call(this, "pingCentreForASRouter")) {
+-      this.pingCentreForASRouter.uninit();
+-    }
+ 
+     // TODO: Send any unfinished sessions
+   }
+diff --git a/browser/components/places/PlacesUIUtils.jsm b/browser/components/places/PlacesUIUtils.jsm
+--- a/browser/components/places/PlacesUIUtils.jsm
++++ b/browser/components/places/PlacesUIUtils.jsm
+@@ -20,7 +20,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PluralForm: "resource://gre/modules/PluralForm.jsm",
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+   PromiseUtils: "resource://gre/modules/PromiseUtils.jsm",
+-  Weave: "resource://services-sync/main.js",
+ });
+ 
+ XPCOMUtils.defineLazyGetter(this, "bundle", function() {
+@@ -759,9 +758,7 @@ var PlacesUIUtils = {
+   },
+ 
+   shouldShowTabsFromOtherComputersMenuitem() {
+-    let weaveOK = Weave.Status.checkSetup() != Weave.CLIENT_NOT_CONFIGURED &&
+-                  Weave.Svc.Prefs.get("firstSync", "") != "notReady";
+-    return weaveOK;
++    return false;
+   },
+ 
+   /**
+diff --git a/browser/components/preferences/in-content/jar.mn b/browser/components/preferences/in-content/jar.mn
+--- a/browser/components/preferences/in-content/jar.mn
++++ b/browser/components/preferences/in-content/jar.mn
+@@ -13,9 +13,4 @@ browser.jar:
+    content/browser/preferences/in-content/search.js
+    content/browser/preferences/in-content/privacy.js
+    content/browser/preferences/in-content/containers.js
+-   content/browser/preferences/in-content/sync.js
+-   content/browser/preferences/in-content/syncDisconnect.xul
+-   content/browser/preferences/in-content/syncDisconnect.js
+-   content/browser/preferences/in-content/fxaPairDevice.xul
+-   content/browser/preferences/in-content/fxaPairDevice.js
+    content/browser/preferences/in-content/findInPage.js
+diff --git a/browser/components/preferences/in-content/preferences.xul b/browser/components/preferences/in-content/preferences.xul
+--- a/browser/components/preferences/in-content/preferences.xul
++++ b/browser/components/preferences/in-content/preferences.xul
+@@ -190,7 +190,6 @@
+ #include search.xul
+ #include privacy.xul
+ #include containers.xul
+-#include sync.xul
+         </vbox>
+       </vbox>
+     </vbox>
+diff --git a/browser/components/search/content/autocomplete-popup.js b/browser/components/search/content/autocomplete-popup.js
+--- a/browser/components/search/content/autocomplete-popup.js
++++ b/browser/components/search/content/autocomplete-popup.js
+@@ -187,11 +187,6 @@ class MozSearchAutocompleteRichlistboxPo
+ 
+     // Check for middle-click or modified clicks on the search bar
+     if (popupForSearchBar) {
+-      BrowserUsageTelemetry.recordSearchbarSelectedResultMethod(
+-        aEvent,
+-        this.selectedIndex
+-      );
+-
+       // Handle search bar popup clicks
+       let search = this.input.controller.getValueAt(this.selectedIndex);
+ 
+diff --git a/browser/components/search/content/searchbar.js b/browser/components/search/content/searchbar.js
+--- a/browser/components/search/content/searchbar.js
++++ b/browser/components/search/content/searchbar.js
+@@ -271,41 +271,8 @@ class MozSearchbar extends MozXULElement
+     let textBox = this._textbox;
+     let textValue = textBox.value;
+ 
+-    let selection = this.telemetrySearchDetails;
+     let oneOffRecorded = false;
+ 
+-    BrowserUsageTelemetry.recordSearchbarSelectedResultMethod(
+-      aEvent,
+-      selection ? selection.index : -1
+-    );
+-
+-    if (!selection || (selection.index == -1)) {
+-      oneOffRecorded = this.textbox.popup.oneOffButtons
+-        .maybeRecordTelemetry(aEvent);
+-      if (!oneOffRecorded) {
+-        let source = "unknown";
+-        let type = "unknown";
+-        let target = aEvent.originalTarget;
+-        if (aEvent instanceof KeyboardEvent) {
+-          type = "key";
+-        } else if (aEvent instanceof MouseEvent) {
+-          type = "mouse";
+-          if (target.classList.contains("search-panel-header") ||
+-            target.parentNode.classList.contains("search-panel-header")) {
+-            source = "header";
+-          }
+-        } else if (aEvent instanceof XULCommandEvent) {
+-          if (target.getAttribute("anonid") == "paste-and-search") {
+-            source = "paste";
+-          }
+-        }
+-        if (!aEngine) {
+-          aEngine = this.currentEngine;
+-        }
+-        BrowserSearch.recordOneoffSearchInTelemetry(aEngine, source, type);
+-      }
+-    }
+-
+     // This is a one-off search only if oneOffRecorded is true.
+     this.doSearch(textValue, aWhere, aEngine, aParams, oneOffRecorded);
+ 
+@@ -331,18 +298,6 @@ class MozSearchbar extends MozXULElement
+ 
+     let engine = aEngine || this.currentEngine;
+     let submission = engine.getSubmission(aData, null, "searchbar");
+-    let telemetrySearchDetails = this.telemetrySearchDetails;
+-    this.telemetrySearchDetails = null;
+-    if (telemetrySearchDetails && telemetrySearchDetails.index == -1) {
+-      telemetrySearchDetails = null;
+-    }
+-    // If we hit here, we come either from a one-off, a plain search or a suggestion.
+-    const details = {
+-      isOneOff: aOneOff,
+-      isSuggestion: (!aOneOff && telemetrySearchDetails),
+-      selection: telemetrySearchDetails,
+-    };
+-    BrowserSearch.recordSearchInTelemetry(engine, "searchbar", details);
+     // null parameter below specifies HTML response for search
+     let params = {
+       postData: submission.postData,
+diff --git a/browser/components/search/moz.build b/browser/components/search/moz.build
+--- a/browser/components/search/moz.build
++++ b/browser/components/search/moz.build
+@@ -4,10 +4,6 @@
+ # License, v. 2.0. If a copy of the MPL was not distributed with this
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+-EXTRA_JS_MODULES += [
+-    'SearchTelemetry.jsm',
+-]
+-
+ BROWSER_CHROME_MANIFESTS += [
+     'test/browser/browser.ini',
+     'test/browser/google_codes/browser.ini',
+diff --git a/browser/components/uitour/UITour.jsm b/browser/components/uitour/UITour.jsm
+--- a/browser/components/uitour/UITour.jsm
++++ b/browser/components/uitour/UITour.jsm
+@@ -15,8 +15,6 @@ XPCOMUtils.defineLazyGlobalGetters(this,
+ 
+ ChromeUtils.defineModuleGetter(this, "CustomizableUI",
+   "resource:///modules/CustomizableUI.jsm");
+-ChromeUtils.defineModuleGetter(this, "FxAccounts",
+-  "resource://gre/modules/FxAccounts.jsm");
+ ChromeUtils.defineModuleGetter(this, "PageActions",
+   "resource:///modules/PageActions.jsm");
+ ChromeUtils.defineModuleGetter(this, "PrivateBrowsingUtils",
+@@ -442,43 +440,6 @@ var UITour = {
+         break;
+       }
+ 
+-      case "showFirefoxAccounts": {
+-        Promise.resolve().then(() => {
+-          return data.email ? FxAccounts.config.promiseEmailURI(data.email, "uitour") :
+-                              FxAccounts.config.promiseSignUpURI("uitour");
+-        }).then(uri => {
+-          const url = new URL(uri);
+-          // Call our helper to validate extraURLCampaignParams and populate URLSearchParams
+-          if (!this._populateCampaignParams(url, data.extraURLCampaignParams)) {
+-            log.warn("showFirefoxAccounts: invalid campaign args specified");
+-            return;
+-          }
+-
+-          // We want to replace the current tab.
+-          browser.loadURI(url.href, {
+-            triggeringPrincipal: Services.scriptSecurityManager.createNullPrincipal({}),
+-          });
+-        });
+-        break;
+-      }
+-
+-      case "showConnectAnotherDevice": {
+-        FxAccounts.config.promiseConnectDeviceURI("uitour").then(uri => {
+-          const url = new URL(uri);
+-          // Call our helper to validate extraURLCampaignParams and populate URLSearchParams
+-          if (!this._populateCampaignParams(url, data.extraURLCampaignParams)) {
+-            log.warn("showConnectAnotherDevice: invalid campaign args specified");
+-            return;
+-          }
+-
+-          // We want to replace the current tab.
+-          browser.loadURI(url.href, {
+-            triggeringPrincipal: Services.scriptSecurityManager.createNullPrincipal({}),
+-          });
+-        });
+-        break;
+-      }
+-
+       case "resetFirefox": {
+         // Open a reset profile dialog window.
+         if (ResetProfile.resetSupported()) {
+diff --git a/browser/components/urlbar/UrlbarController.jsm b/browser/components/urlbar/UrlbarController.jsm
+--- a/browser/components/urlbar/UrlbarController.jsm
++++ b/browser/components/urlbar/UrlbarController.jsm
+@@ -12,12 +12,10 @@ const {XPCOMUtils} = ChromeUtils.import(
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+-  BrowserUsageTelemetry: "resource:///modules/BrowserUsageTelemetry.jsm",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
+   UrlbarPrefs: "resource:///modules/UrlbarPrefs.jsm",
+   UrlbarProvidersManager: "resource:///modules/UrlbarProvidersManager.jsm",
+   UrlbarUtils: "resource:///modules/UrlbarUtils.jsm",
+-  URLBAR_SELECTED_RESULT_TYPES: "resource:///modules/BrowserUsageTelemetry.jsm",
+ });
+ 
+ const TELEMETRY_1ST_RESULT = "PLACES_AUTOCOMPLETE_1ST_RESULT_TIME_MS";
+@@ -433,8 +431,6 @@ class UrlbarController {
+       // will happen when you press the Enter key.  Treat it as no selection.
+       selectedResult = (resultIndex > 0 || !result.heuristic) ? resultIndex : -1;
+     }
+-    BrowserUsageTelemetry.recordUrlbarSelectedResultMethod(
+-      event, selectedResult, this._userSelectionBehavior);
+ 
+     if (!result) {
+       return;
+@@ -471,23 +467,6 @@ class UrlbarController {
+         Cu.reportError(`Unknown Result Type ${result.type}`);
+         return;
+     }
+-
+-    Services.telemetry
+-            .getHistogramById("FX_URLBAR_SELECTED_RESULT_INDEX")
+-            .add(resultIndex);
+-    // You can add values but don't change any of the existing values.
+-    // Otherwise you'll break our data.
+-    if (telemetryType in URLBAR_SELECTED_RESULT_TYPES) {
+-      Services.telemetry
+-              .getHistogramById("FX_URLBAR_SELECTED_RESULT_TYPE")
+-              .add(URLBAR_SELECTED_RESULT_TYPES[telemetryType]);
+-      Services.telemetry
+-              .getKeyedHistogramById("FX_URLBAR_SELECTED_RESULT_INDEX_BY_TYPE")
+-              .add(telemetryType, resultIndex);
+-    } else {
+-      Cu.reportError("Unknown FX_URLBAR_SELECTED_RESULT_TYPE type: " +
+-                     telemetryType);
+-    }
+   }
+ 
+   /**
+diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
+--- a/browser/extensions/moz.build
++++ b/browser/extensions/moz.build
+@@ -6,9 +6,5 @@
+ 
+ DIRS += [
+     'formautofill',
+-    'fxmonitor',
+     'pdfjs',
+-    'screenshots',
+-    'webcompat',
+-    'report-site-issue'
+ ]
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -181,11 +181,9 @@
+ @RESPATH@/browser/components/MacTouchBar.manifest
+ @RESPATH@/browser/components/MacTouchBar.js
+ #endif
+-@RESPATH@/components/SyncComponents.manifest
+ @RESPATH@/components/servicesComponents.manifest
+ @RESPATH@/components/servicesSettings.manifest
+ @RESPATH@/components/cryptoComponents.manifest
+-@RESPATH@/components/TelemetryStartup.manifest
+ 
+ @RESPATH@/components/Push.manifest
+ 
+@@ -300,9 +298,6 @@
+ ; gre location for now.
+ @RESPATH@/defaults/pref/channel-prefs.js
+ 
+-; Services (gre) prefs
+-@RESPATH@/defaults/pref/services-sync.js
+-
+ ; [Layout Engine Resources]
+ ; Style Sheets, Graphics and other Resources used by the layout engine.
+ @RESPATH@/res/EditorOverride.css
+@@ -426,13 +421,6 @@ bin/libfreebl_32int64_3.so
+ #endif
+ #endif
+ 
+-; [ Ping Sender ]
+-;
+-@BINPATH@/pingsender@BIN_SUFFIX@
+-
+-; Shutdown Terminator
+-@RESPATH@/components/terminator.manifest
+-
+ #ifdef LLVM_SYMBOLIZER
+ @BINPATH@/@LLVM_SYMBOLIZER@
+ ; On Windows, llvm-symbolizer depends on the MS DIA library.
+diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
+--- a/browser/locales/Makefile.in
++++ b/browser/locales/Makefile.in
+@@ -56,13 +56,10 @@ libs-%:
+ 	$(if $(filter en-US,$(AB_CD)),, @$(MAKE) merge-$*)
+ 	$(NSINSTALL) -D $(DIST)/install
+ 	@$(MAKE) -C ../../toolkit/locales libs-$* XPI_ROOT_APPID='$(XPI_ROOT_APPID)'
+-	@$(MAKE) -C ../../services/sync/locales AB_CD=$* XPI_NAME=locale-$*
+ 	@$(MAKE) -C ../../extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
+ ifneq (,$(wildcard ../extensions/formautofill/locales))
+ 	@$(MAKE) -C ../extensions/formautofill/locales AB_CD=$* XPI_NAME=locale-$*
+ endif
+-	@$(MAKE) -C ../extensions/fxmonitor/locales AB_CD=$* XPI_NAME=locale-$*
+-	@$(MAKE) -C ../extensions/report-site-issue/locales AB_CD=$* XPI_NAME=locale-$*
+ 	@$(MAKE) -C ../../devtools/client/locales AB_CD=$* XPI_NAME=locale-$* XPI_ROOT_APPID='$(XPI_ROOT_APPID)'
+ 	@$(MAKE) -C ../../devtools/startup/locales AB_CD=$* XPI_NAME=locale-$* XPI_ROOT_APPID='$(XPI_ROOT_APPID)'
+ 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=$(PREF_DIR)
+@@ -74,17 +71,14 @@ chrome-%: IS_LANGUAGE_REPACK=1
+ chrome-%:
+ 	$(if $(filter en-US,$(AB_CD)),, @$(MAKE) merge-$*)
+ 	@$(MAKE) -C ../../toolkit/locales chrome-$*
+-	@$(MAKE) -C ../../services/sync/locales chrome AB_CD=$*
+ 	@$(MAKE) -C ../../extensions/spellcheck/locales chrome AB_CD=$*
+ ifneq (,$(wildcard ../extensions/formautofill/locales))
+ 	@$(MAKE) -C ../extensions/formautofill/locales chrome AB_CD=$*
+ endif
+-	@$(MAKE) -C ../extensions/fxmonitor/locales chrome AB_CD=$*
+ 	@$(MAKE) -C ../../devtools/client/locales chrome AB_CD=$*
+ 	@$(MAKE) -C ../../devtools/startup/locales chrome AB_CD=$*
+ 	@$(MAKE) chrome AB_CD=$*
+ 	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales chrome AB_CD=$*
+-	@$(MAKE) -C ../extensions/report-site-issue/locales chrome AB_CD=$*
+ 
+ package-win32-installer: $(SUBMAKEFILES)
+ 	$(MAKE) -C ../installer/windows CONFIG_DIR=l10ngen ZIP_IN='$(ZIP_OUT)' installer
+diff --git a/browser/modules/PermissionUI.jsm b/browser/modules/PermissionUI.jsm
+--- a/browser/modules/PermissionUI.jsm
++++ b/browser/modules/PermissionUI.jsm
+@@ -68,10 +68,6 @@ ChromeUtils.defineModuleGetter(this, "Si
+   "resource:///modules/SitePermissions.jsm");
+ ChromeUtils.defineModuleGetter(this, "PrivateBrowsingUtils",
+   "resource://gre/modules/PrivateBrowsingUtils.jsm");
+-ChromeUtils.defineModuleGetter(this, "URICountListener",
+-  "resource:///modules/BrowserUsageTelemetry.jsm");
+-ChromeUtils.defineModuleGetter(this, "PermissionUITelemetry",
+-  "resource:///modules/PermissionUITelemetry.jsm");
+ 
+ XPCOMUtils.defineLazyServiceGetter(this, "IDNService",
+   "@mozilla.org/network/idn-service;1", "nsIIDNService");
+@@ -554,18 +550,6 @@ var PermissionPromptPrototype = {
+ 
+     let options = this.popupOptions;
+ 
+-    let telemetryData = null;
+-    if (this.request && this.permissionTelemetryKey) {
+-      telemetryData = {
+-        permissionTelemetryKey: this.permissionTelemetryKey,
+-        permissionKey: this.permissionKey,
+-        principal: this.principal,
+-        documentDOMContentLoadedTimestamp: this.request.documentDOMContentLoadedTimestamp,
+-        isHandlingUserInput: this.request.isHandlingUserInput,
+-        userHadInteractedWithDocument: this.request.userHadInteractedWithDocument,
+-      };
+-    }
+-
+     if (!options.hasOwnProperty("displayURI") || options.displayURI) {
+       options.displayURI = this.principal.URI;
+     }
+@@ -597,10 +581,6 @@ var PermissionPromptPrototype = {
+       // You can remove this restriction if you need it, but be
+       // mindful of other consumers.
+       if (topic == "removed" && !postPrompt) {
+-        if (telemetryData) {
+-          PermissionUITelemetry.onRemoved(telemetryData, this._buttonAction,
+-                                          nextRemovalReason);
+-        }
+         this.onAfterShow();
+       }
+       return false;
+@@ -621,9 +601,6 @@ var PermissionPromptPrototype = {
+                                         mainAction,
+                                         secondaryActions,
+                                         options);
+-      if (telemetryData) {
+-        PermissionUITelemetry.onShow(telemetryData);
+-      }
+     }
+   },
+ };
+@@ -1132,8 +1109,7 @@ StorageAccessPermissionPrompt.prototype 
+     // session (but not to exceed 24 hours), or the value of the
+     // dom.storage_access.max_concurrent_auto_grants preference, whichever is
+     // higher.
+-    return Math.max(Math.max(Math.floor(URICountListener.uniqueDomainsVisitedInPast24Hours / 100),
+-                             this._maxConcurrentAutoGrants), 0);
++    return Math.max(this._maxConcurrentAutoGrants, 0);
+   },
+ 
+   getOriginsThirdPartyHasAccessTo(thirdPartyOrigin) {
+diff --git a/browser/modules/moz.build b/browser/modules/moz.build
+--- a/browser/modules/moz.build
++++ b/browser/modules/moz.build
+@@ -7,9 +7,6 @@
+ with Files("**"):
+     BUG_COMPONENT = ("Firefox", "General")
+ 
+-with Files("test/browser/*Telemetry*"):
+-    BUG_COMPONENT = ("Toolkit", "Telemetry")
+-
+ with Files("test/browser/*ContentSearch*"):
+     BUG_COMPONENT = ("Firefox", "Search")
+ 
+@@ -37,9 +34,6 @@ with Files("test/unit/test_LaterRun.js")
+ with Files("test/unit/test_SitePermissions.js"):
+     BUG_COMPONENT = ("Firefox", "Site Identity and Permission Panels")
+ 
+-with Files("AboutNewTab.jsm"):
+-    BUG_COMPONENT = ("Firefox", "New Tab Page")
+-
+ with Files("AsanReporter.jsm"):
+     BUG_COMPONENT = ("Firefox Build System", "General")
+ 
+@@ -52,9 +46,6 @@ with Files('NewTabPagePreloading.jsm'):
+ with Files("BrowserWindowTracker.jsm"):
+     BUG_COMPONENT = ("Firefox", "General")
+ 
+-with Files("*Telemetry.jsm"):
+-    BUG_COMPONENT = ("Toolkit", "Telemetry")
+-
+ with Files("ContentCrashHandlers.jsm"):
+     BUG_COMPONENT = ("Toolkit", "Crash Reporting")
+ 
+@@ -79,9 +70,6 @@ with Files("OpenInTabsUtils.jsm"):
+ with Files("PermissionUI.jsm"):
+    BUG_COMPONENT = ("Firefox", "Site Identity and Permission Panels")
+ 
+-with Files("PermissionUITelemetry.jsm"):
+-   BUG_COMPONENT = ("Firefox", "Site Identity and Permission Panels")
+-
+ with Files("ProcessHangMonitor.jsm"):
+     BUG_COMPONENT = ("Core", "DOM: Content Processes")
+ 
+@@ -132,9 +120,7 @@ BROWSER_CHROME_MANIFESTS += [
+ XPCSHELL_TESTS_MANIFESTS += ['test/unit/xpcshell.ini']
+ 
+ EXTRA_JS_MODULES += [
+-    'AboutNewTab.jsm',
+     'AsyncTabSwitcher.jsm',
+-    'BrowserUsageTelemetry.jsm',
+     'BrowserWindowTracker.jsm',
+     'ContentClick.jsm',
+     'ContentCrashHandlers.jsm',
+@@ -153,8 +139,6 @@ EXTRA_JS_MODULES += [
+     'OpenInTabsUtils.jsm',
+     'PageActions.jsm',
+     'PermissionUI.jsm',
+-    'PermissionUITelemetry.jsm',
+-    'PingCentre.jsm',
+     'ProcessHangMonitor.jsm',
+     'ReaderParent.jsm',
+     'RemotePrompt.jsm',
+diff --git a/browser/themes/shared/jar.inc.mn b/browser/themes/shared/jar.inc.mn
+--- a/browser/themes/shared/jar.inc.mn
++++ b/browser/themes/shared/jar.inc.mn
+@@ -111,7 +111,6 @@
+   skin/classic/browser/preferences/in-content/face-sad.svg      (../shared/incontentprefs/face-sad.svg)
+   skin/classic/browser/preferences/in-content/face-smile.svg    (../shared/incontentprefs/face-smile.svg)
+   skin/classic/browser/preferences/in-content/fxa-avatar.svg    (../shared/incontentprefs/fxa-avatar.svg)
+-  skin/classic/browser/preferences/in-content/fxaPairDevice.css (../shared/incontentprefs/fxaPairDevice.css)
+   skin/classic/browser/preferences/in-content/general.svg       (../shared/incontentprefs/general.svg)
+   skin/classic/browser/preferences/in-content/logo-android.svg  (../shared/incontentprefs/logo-android.svg)
+   skin/classic/browser/preferences/in-content/logo-ios.svg      (../shared/incontentprefs/logo-ios.svg)
+@@ -126,7 +125,6 @@
+   skin/classic/browser/preferences/in-content/siteDataSettings.css (../shared/incontentprefs/siteDataSettings.css)
+   skin/classic/browser/preferences/in-content/sync-devices.svg (../shared/incontentprefs/sync-devices.svg)
+   skin/classic/browser/preferences/in-content/sync.svg         (../shared/incontentprefs/sync.svg)
+-  skin/classic/browser/preferences/in-content/syncDisconnect.css (../shared/incontentprefs/syncDisconnect.css)
+ * skin/classic/browser/preferences/in-content/containers.css   (../shared/incontentprefs/containers.css)
+ * skin/classic/browser/preferences/containers.css              (../shared/preferences/containers.css)
+   skin/classic/browser/fxa/default-avatar.svg                  (../shared/fxa/default-avatar.svg)
+diff --git a/docshell/base/nsAboutRedirector.cpp b/docshell/base/nsAboutRedirector.cpp
+--- a/docshell/base/nsAboutRedirector.cpp
++++ b/docshell/base/nsAboutRedirector.cpp
+@@ -114,8 +114,6 @@ static const RedirEntry kRedirMap[] = {
+          nsIAboutModule::MAKE_LINKABLE | nsIAboutModule::URI_CAN_LOAD_IN_CHILD},
+     {"support", "chrome://global/content/aboutSupport.xhtml",
+      nsIAboutModule::ALLOW_SCRIPT},
+-    {"telemetry", "chrome://global/content/aboutTelemetry.xhtml",
+-     nsIAboutModule::ALLOW_SCRIPT},
+     {"url-classifier", "chrome://global/content/aboutUrlClassifier.xhtml",
+      nsIAboutModule::ALLOW_SCRIPT},
+     {"webrtc", "chrome://global/content/aboutwebrtc/aboutWebrtc.html",
+diff --git a/dom/ipc/ContentChild.cpp b/dom/ipc/ContentChild.cpp
+--- a/dom/ipc/ContentChild.cpp
++++ b/dom/ipc/ContentChild.cpp
+@@ -17,7 +17,6 @@
+ #include "mozilla/Attributes.h"
+ #include "mozilla/BackgroundHangMonitor.h"
+ #include "mozilla/LookAndFeel.h"
+-#include "mozilla/MemoryTelemetry.h"
+ #include "mozilla/NullPrincipal.h"
+ #include "mozilla/Preferences.h"
+ #include "mozilla/ProcessHangMonitorIPC.h"
+@@ -3521,7 +3520,6 @@ mozilla::ipc::IPCResult ContentChild::Re
+ 
+ mozilla::ipc::IPCResult ContentChild::RecvGetMemoryUniqueSetSize(
+     GetMemoryUniqueSetSizeResolver&& aResolver) {
+-  MemoryTelemetry::Get().GetUniqueSetSize(std::move(aResolver));
+   return IPC_OK();
+ }
+ 
+diff --git a/netwerk/base/CaptivePortalService.cpp b/netwerk/base/CaptivePortalService.cpp
+--- a/netwerk/base/CaptivePortalService.cpp
++++ b/netwerk/base/CaptivePortalService.cpp
+@@ -30,7 +30,7 @@ static LazyLogModule gCaptivePortalLog("
+ 
+ NS_IMPL_ISUPPORTS(CaptivePortalService, nsICaptivePortalService, nsIObserver,
+                   nsISupportsWeakReference, nsITimerCallback,
+-                  nsICaptivePortalCallback, nsINamed)
++                  nsINamed)
+ 
+ static StaticRefPtr<CaptivePortalService> gCPService;
+ 
+@@ -74,20 +74,7 @@ nsresult CaptivePortalService::PerformCh
+     return NS_OK;
+   }
+   MOZ_ASSERT(XRE_GetProcessType() == GeckoProcessType_Default);
+-  nsresult rv;
+-  if (!mCaptivePortalDetector) {
+-    mCaptivePortalDetector =
+-        do_GetService("@mozilla.org/toolkit/captive-detector;1", &rv);
+-    if (NS_FAILED(rv)) {
+-      LOG(("Unable to get a captive portal detector\n"));
+-      return rv;
+-    }
+-  }
+-
+-  LOG(("CaptivePortalService::PerformCheck - Calling CheckCaptivePortal\n"));
+-  mRequestInProgress = true;
+-  mCaptivePortalDetector->CheckCaptivePortal(kInterfaceName, this);
+-  return NS_OK;
++  return NS_ERROR_FACTORY_NOT_REGISTERED;
+ }
+ 
+ nsresult CaptivePortalService::RearmTimer() {
+@@ -202,10 +189,6 @@ nsresult CaptivePortalService::Stop() {
+   mTimer = nullptr;
+   mRequestInProgress = false;
+   mStarted = false;
+-  if (mCaptivePortalDetector) {
+-    mCaptivePortalDetector->Abort(kInterfaceName);
+-  }
+-  mCaptivePortalDetector = nullptr;
+ 
+   // Clear the state in case anyone queries the state while detection is off.
+   mState = UNKNOWN;
+@@ -351,45 +334,5 @@ void CaptivePortalService::NotifyConnect
+   }
+ }
+ 
+-//-----------------------------------------------------------------------------
+-// CaptivePortalService::nsICaptivePortalCallback
+-//-----------------------------------------------------------------------------
+-NS_IMETHODIMP
+-CaptivePortalService::Prepare() {
+-  LOG(("CaptivePortalService::Prepare\n"));
+-  MOZ_ASSERT(XRE_GetProcessType() == GeckoProcessType_Default);
+-  // XXX: Finish preparation shouldn't be called until dns and routing is
+-  // available.
+-  if (mCaptivePortalDetector) {
+-    mCaptivePortalDetector->FinishPreparation(kInterfaceName);
+-  }
+-  return NS_OK;
+-}
+-
+-NS_IMETHODIMP
+-CaptivePortalService::Complete(bool success) {
+-  LOG(("CaptivePortalService::Complete(success=%d) mState=%d\n", success,
+-       mState));
+-  MOZ_ASSERT(XRE_GetProcessType() == GeckoProcessType_Default);
+-  mLastChecked = TimeStamp::Now();
+-
+-  // Note: this callback gets called when:
+-  // 1. the request is completed, and content is valid (success == true)
+-  // 2. when the request is aborted or times out (success == false)
+-
+-  if (success) {
+-    if (mEverBeenCaptive) {
+-      mState = UNLOCKED_PORTAL;
+-      NotifyConnectivityAvailable(true);
+-    } else {
+-      mState = NOT_CAPTIVE;
+-      NotifyConnectivityAvailable(false);
+-    }
+-  }
+-
+-  mRequestInProgress = false;
+-  return NS_OK;
+-}
+-
+ }  // namespace net
+ }  // namespace mozilla
+diff --git a/netwerk/base/CaptivePortalService.h b/netwerk/base/CaptivePortalService.h
+--- a/netwerk/base/CaptivePortalService.h
++++ b/netwerk/base/CaptivePortalService.h
+@@ -6,7 +6,6 @@
+ #define CaptivePortalService_h_
+ 
+ #include "nsICaptivePortalService.h"
+-#include "nsICaptivePortalDetector.h"
+ #include "nsINamed.h"
+ #include "nsIObserver.h"
+ #include "nsWeakReference.h"
+@@ -21,14 +20,12 @@ class CaptivePortalService : public nsIC
+                              public nsIObserver,
+                              public nsSupportsWeakReference,
+                              public nsITimerCallback,
+-                             public nsICaptivePortalCallback,
+                              public nsINamed {
+  public:
+   NS_DECL_ISUPPORTS
+   NS_DECL_NSICAPTIVEPORTALSERVICE
+   NS_DECL_NSIOBSERVER
+   NS_DECL_NSITIMERCALLBACK
+-  NS_DECL_NSICAPTIVEPORTALCALLBACK
+   NS_DECL_NSINAMED
+ 
+   nsresult Initialize();
+@@ -48,7 +45,6 @@ class CaptivePortalService : public nsIC
+   nsresult RearmTimer();
+   void NotifyConnectivityAvailable(bool aCaptive);
+ 
+-  nsCOMPtr<nsICaptivePortalDetector> mCaptivePortalDetector;
+   int32_t mState;
+ 
+   nsCOMPtr<nsITimer> mTimer;
+diff --git a/services/moz.build b/services/moz.build
+--- a/services/moz.build
++++ b/services/moz.build
+@@ -12,11 +12,3 @@ DIRS += [
+     'crypto',
+     'settings',
+ ]
+-
+-if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'android':
+-    DIRS += [
+-        'fxaccounts',
+-    ]
+-
+-if CONFIG['MOZ_SERVICES_SYNC']:
+-    DIRS += ['sync']
+diff --git a/toolkit/components/backgroundhangmonitor/moz.build b/toolkit/components/backgroundhangmonitor/moz.build
+--- a/toolkit/components/backgroundhangmonitor/moz.build
++++ b/toolkit/components/backgroundhangmonitor/moz.build
+@@ -18,14 +18,6 @@ if CONFIG['NIGHTLY_BUILD'] and \
+    not CONFIG['MOZ_ASAN']:
+     DEFINES['MOZ_ENABLE_BACKGROUND_HANG_MONITOR'] = 1
+ 
+-    EXTRA_JS_MODULES += [
+-        'BHRTelemetryService.jsm',
+-    ]
+-
+-    XPCOM_MANIFESTS += [
+-        'components.conf',
+-    ]
+-
+     XPCSHELL_TESTS_MANIFESTS += ['tests/xpcshell.ini']
+ 
+ XPIDL_SOURCES += [
+diff --git a/toolkit/components/extensions/ExtensionStorageSync.jsm b/toolkit/components/extensions/ExtensionStorageSync.jsm
+--- a/toolkit/components/extensions/ExtensionStorageSync.jsm
++++ b/toolkit/components/extensions/ExtensionStorageSync.jsm
+@@ -49,7 +49,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   CommonUtils: "resource://services-common/utils.js",
+   CryptoUtils: "resource://services-crypto/utils.js",
+   ExtensionCommon: "resource://gre/modules/ExtensionCommon.jsm",
+-  fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   KintoHttpClient: "resource://services-common/kinto-http-client.js",
+   Kinto: "resource://services-common/kinto-offline-client.js",
+   FirefoxAdapter: "resource://services-common/kinto-storage-adapter.js",
+@@ -80,9 +79,6 @@ const log = Log.repository.getLogger("Sy
+ // A global that is fxAccounts, or null if (as on android) fxAccounts
+ // isn't available.
+ let _fxaService = null;
+-if (AppConstants.platform != "android") {
+-  _fxaService = fxAccounts;
+-}
+ 
+ class ServerKeyringDeleted extends Error {
+   constructor() {
+diff --git a/toolkit/components/moz.build b/toolkit/components/moz.build
+--- a/toolkit/components/moz.build
++++ b/toolkit/components/moz.build
+@@ -96,8 +96,6 @@ if CONFIG['BUILD_CTYPES']:
+ if CONFIG['MOZ_XUL']:
+     DIRS += ['autocomplete', 'printingui', 'satchel']
+ 
+-DIRS += ['captivedetect']
+-
+ if CONFIG['OS_TARGET'] != 'Android':
+     DIRS += ['terminator']
+ 
+@@ -115,9 +113,6 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'andr
+         'components.conf',
+     ]
+ 
+-if CONFIG['MOZ_BUILD_APP'] == 'browser':
+-    DIRS += ['normandy']
+-
+ # This is only packaged for browser since corrupt JAR and XPI files tend to be a desktop-OS problem.
+ if CONFIG['MOZ_BUILD_APP'] == 'browser':
+     DIRS += ['corroborator']
+diff --git a/toolkit/components/places/PlacesRemoteTabsAutocompleteProvider.jsm b/toolkit/components/places/PlacesRemoteTabsAutocompleteProvider.jsm
+--- a/toolkit/components/places/PlacesRemoteTabsAutocompleteProvider.jsm
++++ b/toolkit/components/places/PlacesRemoteTabsAutocompleteProvider.jsm
+@@ -13,8 +13,6 @@ var EXPORTED_SYMBOLS = ["PlacesRemoteTab
+ 
+ const {XPCOMUtils} = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+-ChromeUtils.defineModuleGetter(this, "SyncedTabs",
+-  "resource://services-sync/SyncedTabs.jsm");
+ 
+ XPCOMUtils.defineLazyGetter(this, "weaveXPCService", function() {
+   try {
+@@ -36,19 +34,6 @@ function escapeRegExp(string) {
+ async function buildItems() {
+   // This is sorted by most recent client, most recent tab.
+   let tabsData = [];
+-  // If Sync isn't initialized (either due to lag at startup or due to no user
+-  // being signed in), don't reach in to Weave.Service as that may initialize
+-  // Sync unnecessarily - we'll get an observer notification later when it
+-  // becomes ready and has synced a list of tabs.
+-  if (weaveXPCService.ready) {
+-    let clients = await SyncedTabs.getTabClients();
+-    SyncedTabs.sortTabClientsByLastUsed(clients);
+-    for (let client of clients) {
+-      for (let tab of client.tabs) {
+-        tabsData.push({tab, client});
+-      }
+-    }
+-  }
+   return tabsData;
+ }
+ 
+diff --git a/toolkit/components/reader/AboutReader.jsm b/toolkit/components/reader/AboutReader.jsm
+--- a/toolkit/components/reader/AboutReader.jsm
++++ b/toolkit/components/reader/AboutReader.jsm
+@@ -12,7 +12,6 @@ const {Services} = ChromeUtils.import("r
+ 
+ ChromeUtils.defineModuleGetter(this, "AsyncPrefs", "resource://gre/modules/AsyncPrefs.jsm");
+ ChromeUtils.defineModuleGetter(this, "NarrateControls", "resource://gre/modules/narrate/NarrateControls.jsm");
+-ChromeUtils.defineModuleGetter(this, "UITelemetry", "resource://gre/modules/UITelemetry.jsm");
+ ChromeUtils.defineModuleGetter(this, "PluralForm", "resource://gre/modules/PluralForm.jsm");
+ 
+ var gStrings = Services.strings.createBundle("chrome://global/locale/aboutReader.properties");
+@@ -952,10 +951,6 @@ AboutReader.prototype = {
+ 
+         aEvent.stopPropagation();
+ 
+-        // Just pass the ID of the button as an extra and hope the ID doesn't change
+-        // unless the context changes
+-        UITelemetry.addEvent("action.1", "button", null, id);
+-
+         let items = segmentedButton.children;
+         for (let j = items.length - 1; j >= 0; j--) {
+           items[j].classList.remove("selected");
+diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/components/telemetry/app/TelemetryController.jsm
+--- a/toolkit/components/telemetry/app/TelemetryController.jsm
++++ b/toolkit/components/telemetry/app/TelemetryController.jsm
+@@ -51,7 +51,6 @@ XPCOMUtils.defineLazyServiceGetter(this,
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   ClientID: "resource://gre/modules/ClientID.jsm",
+-  CoveragePing: "resource://gre/modules/CoveragePing.jsm",
+   AsyncShutdown: "resource://gre/modules/AsyncShutdown.jsm",
+   TelemetryStorage: "resource://gre/modules/TelemetryStorage.jsm",
+   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.jsm",
+@@ -59,13 +58,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   TelemetrySession: "resource://gre/modules/TelemetrySession.jsm",
+   TelemetrySend: "resource://gre/modules/TelemetrySend.jsm",
+   TelemetryReportingPolicy: "resource://gre/modules/TelemetryReportingPolicy.jsm",
+-  TelemetryModules: "resource://gre/modules/ModulesPing.jsm",
+-  TelemetryUntrustedModulesPing: "resource://gre/modules/UntrustedModulesPing.jsm",
+-  UpdatePing: "resource://gre/modules/UpdatePing.jsm",
+-  TelemetryHealthPing: "resource://gre/modules/HealthPing.jsm",
+-  TelemetryEventPing: "resource://gre/modules/EventPing.jsm",
+-  EcosystemTelemetry: "resource://gre/modules/EcosystemTelemetry.jsm",
+-  TelemetryPrioPing: "resource://gre/modules/PrioPing.jsm",
+   OS: "resource://gre/modules/osfile.jsm",
+ });
+ 
+@@ -654,10 +646,6 @@ var Impl = {
+     // lead to some stale client ids.
+     this._clientID = ClientID.getCachedClientID();
+ 
+-    // Init the update ping telemetry as early as possible. This won't have
+-    // an impact on startup.
+-    UpdatePing.earlyInit();
+-
+     // Delay full telemetry initialization to give the browser time to
+     // run various late initializers. Otherwise our gathered memory
+     // footprint and other numbers would be too optimistic.
+@@ -711,26 +699,6 @@ var Impl = {
+         // in the future.
+         TelemetryStorage.removeFHRDatabase();
+ 
+-        // The init sequence is forced to run on shutdown for short sessions and
+-        // we don't want to start TelemetryModules as the timer registration will fail.
+-        if (!this._shuttingDown) {
+-          // Report the modules loaded in the Firefox process.
+-          TelemetryModules.start();
+-
+-          // Send coverage ping.
+-          await CoveragePing.startup();
+-
+-          // Start the untrusted modules ping, which reports events where
+-          // untrusted modules were loaded into the Firefox process.
+-          if (AppConstants.NIGHTLY_BUILD && AppConstants.platform == "win") {
+-            TelemetryUntrustedModulesPing.start();
+-          }
+-        }
+-
+-        TelemetryEventPing.startup();
+-        EcosystemTelemetry.startup();
+-        TelemetryPrioPing.startup();
+-
+         this._delayedInitTaskDeferred.resolve();
+       } catch (e) {
+         this._delayedInitTaskDeferred.reject(e);
+@@ -787,12 +755,6 @@ var Impl = {
+         await this._delayedNewPingTask.finalize();
+       }
+ 
+-      UpdatePing.shutdown();
+-
+-      TelemetryEventPing.shutdown();
+-      EcosystemTelemetry.shutdown();
+-      await TelemetryPrioPing.shutdown();
+-
+       // Stop the datachoices infobar display.
+       TelemetryReportingPolicy.shutdown();
+       TelemetryEnvironment.shutdown();
+@@ -800,9 +762,6 @@ var Impl = {
+       // Stop any ping sending.
+       await TelemetrySend.shutdown();
+ 
+-      // Send latest data.
+-      await TelemetryHealthPing.shutdown();
+-
+       await TelemetrySession.shutdown();
+       await Services.telemetry.shutdown();
+ 
+diff --git a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+--- a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
++++ b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+@@ -20,8 +20,6 @@ const Utils = TelemetryUtils;
+ 
+ const {AddonManager, AddonManagerPrivate} = ChromeUtils.import("resource://gre/modules/AddonManager.jsm");
+ 
+-ChromeUtils.defineModuleGetter(this, "AttributionCode",
+-                               "resource:///modules/AttributionCode.jsm");
+ ChromeUtils.defineModuleGetter(this, "ctypes",
+                                "resource://gre/modules/ctypes.jsm");
+ ChromeUtils.defineModuleGetter(this, "ProfileAge",
+@@ -1530,38 +1528,12 @@ EnvironmentCache.prototype = {
+    * @returns Promise<> resolved when the I/O is complete.
+    */
+   async _loadAttributionAsync() {
+-    try {
+-      await AttributionCode.getAttrDataAsync();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-      return;
+-    }
+-    this._updateAttribution();
+   },
+ 
+   /**
+    * Update the environment with the cached attribution data.
+    */
+   _updateAttribution() {
+-    let data = null;
+-    try {
+-      data = AttributionCode.getCachedAttributionData();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-    }
+-
+-    if (!data || !Object.keys(data).length) {
+-      return;
+-    }
+-
+-    let attributionData = {};
+-    for (let key in data) {
+-      attributionData[key] =
+-        limitStringToLength(data[key], MAX_ATTRIBUTION_STRING_LENGTH);
+-    }
+-    this._currentEnvironment.settings.attribution = attributionData;
+   },
+ 
+   /**
+diff --git a/toolkit/components/telemetry/app/TelemetryScheduler.jsm b/toolkit/components/telemetry/app/TelemetryScheduler.jsm
+--- a/toolkit/components/telemetry/app/TelemetryScheduler.jsm
++++ b/toolkit/components/telemetry/app/TelemetryScheduler.jsm
+@@ -14,9 +14,6 @@ const {TelemetrySession} = ChromeUtils.i
+ const {TelemetryUtils} = ChromeUtils.import("resource://gre/modules/TelemetryUtils.jsm");
+ const {XPCOMUtils} = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm", this);
+ const {clearTimeout, setTimeout} = ChromeUtils.import("resource://gre/modules/Timer.jsm");
+-// Other pings
+-const {EcosystemTelemetry} = ChromeUtils.import("resource://gre/modules/EcosystemTelemetry.jsm");
+-const {TelemetryPrioPing} = ChromeUtils.import("resource://gre/modules/PrioPing.jsm");
+ 
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   idleService: ["@mozilla.org/widget/idleservice;1", "nsIIdleService"],
+@@ -337,9 +334,6 @@ var TelemetryScheduler = {
+     if (shouldSendPeriodic) {
+       this._log.trace("_schedulerTickLogic - Periodic ping due.");
+       this._lastPeriodicPingTime = now;
+-      // Send other pings.
+-      EcosystemTelemetry.periodicPing();
+-      TelemetryPrioPing.periodicPing();
+     }
+ 
+     if (shouldSendDaily) {
+diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/components/telemetry/app/TelemetrySend.jsm
+--- a/toolkit/components/telemetry/app/TelemetrySend.jsm
++++ b/toolkit/components/telemetry/app/TelemetrySend.jsm
+@@ -34,9 +34,6 @@ ChromeUtils.defineModuleGetter(this, "OS
+ XPCOMUtils.defineLazyServiceGetter(this, "Telemetry",
+                                    "@mozilla.org/base/telemetry;1",
+                                    "nsITelemetry");
+-ChromeUtils.defineModuleGetter(this, "TelemetryHealthPing",
+-                               "resource://gre/modules/HealthPing.jsm");
+-
+ 
+ const Utils = TelemetryUtils;
+ 
+diff --git a/toolkit/components/telemetry/app/TelemetryStorage.jsm b/toolkit/components/telemetry/app/TelemetryStorage.jsm
+--- a/toolkit/components/telemetry/app/TelemetryStorage.jsm
++++ b/toolkit/components/telemetry/app/TelemetryStorage.jsm
+@@ -38,8 +38,6 @@ XPCOMUtils.defineLazyGetter(this, "gAbor
+ });
+ ChromeUtils.defineModuleGetter(this, "CommonUtils",
+                                "resource://services-common/utils.js");
+-ChromeUtils.defineModuleGetter(this, "TelemetryHealthPing",
+-                               "resource://gre/modules/HealthPing.jsm");
+ // Maxmimum time, in milliseconds, archive pings should be retained.
+ const MAX_ARCHIVED_PINGS_RETENTION_MS = 60 * 24 * 60 * 60 * 1000; // 60 days
+ 
+@@ -1310,7 +1308,6 @@ var TelemetryStorageImpl = {
+ 
+       // Currently we don't have the ping type available without loading the ping from disk.
+       // Bug 1384903 will fix that.
+-      TelemetryHealthPing.recordDiscardedPing("<unknown>");
+       throw new Error("loadPendingPing - exceeded the maximum ping size: " + fileSize);
+     }
+ 
+@@ -1569,10 +1566,6 @@ var TelemetryStorageImpl = {
+             Telemetry.getHistogramById("TELEMETRY_DISCARDED_PENDING_PINGS_SIZE_MB")
+                      .add(Math.floor(info.size / 1024 / 1024));
+             Telemetry.getHistogramById("TELEMETRY_PING_SIZE_EXCEEDED_PENDING").add();
+-
+-            // Currently we don't have the ping type available without loading the ping from disk.
+-            // Bug 1384903 will fix that.
+-            TelemetryHealthPing.recordDiscardedPing("<unknown>");
+           }
+           continue;
+         }
+diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/components/telemetry/core/Telemetry.cpp
+--- a/toolkit/components/telemetry/core/Telemetry.cpp
++++ b/toolkit/components/telemetry/core/Telemetry.cpp
+@@ -34,7 +34,6 @@
+ #include "mozilla/Likely.h"
+ #include "mozilla/MathAlgorithms.h"
+ #include "mozilla/MemoryReporting.h"
+-#include "mozilla/MemoryTelemetry.h"
+ #include "mozilla/ModuleUtils.h"
+ #include "mozilla/Mutex.h"
+ #include "mozilla/PoisonIOInterposer.h"
+@@ -1777,19 +1776,16 @@ TelemetryImpl::FlushBatchedChildTelemetr
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::EarlyInit() {
+-  Unused << MemoryTelemetry::Get();
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::DelayedInit() {
+-  MemoryTelemetry::Get().DelayedInit();
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::Shutdown() {
+-  MemoryTelemetry::Get().Shutdown();
+   return NS_OK;
+ }
+ 
+@@ -1801,8 +1797,7 @@ TelemetryImpl::GatherMemory(JSContext* a
+     return rv.StealNSResult();
+   }
+ 
+-  MemoryTelemetry::Get().GatherReports(
+-      [promise]() { promise->MaybeResolve(JS::UndefinedHandleValue); });
++  promise->MaybeResolve(JS::UndefinedHandleValue);
+ 
+   promise.forget(aResult);
+   return NS_OK;
+diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemetry/moz.build
+--- a/toolkit/components/telemetry/moz.build
++++ b/toolkit/components/telemetry/moz.build
+@@ -10,11 +10,6 @@ include('/ipc/chromium/chromium-config.m
+ 
+ FINAL_LIBRARY = 'xul'
+ 
+-DIRS = [
+-    'hybrid-content',
+-    'pingsender',
+-]
+-
+ DEFINES['MOZ_APP_VERSION'] = '"%s"' % CONFIG['MOZ_APP_VERSION']
+ 
+ LOCAL_INCLUDES += [
+@@ -96,14 +91,9 @@ if CONFIG['MOZ_GECKO_PROFILER']:
+     ]
+ 
+ XPCOM_MANIFESTS += [
+-    'components.conf',
+     'core/components.conf',
+ ]
+ 
+-EXTRA_COMPONENTS += [
+-    'TelemetryStartup.manifest'
+-]
+-
+ EXTRA_JS_MODULES += [
+     'app/ClientID.jsm',
+     'app/TelemetryArchive.jsm',
+@@ -115,18 +105,7 @@ EXTRA_JS_MODULES += [
+     'app/TelemetryStorage.jsm',
+     'app/TelemetryTimestamps.jsm',
+     'app/TelemetryUtils.jsm',
+-    'other/GCTelemetry.jsm',
+-    'other/UITelemetry.jsm',
+-    'pings/CoveragePing.jsm',
+-    'pings/EcosystemTelemetry.jsm',
+-    'pings/EventPing.jsm',
+-    'pings/HealthPing.jsm',
+-    'pings/ModulesPing.jsm',
+-    'pings/PrioPing.jsm',
+     'pings/TelemetrySession.jsm',
+-    'pings/UntrustedModulesPing.jsm',
+-    'pings/UpdatePing.jsm',
+-    'TelemetryStartup.jsm',
+ ]
+ 
+ TESTING_JS_MODULES += [
+diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+--- a/toolkit/components/telemetry/pings/TelemetrySession.jsm
++++ b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+@@ -15,8 +15,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   AddonManagerPrivate: "resource://gre/modules/AddonManager.jsm",
+   TelemetryController: "resource://gre/modules/TelemetryController.jsm",
+   TelemetryStorage: "resource://gre/modules/TelemetryStorage.jsm",
+-  UITelemetry: "resource://gre/modules/UITelemetry.jsm",
+-  GCTelemetry: "resource://gre/modules/GCTelemetry.jsm",
+   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.jsm",
+   TelemetryReportingPolicy: "resource://gre/modules/TelemetryReportingPolicy.jsm",
+   TelemetryScheduler: "resource://gre/modules/TelemetryScheduler.jsm",
+@@ -628,10 +626,6 @@ var Impl = {
+ 
+       let clearUIsession = !(reason == REASON_GATHER_PAYLOAD || reason == REASON_GATHER_SUBSESSION_PAYLOAD);
+ 
+-      if (AppConstants.platform == "android") {
+-        payloadObj.UIMeasurements = protect(() => UITelemetry.getUIMeasurements(clearUIsession));
+-      }
+-
+       if (this._slowSQLStartup &&
+           Object.keys(this._slowSQLStartup).length != 0 &&
+           (Object.keys(this._slowSQLStartup.mainThread).length ||
+@@ -639,11 +633,6 @@ var Impl = {
+         payloadObj.slowSQLStartup = this._slowSQLStartup;
+       }
+ 
+-      if (!this._isClassicReason(reason)) {
+-        payloadObj.processes.parent.gc = protect(() => GCTelemetry.entries("main", clearSubsession));
+-        payloadObj.processes.content.gc = protect(() => GCTelemetry.entries("content", clearSubsession));
+-      }
+-
+       // Adding captured stacks to the payload only if any exist and clearing
+       // captures for this sub-session.
+       let stacks = protect(() => Telemetry.snapshotCapturedStacks(true));
+diff --git a/toolkit/components/terminator/moz.build b/toolkit/components/terminator/moz.build
+--- a/toolkit/components/terminator/moz.build
++++ b/toolkit/components/terminator/moz.build
+@@ -17,16 +17,4 @@ EXPORTS += [
+     'nsTerminator.h',
+ ]
+ 
+-EXTRA_COMPONENTS += [
+-    'terminator.manifest',
+-]
+-
+-EXTRA_JS_MODULES += [
+-    'TerminatorTelemetry.jsm',
+-]
+-
+-XPCOM_MANIFESTS += [
+-    'components.conf',
+-]
+-
+ FINAL_LIBRARY = 'xul'
+diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
+--- a/toolkit/content/jar.mn
++++ b/toolkit/content/jar.mn
+@@ -25,9 +25,6 @@ toolkit.jar:
+    content/global/aboutwebrtc/aboutWebrtc.html (aboutwebrtc/aboutWebrtc.html)
+    content/global/aboutSupport.js
+ *  content/global/aboutSupport.xhtml
+-   content/global/aboutTelemetry.js
+-   content/global/aboutTelemetry.xhtml
+-   content/global/aboutTelemetry.css
+    content/global/aboutUrlClassifier.js
+    content/global/aboutUrlClassifier.xhtml
+    content/global/aboutUrlClassifier.css
+diff --git a/toolkit/content/moz.build b/toolkit/content/moz.build
+--- a/toolkit/content/moz.build
++++ b/toolkit/content/moz.build
+@@ -45,9 +45,6 @@ DEFINES['TOPOBJDIR'] = TOPOBJDIR
+ with Files('**'):
+     BUG_COMPONENT = ('Toolkit', 'General')
+ 
+-with Files('aboutTelemetry.*'):
+-    BUG_COMPONENT = ('Toolkit', 'Telemetry')
+-
+ with Files('aboutwebrtc/*'):
+     BUG_COMPONENT = ('Core', 'WebRTC')
+ 
+@@ -237,9 +234,6 @@ with Files('aboutService*'):
+ with Files('aboutSupport*'):
+     BUG_COMPONENT = ('Toolkit', 'General')
+ 
+-with Files('aboutTelemetry*'):
+-    BUG_COMPONENT = ('Toolkit', 'Telemetry')
+-
+ with Files('autocomplete.css'):
+     BUG_COMPONENT = ('Firefox', 'Search')
+ 
+diff --git a/toolkit/mozapps/extensions/extensions.manifest b/toolkit/mozapps/extensions/extensions.manifest
+--- a/toolkit/mozapps/extensions/extensions.manifest
++++ b/toolkit/mozapps/extensions/extensions.manifest
+@@ -1,7 +1,3 @@
+-category update-timer nsBlocklistService @mozilla.org/extensions/blocklist;1,getService,blocklist-background-update-timer,extensions.blocklist.interval,86400
+-#ifndef MOZ_WIDGET_ANDROID
+-category update-timer addonManager @mozilla.org/addons/integration;1,getService,addon-background-update-timer,extensions.update.interval,86400
+-#endif
+ #ifndef MOZ_WIDGET_ANDROID
+ category addon-provider-module PluginProvider resource://gre/modules/addons/PluginProvider.jsm
+ #endif
+diff --git a/xpcom/base/moz.build b/xpcom/base/moz.build
+--- a/xpcom/base/moz.build
++++ b/xpcom/base/moz.build
+@@ -122,7 +122,6 @@ EXPORTS.mozilla += [
+     'MemoryInfo.h',
+     'MemoryMapping.h',
+     'MemoryReportingProcess.h',
+-    'MemoryTelemetry.h',
+     'nsMemoryInfoDumper.h',
+     'NSPRLogModulesParser.h',
+     'OwningNonNull.h',
+@@ -155,7 +154,6 @@ UNIFIED_SOURCES += [
+     'LogCommandLineHandler.cpp',
+     'Logging.cpp',
+     'LogModulePrefWatcher.cpp',
+-    'MemoryTelemetry.cpp',
+     'nsClassInfoImpl.cpp',
+     'nsCOMPtr.cpp',
+     'nsConsoleMessage.cpp',

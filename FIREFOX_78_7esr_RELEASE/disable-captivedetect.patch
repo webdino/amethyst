@@ -1,0 +1,244 @@
+diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
+--- a/netwerk/base/nsIOService.cpp
++++ b/netwerk/base/nsIOService.cpp
+@@ -51,7 +51,6 @@
+ #include "mozilla/dom/ClientInfo.h"
+ #include "mozilla/dom/ContentParent.h"
+ #include "mozilla/dom/ServiceWorkerDescriptor.h"
+-#include "mozilla/net/CaptivePortalService.h"
+ #include "mozilla/net/NetworkConnectivityService.h"
+ #include "mozilla/net/SocketProcessHost.h"
+ #include "mozilla/net/SocketProcessParent.h"
+@@ -87,7 +86,6 @@ using mozilla::dom::ServiceWorkerDescrip
+ 
+ nsIOService* gIOService;
+ static bool gHasWarnedUploadChannel2;
+-static bool gCaptivePortalEnabled = false;
+ static LazyLogModule gIOServiceLog("nsIOService");
+ #undef LOG
+ #define LOG(args) MOZ_LOG(gIOServiceLog, LogLevel::Debug, args)
+@@ -289,12 +287,6 @@ nsresult nsIOService::InitializeCaptiveP
+     return NS_OK;
+   }
+ 
+-  mCaptivePortalService = do_GetService(NS_CAPTIVEPORTAL_CID);
+-  if (mCaptivePortalService) {
+-    return static_cast<CaptivePortalService*>(mCaptivePortalService.get())
+-        ->Initialize();
+-  }
+-
+   RefPtr<NetworkConnectivityService> ncs =
+       NetworkConnectivityService::GetSingleton();
+   ncs->Init();
+@@ -538,48 +530,10 @@ NS_IMPL_ISUPPORTS(nsIOService, nsIIOServ
+ 
+ nsresult nsIOService::RecheckCaptivePortal() {
+   MOZ_ASSERT(NS_IsMainThread(), "Must be called on the main thread");
+-  if (!mCaptivePortalService) {
+     return NS_OK;
+-  }
+-  nsCOMPtr<nsIRunnable> task = NewRunnableMethod(
+-      "nsIOService::RecheckCaptivePortal", mCaptivePortalService,
+-      &nsICaptivePortalService::RecheckCaptivePortal);
+-  return NS_DispatchToMainThread(task);
+ }
+ 
+ nsresult nsIOService::RecheckCaptivePortalIfLocalRedirect(nsIChannel* newChan) {
+-  nsresult rv;
+-
+-  if (!mCaptivePortalService) {
+-    return NS_OK;
+-  }
+-
+-  nsCOMPtr<nsIURI> uri;
+-  rv = newChan->GetURI(getter_AddRefs(uri));
+-  if (NS_FAILED(rv)) {
+-    return rv;
+-  }
+-
+-  nsCString host;
+-  rv = uri->GetHost(host);
+-  if (NS_FAILED(rv)) {
+-    return rv;
+-  }
+-
+-  PRNetAddr prAddr;
+-  if (PR_StringToNetAddr(host.BeginReading(), &prAddr) != PR_SUCCESS) {
+-    // The redirect wasn't to an IP literal, so there's probably no need
+-    // to trigger the captive portal detection right now. It can wait.
+-    return NS_OK;
+-  }
+-
+-  NetAddr netAddr;
+-  PRNetAddrToNetAddr(&prAddr, &netAddr);
+-  if (IsIPAddrLocal(&netAddr)) {
+-    // Redirects to local IP addresses are probably captive portals
+-    RecheckCaptivePortal();
+-  }
+-
+   return NS_OK;
+ }
+ 
+@@ -1174,15 +1128,6 @@ nsresult nsIOService::SetConnectivityInt
+   // we have statistic about network change event even if we are offline.
+   mLastConnectivityChange = PR_IntervalNow();
+ 
+-  if (mCaptivePortalService) {
+-    if (aConnectivity && gCaptivePortalEnabled) {
+-      // This will also trigger a captive portal check for the new network
+-      static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Start();
+-    } else {
+-      static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Stop();
+-    }
+-  }
+-
+   nsCOMPtr<nsIObserverService> observerService = services::GetObserverService();
+   if (!observerService) {
+     return NS_OK;
+@@ -1303,19 +1248,6 @@ void nsIOService::PrefsChanged(const cha
+       mNetworkNotifyChanged = allow;
+     }
+   }
+-
+-  if (!pref || strcmp(pref, NETWORK_CAPTIVE_PORTAL_PREF) == 0) {
+-    nsresult rv = Preferences::GetBool(NETWORK_CAPTIVE_PORTAL_PREF,
+-                                       &gCaptivePortalEnabled);
+-    if (NS_SUCCEEDED(rv) && mCaptivePortalService) {
+-      if (gCaptivePortalEnabled) {
+-        static_cast<CaptivePortalService*>(mCaptivePortalService.get())
+-            ->Start();
+-      } else {
+-        static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Stop();
+-      }
+-    }
+-  }
+ }
+ 
+ void nsIOService::ParsePortList(const char* pref, bool remove) {
+@@ -1446,11 +1378,6 @@ nsIOService::Observe(nsISupports* subjec
+ 
+     SetOffline(true);
+ 
+-    if (mCaptivePortalService) {
+-      static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Stop();
+-      mCaptivePortalService = nullptr;
+-    }
+-
+     SSLTokensCache::Shutdown();
+ 
+     DestroySocketProcess();
+diff --git a/netwerk/base/nsIOService.h b/netwerk/base/nsIOService.h
+--- a/netwerk/base/nsIOService.h
++++ b/netwerk/base/nsIOService.h
+@@ -20,7 +20,6 @@
+ #include "mozilla/Atomics.h"
+ #include "mozilla/Attributes.h"
+ #include "prtime.h"
+-#include "nsICaptivePortalService.h"
+ 
+ #define NS_N(x) (sizeof(x) / sizeof(*x))
+ 
+@@ -204,7 +203,6 @@ class nsIOService final : public nsIIOSe
+   mozilla::Atomic<bool, mozilla::Relaxed> mHttpHandlerAlreadyShutingDown;
+ 
+   nsCOMPtr<nsPISocketTransportService> mSocketTransportService;
+-  nsCOMPtr<nsICaptivePortalService> mCaptivePortalService;
+   nsCOMPtr<nsINetworkLinkService> mNetworkLinkService;
+   bool mNetworkLinkServiceInitialized;
+ 
+diff --git a/toolkit/components/captivedetect/CaptiveDetect.jsm b/toolkit/components/captivedetect/CaptiveDetect.jsm
+--- a/toolkit/components/captivedetect/CaptiveDetect.jsm
++++ b/toolkit/components/captivedetect/CaptiveDetect.jsm
+@@ -24,46 +24,6 @@ const kCaptivePortalLoginSuccessEvent = 
+ const kCaptivePortalCheckComplete = "captive-portal-check-complete";
+ 
+ function URLFetcher(url, timeout) {
+-  let self = this;
+-  let xhr = new XMLHttpRequest();
+-  xhr.open("GET", url, true);
+-  // Prevent the request from reading from the cache.
+-  xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE;
+-  // Prevent the request from writing to the cache.
+-  xhr.channel.loadFlags |= Ci.nsIRequest.INHIBIT_CACHING;
+-  // Prevent privacy leaks
+-  xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_ANONYMOUS;
+-  // Use the system's resolver for this check
+-  xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_DISABLE_TRR;
+-  // The Cache-Control header is only interpreted by proxies and the
+-  // final destination. It does not help if a resource is already
+-  // cached locally.
+-  xhr.setRequestHeader("Cache-Control", "no-cache");
+-  // HTTP/1.0 servers might not implement Cache-Control and
+-  // might only implement Pragma: no-cache
+-  xhr.setRequestHeader("Pragma", "no-cache");
+-
+-  xhr.timeout = timeout;
+-  xhr.ontimeout = function() {
+-    self.ontimeout();
+-  };
+-  xhr.onerror = function() {
+-    self.onerror();
+-  };
+-  xhr.onreadystatechange = function(oEvent) {
+-    if (xhr.readyState === 4) {
+-      if (self._isAborted) {
+-        return;
+-      }
+-      if (xhr.status === 200) {
+-        self.onsuccess(xhr.responseText);
+-      } else if (xhr.status) {
+-        self.onredirectorerror(xhr.status);
+-      }
+-    }
+-  };
+-  xhr.send();
+-  this._xhr = xhr;
+ }
+ 
+ URLFetcher.prototype = {
+@@ -334,44 +294,7 @@ CaptivePortalDetector.prototype = {
+   },
+ 
+   _startDetection: function _startDetection() {
+-    debug(
+-      "startDetection {site=" +
+-        this._canonicalSiteURL +
+-        ",content=" +
+-        this._canonicalSiteExpectedContent +
+-        ",time=" +
+-        this._maxWaitingTime +
+-        "}"
+-    );
+-    let self = this;
+-
+-    let urlFetcher = new URLFetcher(
+-      this._canonicalSiteURL,
+-      this._maxWaitingTime
+-    );
+-
+-    let mayRetry = this._mayRetry.bind(this);
+-
+-    urlFetcher.ontimeout = mayRetry;
+-    urlFetcher.onerror = mayRetry;
+-    urlFetcher.onsuccess = function(content) {
+-      if (self.validateContent(content)) {
+-        self.executeCallback(true);
+-      } else {
+-        // Content of the canonical website has been overwrite
+-        self._startLogin();
+-      }
+-    };
+-    urlFetcher.onredirectorerror = function(status) {
+-      if (status >= 300 && status <= 399) {
+-        // The canonical website has been redirected to an unknown location
+-        self._startLogin();
+-      } else {
+-        mayRetry();
+-      }
+-    };
+-
+-    this._runningRequest.urlFetcher = urlFetcher;
++    this.executeCallback(false);
+   },
+ 
+   _startLogin: function _startLogin() {

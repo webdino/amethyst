@@ -1,0 +1,46 @@
+diff --git a/browser/modules/FormValidationHandler.jsm b/browser/modules/FormValidationHandler.jsm
+--- a/browser/modules/FormValidationHandler.jsm
++++ b/browser/modules/FormValidationHandler.jsm
+@@ -75,11 +75,11 @@ var FormValidationHandler = {
+ 
+   _onPopupHiding(aEvent) {
+     aEvent.originalTarget.removeEventListener("popuphiding", this, true);
+-    let tabBrowser = aEvent.originalTarget.ownerGlobal.gBrowser;
+-    tabBrowser.selectedBrowser.removeEventListener("scroll", this, true);
+-    tabBrowser.selectedBrowser.removeEventListener("FullZoomChange", this);
+-    tabBrowser.selectedBrowser.removeEventListener("TextZoomChange", this);
+-    tabBrowser.selectedBrowser.removeEventListener(
++    let selectedBrowser = aEvent.originalTarget.ownerGlobal.getSelectedBrowser();
++    selectedBrowser.removeEventListener("scroll", this, true);
++    selectedBrowser.removeEventListener("FullZoomChange", this);
++    selectedBrowser.removeEventListener("TextZoomChange", this);
++    selectedBrowser.removeEventListener(
+       "ZoomChangeUsingMouseWheel",
+       this
+     );
+@@ -109,8 +109,7 @@ var FormValidationHandler = {
+     this._panel.firstChild.textContent = aPanelData.message;
+     this._panel.hidden = false;
+ 
+-    let tabBrowser = aWindow.gBrowser;
+-    this._anchor = tabBrowser.popupAnchor;
++    this._anchor = aWindow.getPopupAnchor();
+     this._anchor.left = aPanelData.contentRect.left;
+     this._anchor.top = aPanelData.contentRect.top;
+     this._anchor.width = aPanelData.contentRect.width;
+@@ -123,10 +122,11 @@ var FormValidationHandler = {
+       this._panel.addEventListener("popuphiding", this, true);
+ 
+       // Hide if the user scrolls the page
+-      tabBrowser.selectedBrowser.addEventListener("scroll", this, true);
+-      tabBrowser.selectedBrowser.addEventListener("FullZoomChange", this);
+-      tabBrowser.selectedBrowser.addEventListener("TextZoomChange", this);
+-      tabBrowser.selectedBrowser.addEventListener(
++      let selectedBrowser = aWindow.getSelectedBrowser();
++      selectedBrowser.addEventListener("scroll", this, true);
++      selectedBrowser.addEventListener("FullZoomChange", this);
++      selectedBrowser.addEventListener("TextZoomChange", this);
++      selectedBrowser.addEventListener(
+         "ZoomChangeUsingMouseWheel",
+         this
+       );

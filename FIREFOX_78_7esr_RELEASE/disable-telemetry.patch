@@ -1,0 +1,2240 @@
+diff --git a/browser/components/newtab/lib/TelemetryFeed.jsm b/browser/components/newtab/lib/TelemetryFeed.jsm
+--- a/browser/components/newtab/lib/TelemetryFeed.jsm
++++ b/browser/components/newtab/lib/TelemetryFeed.jsm
+@@ -54,9 +54,6 @@ const USER_PREFS_ENCODING = {
+ };
+ 
+ const PREF_IMPRESSION_ID = "impressionId";
+-const TELEMETRY_PREF = "telemetry";
+-const EVENTS_TELEMETRY_PREF = "telemetry.ut.events";
+-const STRUCTURED_INGESTION_TELEMETRY_PREF = "telemetry.structuredIngestion";
+ const STRUCTURED_INGESTION_ENDPOINT_PREF = "telemetry.structuredIngestion.endpoint";
+ 
+ this.TelemetryFeed = class TelemetryFeed {
+@@ -71,15 +68,15 @@ this.TelemetryFeed = class TelemetryFeed
+   }
+ 
+   get telemetryEnabled() {
+-    return this._prefs.get(TELEMETRY_PREF);
++    return false;
+   }
+ 
+   get eventTelemetryEnabled() {
+-    return this._prefs.get(EVENTS_TELEMETRY_PREF);
++    return false;
+   }
+ 
+   get structuredIngestionTelemetryEnabled() {
+-    return this._prefs.get(STRUCTURED_INGESTION_TELEMETRY_PREF);
++    return false;
+   }
+ 
+   get structuredIngestionEndpointBase() {
+@@ -937,8 +934,5 @@ const EXPORTED_SYMBOLS = [
+   "TelemetryFeed",
+   "USER_PREFS_ENCODING",
+   "PREF_IMPRESSION_ID",
+-  "TELEMETRY_PREF",
+-  "EVENTS_TELEMETRY_PREF",
+-  "STRUCTURED_INGESTION_TELEMETRY_PREF",
+   "STRUCTURED_INGESTION_ENDPOINT_PREF",
+ ];
+diff --git a/browser/extensions/screenshots/background/analytics.js b/browser/extensions/screenshots/background/analytics.js
+--- a/browser/extensions/screenshots/background/analytics.js
++++ b/browser/extensions/screenshots/background/analytics.js
+@@ -33,39 +33,11 @@ this.analytics = (function() {
+   }
+ 
+   function flushEvents() {
+-    if (pendingEvents.length === 0) {
+       return;
+-    }
+-
+-    const eventsUrl = `${main.getBackend()}/event`;
+-    const deviceId = auth.getDeviceId();
+-    const sendTime = Date.now();
+-
+-    pendingEvents.forEach(event => {
+-      event.queueTime = sendTime - event.eventTime;
+-      log.info(`sendEvent ${event.event}/${event.action}/${event.label || "none"} ${JSON.stringify(event.options)}`);
+-    });
+-
+-    const body = JSON.stringify({deviceId, events: pendingEvents});
+-    const fetchRequest = fetch(eventsUrl, Object.assign({body}, fetchOptions));
+-    fetchWatcher(fetchRequest);
+-    pendingEvents = [];
+   }
+ 
+   function flushTimings() {
+-    if (pendingTimings.length === 0) {
+       return;
+-    }
+-
+-    const timingsUrl = `${main.getBackend()}/timing`;
+-    const deviceId = auth.getDeviceId();
+-    const body = JSON.stringify({deviceId, timings: pendingTimings});
+-    const fetchRequest = fetch(timingsUrl, Object.assign({body}, fetchOptions));
+-    fetchWatcher(fetchRequest);
+-    pendingTimings.forEach(t => {
+-      log.info(`sendTiming ${t.timingCategory}/${t.timingLabel}/${t.timingVar}: ${t.timingValue}`);
+-    });
+-    pendingTimings = [];
+   }
+ 
+   function sendTiming(timingLabel, timingVar, timingValue) {
+@@ -90,61 +62,6 @@ this.analytics = (function() {
+   }
+ 
+   exports.sendEvent = function(action, label, options) {
+-    const eventCategory = "addon";
+-    if (!telemetryPrefKnown) {
+-      log.warn("sendEvent called before we were able to refresh");
+-      return Promise.resolve();
+-    }
+-    if (!telemetryEnabled) {
+-      log.info(`Cancelled sendEvent ${eventCategory}/${action}/${label || "none"} ${JSON.stringify(options)}`);
+-      return Promise.resolve();
+-    }
+-    measureTiming(action, label);
+-    // Internal-only events are used for measuring time between events,
+-    // but aren't submitted to GA.
+-    if (action === "internal") {
+-      return Promise.resolve();
+-    }
+-    if (typeof label === "object" && (!options)) {
+-      options = label;
+-      label = undefined;
+-    }
+-    options = options || {};
+-
+-    // Don't send events if in private browsing.
+-    if (options.incognito) {
+-      return Promise.resolve();
+-    }
+-
+-    // Don't include in event data.
+-    delete options.incognito;
+-
+-    const di = deviceInfo();
+-    options.applicationName = di.appName;
+-    options.applicationVersion = di.addonVersion;
+-    const abTests = auth.getAbTests();
+-    for (const [gaField, value] of Object.entries(abTests)) {
+-      options[gaField] = value;
+-    }
+-    if (!shouldSendEvents()) {
+-      // We don't want to save or send the events anymore
+-      return Promise.resolve();
+-    }
+-    pendingEvents.push({
+-      eventTime: Date.now(),
+-      event: eventCategory,
+-      action,
+-      label,
+-      options,
+-    });
+-    if (!eventsTimeoutHandle) {
+-      eventsTimeoutHandle = setTimeout(() => {
+-        eventsTimeoutHandle = null;
+-        flushEvents();
+-      }, EVENT_BATCH_DURATION);
+-    }
+-    // This function used to return a Promise that was not used at any of the
+-    // call sites; doing this simply maintains that interface.
+     return Promise.resolve();
+   };
+ 
+@@ -161,14 +78,9 @@ this.analytics = (function() {
+   };
+ 
+   exports.refreshTelemetryPref = function() {
+-    return browser.telemetry.canUpload().then((result) => {
+-      telemetryPrefKnown = true;
+-      telemetryEnabled = result;
+-    }, (error) => {
+-      // If there's an error reading the pref, we should assume that we shouldn't send data
++    return Promise.resolve().then(() => {
+       telemetryPrefKnown = true;
+       telemetryEnabled = false;
+-      throw error;
+     });
+   };
+ 
+diff --git a/browser/modules/Discovery.jsm b/browser/modules/Discovery.jsm
+--- a/browser/modules/Discovery.jsm
++++ b/browser/modules/Discovery.jsm
+@@ -22,7 +22,6 @@ ChromeUtils.defineModuleGetter(
+ );
+ 
+ const RECOMMENDATION_ENABLED = "browser.discovery.enabled";
+-const TELEMETRY_ENABLED = "datareporting.healthreport.uploadEnabled";
+ const TAAR_COOKIE_NAME = "taarId";
+ 
+ const Discovery = {
+@@ -47,20 +46,8 @@ const Discovery = {
+   },
+ };
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "gRecommendationEnabled",
+-  RECOMMENDATION_ENABLED,
+-  false,
+-  Discovery.update
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "gTelemetryEnabled",
+-  TELEMETRY_ENABLED,
+-  false,
+-  Discovery.update
+-);
++const gRecommendationEnabled = false;
++const gTelemetryEnabled = false;
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+   "gCachedClientID",
+@@ -68,13 +55,7 @@ XPCOMUtils.defineLazyPreferenceGetter(
+   "",
+   Discovery.reset
+ );
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "gContainersEnabled",
+-  "browser.discovery.containers.enabled",
+-  false,
+-  Discovery.reset
+-);
++const gContainersEnabled = false;
+ 
+ Services.obs.addObserver(Discovery.update, "contextual-identity-created");
+ 
+diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
+--- a/browser/modules/PingCentre.jsm
++++ b/browser/modules/PingCentre.jsm
+@@ -31,11 +31,9 @@ ChromeUtils.defineModuleGetter(
+ 
+ const PREF_BRANCH = "browser.ping-centre.";
+ 
+-const TELEMETRY_PREF = `${PREF_BRANCH}telemetry`;
+ const LOGGING_PREF = `${PREF_BRANCH}log`;
+ const PRODUCTION_ENDPOINT_PREF = `${PREF_BRANCH}production.endpoint`;
+ 
+-const FHR_UPLOAD_ENABLED_PREF = "datareporting.healthreport.uploadEnabled";
+ const BROWSER_SEARCH_REGION_PREF = "browser.search.region";
+ 
+ // Only report region for following regions, to ensure that users in countries
+@@ -197,14 +195,6 @@ class PingCentre {
+ 
+     this._setPingEndpoint(options.topic, options.overrideEndpointPref);
+ 
+-    this._enabled = this._prefs.getBoolPref(TELEMETRY_PREF);
+-    this._onTelemetryPrefChange = this._onTelemetryPrefChange.bind(this);
+-    this._prefs.addObserver(TELEMETRY_PREF, this._onTelemetryPrefChange);
+-
+-    this._fhrEnabled = this._prefs.getBoolPref(FHR_UPLOAD_ENABLED_PREF);
+-    this._onFhrPrefChange = this._onFhrPrefChange.bind(this);
+-    this._prefs.addObserver(FHR_UPLOAD_ENABLED_PREF, this._onFhrPrefChange);
+-
+     this.logging = this._prefs.getBoolPref(LOGGING_PREF);
+     this._onLoggingPrefChange = this._onLoggingPrefChange.bind(this);
+     this._prefs.addObserver(LOGGING_PREF, this._onLoggingPrefChange);
+@@ -221,7 +211,7 @@ class PingCentre {
+   }
+ 
+   get enabled() {
+-    return this._enabled && this._fhrEnabled;
++    return false;
+   }
+ 
+   _setPingEndpoint(topic, overrideEndpointPref) {
+@@ -238,14 +228,6 @@ class PingCentre {
+     this.logging = this._prefs.getBoolPref(prefKey);
+   }
+ 
+-  _onTelemetryPrefChange(aSubject, aTopic, prefKey) {
+-    this._enabled = this._prefs.getBoolPref(prefKey);
+-  }
+-
+-  _onFhrPrefChange(aSubject, aTopic, prefKey) {
+-    this._fhrEnabled = this._prefs.getBoolPref(prefKey);
+-  }
+-
+   _createExperimentsString(activeExperiments, filter) {
+     let experimentsString = "";
+     for (let experimentID in activeExperiments) {
+@@ -333,36 +315,7 @@ class PingCentre {
+   }
+ 
+   async sendPing(data, options) {
+-    if (!this.enabled) {
+       return Promise.resolve();
+-    }
+-
+-    const payload = await this._createPing(data, options);
+-
+-    if (this.logging) {
+-      // performance related pings cause a lot of logging, so we mute them
+-      if (data.action !== "activity_stream_performance") {
+-        Services.console.logStringMessage(
+-          `TELEMETRY PING: ${JSON.stringify(payload)}\n`
+-        );
+-      }
+-    }
+-
+-    return fetch(this._pingEndpoint, {
+-      method: "POST",
+-      body: JSON.stringify(payload),
+-      credentials: "omit",
+-    })
+-      .then(response => {
+-        if (!response.ok) {
+-          Cu.reportError(
+-            `Ping failure with HTTP response code: ${response.status}`
+-          );
+-        }
+-      })
+-      .catch(e => {
+-        Cu.reportError(`Ping failure with error: ${e}`);
+-      });
+   }
+ 
+   /**
+@@ -376,45 +329,12 @@ class PingCentre {
+    * @param {Object} options  Other options for this ping.
+    */
+   async sendStructuredIngestionPing(data, endpoint, options) {
+-    if (!this.enabled) {
+       return Promise.resolve();
+-    }
+-
+-    const payload = await this._createStructuredIngestionPing(data, options);
+-
+-    if (this.logging) {
+-      Services.console.logStringMessage(
+-        `TELEMETRY PING (STRUCTURED INGESTION): ${JSON.stringify(payload)}\n`
+-      );
+-    }
+-
+-    return fetch(endpoint, {
+-      method: "POST",
+-      body: JSON.stringify(payload),
+-      credentials: "omit",
+-    })
+-      .then(response => {
+-        if (!response.ok) {
+-          Cu.reportError(
+-            `Structured Ingestion ping failure with HTTP response code: ${
+-              response.status
+-            }`
+-          );
+-        }
+-      })
+-      .catch(e => {
+-        Cu.reportError(`Structured Ingestion ping failure with error: ${e}`);
+-      });
+   }
+ 
+   uninit() {
+     try {
+-      this._prefs.removeObserver(TELEMETRY_PREF, this._onTelemetryPrefChange);
+       this._prefs.removeObserver(LOGGING_PREF, this._onLoggingPrefChange);
+-      this._prefs.removeObserver(
+-        FHR_UPLOAD_ENABLED_PREF,
+-        this._onFhrPrefChange
+-      );
+     } catch (e) {
+       Cu.reportError(e);
+     }
+@@ -424,8 +344,6 @@ class PingCentre {
+ this.PingCentre = PingCentre;
+ this.PingCentreConstants = {
+   PRODUCTION_ENDPOINT_PREF,
+-  FHR_UPLOAD_ENABLED_PREF,
+-  TELEMETRY_PREF,
+   LOGGING_PREF,
+ };
+ const EXPORTED_SYMBOLS = ["PingCentre", "PingCentreConstants"];
+diff --git a/browser/moz.configure b/browser/moz.configure
+--- a/browser/moz.configure
++++ b/browser/moz.configure
+@@ -5,7 +5,6 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ imply_option('MOZ_PLACES', True)
+-imply_option('MOZ_SERVICES_HEALTHREPORT', True)
+ imply_option('MOZ_SERVICES_SYNC', True)
+ imply_option('MOZ_DEDICATED_PROFILES', True)
+ imply_option('MOZ_BLOCK_PROFILE_DOWNGRADE', True)
+diff --git a/old-configure.in b/old-configure.in
+--- a/old-configure.in
++++ b/old-configure.in
+@@ -3116,6 +3116,7 @@ AC_SUBST(MOZ_INCLUDE_SOURCE_INFO)
+ dnl If we have any service that uploads data (and requires data submission
+ dnl policy alert), set MOZ_DATA_REPORTING.
+ dnl We need SUBST for build system and DEFINE for xul preprocessor.
++MOZ_TELEMETRY_REPORTING=
+ if test -n "$MOZ_TELEMETRY_REPORTING" || test -n "$MOZ_SERVICES_HEALTHREPORT" || test -n "$MOZ_CRASHREPORTER"; then
+   MOZ_DATA_REPORTING=1
+   AC_DEFINE(MOZ_DATA_REPORTING)
+diff --git a/toolkit/components/extensions/parent/ext-telemetry.js b/toolkit/components/extensions/parent/ext-telemetry.js
+--- a/toolkit/components/extensions/parent/ext-telemetry.js
++++ b/toolkit/components/extensions/parent/ext-telemetry.js
+@@ -54,13 +54,7 @@ this.telemetry = class extends Extension
+           // Note: remove the ternary and direct pref check when
+           // TelemetryController.canUpload() is implemented (bug 1440089).
+           try {
+-            const result =
+-              "canUpload" in TelemetryController
+-                ? TelemetryController.canUpload()
+-                : Services.prefs.getBoolPref(
+-                    TelemetryUtils.Preferences.FhrUploadEnabled,
+-                    false
+-                  );
++            const result = false;
+             return result;
+           } catch (ex) {
+             throw new ExtensionUtils.ExtensionError(ex);
+diff --git a/toolkit/components/normandy/lib/RecipeRunner.jsm b/toolkit/components/normandy/lib/RecipeRunner.jsm
+--- a/toolkit/components/normandy/lib/RecipeRunner.jsm
++++ b/toolkit/components/normandy/lib/RecipeRunner.jsm
+@@ -39,20 +39,15 @@ const TIMER_NAME = "recipe-client-addon-
+ const REMOTE_SETTINGS_COLLECTION = "normandy-recipes";
+ const PREF_CHANGED_TOPIC = "nsPref:changed";
+ 
+-const TELEMETRY_ENABLED_PREF = "datareporting.healthreport.uploadEnabled";
+-
+ const PREF_PREFIX = "app.normandy";
+ const RUN_INTERVAL_PREF = `${PREF_PREFIX}.run_interval_seconds`;
+ const FIRST_RUN_PREF = `${PREF_PREFIX}.first_run`;
+-const SHIELD_ENABLED_PREF = `${PREF_PREFIX}.enabled`;
+ const DEV_MODE_PREF = `${PREF_PREFIX}.dev_mode`;
+ const API_URL_PREF = `${PREF_PREFIX}.api_url`;
+ const LAZY_CLASSIFY_PREF = `${PREF_PREFIX}.experiments.lazy_classify`;
+ 
+ const PREFS_TO_WATCH = [
+   RUN_INTERVAL_PREF,
+-  TELEMETRY_ENABLED_PREF,
+-  SHIELD_ENABLED_PREF,
+   API_URL_PREF,
+ ];
+ 
+@@ -160,13 +155,6 @@ var RecipeRunner = {
+             this.updateRunInterval();
+             break;
+ 
+-          // explicit fall-through
+-          case TELEMETRY_ENABLED_PREF:
+-          case SHIELD_ENABLED_PREF:
+-          case API_URL_PREF:
+-            this.checkPrefs();
+-            break;
+-
+           default:
+             log.debug(
+               `Observer fired with unexpected pref change: ${prefName}`
+@@ -179,45 +167,7 @@ var RecipeRunner = {
+   },
+ 
+   checkPrefs() {
+-    // Only run if Unified Telemetry is enabled.
+-    if (!Services.prefs.getBoolPref(TELEMETRY_ENABLED_PREF)) {
+-      log.debug(
+-        "Disabling RecipeRunner because Unified Telemetry is disabled."
+-      );
+       this.disable();
+-      return;
+-    }
+-
+-    if (!Services.prefs.getBoolPref(SHIELD_ENABLED_PREF)) {
+-      log.debug(
+-        `Disabling Shield because ${SHIELD_ENABLED_PREF} is set to false`
+-      );
+-      this.disable();
+-      return;
+-    }
+-
+-    if (!Services.policies.isAllowed("Shield")) {
+-      log.debug("Disabling Shield because it's blocked by policy.");
+-      this.disable();
+-      return;
+-    }
+-
+-    const apiUrl = Services.prefs.getCharPref(API_URL_PREF);
+-    if (!apiUrl) {
+-      log.warn(`Disabling Shield because ${API_URL_PREF} is not set.`);
+-      this.disable();
+-      return;
+-    }
+-    if (!apiUrl.startsWith("https://")) {
+-      log.warn(
+-        `Disabling Shield because ${API_URL_PREF} is not an HTTPS url: ${apiUrl}.`
+-      );
+-      this.disable();
+-      return;
+-    }
+-
+-    log.debug(`Enabling Shield`);
+-    this.enable();
+   },
+ 
+   registerTimer() {
+diff --git a/toolkit/components/telemetry/app/TelemetryArchive.jsm b/toolkit/components/telemetry/app/TelemetryArchive.jsm
+--- a/toolkit/components/telemetry/app/TelemetryArchive.jsm
++++ b/toolkit/components/telemetry/app/TelemetryArchive.jsm
+@@ -63,7 +63,7 @@ var TelemetryArchive = {
+  * @return {Boolean} True if pings should be archived, false otherwise.
+  */
+ function shouldArchivePings() {
+-  return Preferences.get(TelemetryUtils.Preferences.ArchiveEnabled, false);
++  return false;
+ }
+ 
+ var TelemetryArchiveImpl = {
+diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/components/telemetry/app/TelemetryController.jsm
+--- a/toolkit/components/telemetry/app/TelemetryController.jsm
++++ b/toolkit/components/telemetry/app/TelemetryController.jsm
+@@ -26,10 +26,7 @@ const PREF_BRANCH_LOG = "toolkit.telemet
+ 
+ // Whether the FHR/Telemetry unification features are enabled.
+ // Changing this pref requires a restart.
+-const IS_UNIFIED_TELEMETRY = Services.prefs.getBoolPref(
+-  TelemetryUtils.Preferences.Unified,
+-  false
+-);
++const IS_UNIFIED_TELEMETRY = false;
+ 
+ const PING_FORMAT_VERSION = 4;
+ 
+@@ -727,8 +724,6 @@ var Impl = {
+       return Promise.resolve();
+     }
+ 
+-    this._attachObservers();
+-
+     // Perform a lightweight, early initialization for the component, just registering
+     // a few observers and initializing the session.
+     TelemetrySession.earlyInit(this._testMode);
+@@ -764,10 +759,7 @@ var Impl = {
+           // Fix-up a canary client ID if detected.
+           if (IS_UNIFIED_TELEMETRY) {
+             // On desktop respect the upload preference.
+-            const uploadEnabled = Services.prefs.getBoolPref(
+-              TelemetryUtils.Preferences.FhrUploadEnabled,
+-              false
+-            );
++            const uploadEnabled = false;
+             if (uploadEnabled && this._clientID == Utils.knownClientID) {
+               this._log.trace(
+                 "Upload enabled, but got canary client ID. Resetting."
+@@ -799,17 +791,6 @@ var Impl = {
+           await TelemetrySession.delayedInit();
+           await Services.telemetry.delayedInit();
+ 
+-          if (
+-            Services.prefs.getBoolPref(
+-              TelemetryUtils.Preferences.NewProfilePingEnabled,
+-              false
+-            ) &&
+-            !TelemetrySession.newProfilePingSent
+-          ) {
+-            // Kick off the scheduling of the new-profile ping.
+-            this.scheduleNewProfilePing();
+-          }
+-
+           // Purge the pings archive by removing outdated pings. We don't wait for
+           // this task to complete, but TelemetryStorage blocks on it during
+           // shutdown.
+@@ -897,7 +878,6 @@ var Impl = {
+     }
+ 
+     Services.prefs.removeObserver(PREF_BRANCH_LOG, configureLogging);
+-    this._detachObservers();
+ 
+     // Now do an orderly shutdown.
+     try {
+@@ -990,10 +970,6 @@ var Impl = {
+       case "app-startup":
+         // app-startup is only registered for content processes.
+         return this.setupContentTelemetry();
+-      case "nsPref:changed":
+-        if (aData == TelemetryUtils.Preferences.FhrUploadEnabled) {
+-          return this._onUploadPrefChange();
+-        }
+     }
+     return undefined;
+   },
+@@ -1013,97 +989,8 @@ var Impl = {
+     };
+   },
+ 
+-  /**
+-   * Called whenever the FHR Upload preference changes (e.g. when user disables FHR from
+-   * the preferences panel), this triggers sending the optout ping.
+-   */
+-  _onUploadPrefChange() {
+-    const uploadEnabled = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.FhrUploadEnabled,
+-      false
+-    );
+-    if (uploadEnabled) {
+-      this._log.trace(
+-        "_onUploadPrefChange - upload was enabled again. Resetting client ID"
+-      );
+-
+-      // Delete cached client ID immediately, so other usage is forced to refetch it.
+-      this._clientID = null;
+-
+-      // Generate a new client ID and make sure this module uses the new version
+-      let p = ClientID.resetClientID().then(id => {
+-        this._clientID = id;
+-        Telemetry.scalarSet("telemetry.data_upload_optin", true);
+-      });
+-
+-      this._shutdownBarrier.client.addBlocker(
+-        "TelemetryController: resetting client ID after data upload was enabled",
+-        p
+-      );
+-
+-      return;
+-    }
+-
+-    let p = (async () => {
+-      try {
+-        // 1. Cancel the current pings.
+-        // 2. Clear unpersisted pings
+-        await TelemetrySend.clearCurrentPings();
+-
+-        // 3. Remove all pending pings
+-        await TelemetryStorage.removeAppDataPings();
+-        await TelemetryStorage.runRemovePendingPingsTask();
+-      } catch (e) {
+-        this._log.error(
+-          "_onUploadPrefChange - error clearing pending pings",
+-          e
+-        );
+-      } finally {
+-        // 4. Reset session and subsession counter
+-        TelemetrySession.resetSubsessionCounter();
+-
+-        // 5. Set ClientID to a known value
+-        this._clientID = await ClientID.setClientID(
+-          TelemetryUtils.knownClientID
+-        );
+-
+-        // 6. Send the optout ping.
+-        this._log.trace("_onUploadPrefChange - Sending optout ping.");
+-        this.submitExternalPing(PING_TYPE_OPTOUT, {}, { addClientId: false });
+-      }
+-    })();
+-
+-    this._shutdownBarrier.client.addBlocker(
+-      "TelemetryController: removing pending pings after data upload was disabled",
+-      p
+-    );
+-  },
+-
+   QueryInterface: ChromeUtils.generateQI([Ci.nsISupportsWeakReference]),
+ 
+-  _attachObservers() {
+-    if (IS_UNIFIED_TELEMETRY) {
+-      // Watch the FHR upload setting to trigger optout pings.
+-      Services.prefs.addObserver(
+-        TelemetryUtils.Preferences.FhrUploadEnabled,
+-        this,
+-        true
+-      );
+-    }
+-  },
+-
+-  /**
+-   * Remove the preference observer to avoid leaks.
+-   */
+-  _detachObservers() {
+-    if (IS_UNIFIED_TELEMETRY) {
+-      Services.prefs.removeObserver(
+-        TelemetryUtils.Preferences.FhrUploadEnabled,
+-        this
+-      );
+-    }
+-  },
+-
+   /**
+    * Allows waiting for TelemetryControllers delayed initialization to complete.
+    * This will complete before TelemetryController is shutting down.
+@@ -1134,7 +1021,6 @@ var Impl = {
+ 
+   async reset() {
+     this._clientID = null;
+-    this._detachObservers();
+ 
+     let sessionReset = TelemetrySession.testReset();
+ 
+diff --git a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm b/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm
+--- a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm
++++ b/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm
+@@ -170,7 +170,7 @@ var TelemetryReportingPolicyImpl = {
+   _startupNotificationTimerId: null,
+   // Keep track of the first session state, as the related preference
+   // is flipped right after the browser starts.
+-  _isFirstRun: true,
++  _isFirstRun: false,
+ 
+   get _log() {
+     if (!this._logger) {
+@@ -249,11 +249,7 @@ var TelemetryReportingPolicyImpl = {
+    * false, we never request upload or deletion.
+    */
+   get dataSubmissionEnabled() {
+-    // Default is true because we are opt-out.
+-    return Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.DataSubmissionEnabled,
+-      true
+-    );
++    return false;
+   },
+ 
+   get currentPolicyVersion() {
+@@ -374,19 +370,7 @@ var TelemetryReportingPolicyImpl = {
+    * @return {Boolean} True if we are allowed to upload data, false otherwise.
+    */
+   canUpload() {
+-    // If data submission is disabled, there's no point in showing the infobar. Just
+-    // forbid to upload.
+-    if (!this.dataSubmissionEnabled) {
+       return false;
+-    }
+-
+-    // Submission is enabled. We enable upload if user is notified or we need to bypass
+-    // the policy.
+-    const bypassNotification = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.BypassNotification,
+-      false
+-    );
+-    return this.isUserNotifiedOfCurrentPolicy || bypassNotification;
+   },
+ 
+   isFirstRun() {
+@@ -407,32 +391,7 @@ var TelemetryReportingPolicyImpl = {
+    * Determine whether the user should be notified.
+    */
+   _shouldNotify() {
+-    if (!this.dataSubmissionEnabled) {
+-      this._log.trace(
+-        "_shouldNotify - Data submission disabled by the policy."
+-      );
+       return false;
+-    }
+-
+-    const bypassNotification = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.BypassNotification,
+-      false
+-    );
+-    if (this.isUserNotifiedOfCurrentPolicy || bypassNotification) {
+-      this._log.trace(
+-        "_shouldNotify - User already notified or bypassing the policy."
+-      );
+-      return false;
+-    }
+-
+-    if (this._notificationInProgress) {
+-      this._log.trace(
+-        "_shouldNotify - User not notified, notification already in progress."
+-      );
+-      return false;
+-    }
+-
+-    return true;
+   },
+ 
+   /**
+@@ -553,10 +512,7 @@ var TelemetryReportingPolicyImpl = {
+       return;
+     }
+ 
+-    this._isFirstRun = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.FirstRun,
+-      true
+-    );
++    this._isFirstRun = false;
+     if (this._isFirstRun) {
+       // We're performing the first run, flip firstRun preference for subsequent runs.
+       Services.prefs.setBoolPref(TelemetryUtils.Preferences.FirstRun, false);
+diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/components/telemetry/app/TelemetrySend.jsm
+--- a/toolkit/components/telemetry/app/TelemetrySend.jsm
++++ b/toolkit/components/telemetry/app/TelemetrySend.jsm
+@@ -63,10 +63,7 @@ const TOPIC_PROFILE_CHANGE_NET_TEARDOWN 
+ 
+ // Whether the FHR/Telemetry unification features are enabled.
+ // Changing this pref requires a restart.
+-const IS_UNIFIED_TELEMETRY = Services.prefs.getBoolPref(
+-  TelemetryUtils.Preferences.Unified,
+-  false
+-);
++const IS_UNIFIED_TELEMETRY = false;
+ 
+ const MS_IN_A_MINUTE = 60 * 1000;
+ 
+@@ -678,11 +675,6 @@ var TelemetrySendImpl = {
+     TOPIC_PROFILE_CHANGE_NET_TEARDOWN,
+   ],
+ 
+-  OBSERVED_PREFERENCES: [
+-    TelemetryUtils.Preferences.TelemetryEnabled,
+-    TelemetryUtils.Preferences.FhrUploadEnabled,
+-  ],
+-
+   // Whether sending pings has been overridden.
+   get _overrideOfficialCheck() {
+     return Services.prefs.getBoolPref(
+@@ -739,13 +731,10 @@ var TelemetrySendImpl = {
+       TelemetryUtils.Preferences.Server,
+       undefined
+     );
+-    this._sendingEnabled = true;
++    this._sendingEnabled = false;
+ 
+     // Annotate crash reports so that crash pings are sent correctly and listen
+     // to pref changes to adjust the annotations accordingly.
+-    for (let pref of this.OBSERVED_PREFERENCES) {
+-      Services.prefs.addObserver(pref, this, true);
+-    }
+     this._annotateCrashReport();
+ 
+     // Check the pending pings on disk now.
+@@ -824,13 +813,6 @@ var TelemetrySendImpl = {
+   async shutdown() {
+     this._shutdown = true;
+ 
+-    for (let pref of this.OBSERVED_PREFERENCES) {
+-      // FIXME: When running tests this causes errors to be printed out if
+-      // TelemetrySend.shutdown() is called twice in a row without calling
+-      // TelemetrySend.setup() in-between.
+-      Services.prefs.removeObserver(pref, this);
+-    }
+-
+     for (let topic of this.OBSERVER_TOPICS) {
+       try {
+         Services.obs.removeObserver(this, topic);
+@@ -865,7 +847,7 @@ var TelemetrySendImpl = {
+     this._currentPings = new Map();
+     this._tooLateToSend = false;
+     this._isOSShutdown = false;
+-    this._sendingEnabled = true;
++    this._sendingEnabled = false;
+ 
+     const histograms = [
+       "TELEMETRY_SUCCESS",
+@@ -919,11 +901,6 @@ var TelemetrySendImpl = {
+           setOSShutdown();
+         }
+         break;
+-      case PREF_CHANGED_TOPIC:
+-        if (this.OBSERVED_PREFERENCES.includes(data)) {
+-          this._annotateCrashReport();
+-        }
+-        break;
+       case TOPIC_PROFILE_CHANGE_NET_TEARDOWN:
+         this._tooLateToSend = true;
+         break;
+@@ -1233,209 +1210,7 @@ var TelemetrySendImpl = {
+   },
+ 
+   _doPing(ping, id, isPersisted) {
+-    if (!this.sendingEnabled(ping)) {
+-      // We can't send the pings to the server, so don't try to.
+-      this._log.trace("_doPing - Can't send ping " + ping.id);
+       return Promise.resolve();
+-    }
+-
+-    if (this._tooLateToSend) {
+-      // Too late to send now. Reject so we pend the ping to send it next time.
+-      this._log.trace("_doPing - Too late to send ping " + ping.id);
+-      Telemetry.getHistogramById("TELEMETRY_SEND_FAILURE_TYPE").add("eTooLate");
+-      Telemetry.getKeyedHistogramById(
+-        "TELEMETRY_SEND_FAILURE_TYPE_PER_PING"
+-      ).add(ping.type, "eTooLate");
+-      return Promise.reject();
+-    }
+-
+-    this._log.trace(
+-      "_doPing - server: " +
+-        this._server +
+-        ", persisted: " +
+-        isPersisted +
+-        ", id: " +
+-        id
+-    );
+-
+-    const url = this._buildSubmissionURL(ping);
+-
+-    // Don't send cookies with these requests.
+-    let request = new ServiceRequest({ mozAnon: true });
+-    request.mozBackgroundRequest = true;
+-    request.timeout = Policy.pingSubmissionTimeout();
+-
+-    request.open("POST", url, true);
+-    request.overrideMimeType("text/plain");
+-    request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+-    request.setRequestHeader("Date", Policy.now().toUTCString());
+-
+-    this._pendingPingRequests.set(id, request);
+-
+-    const monotonicStartTime = Utils.monotonicNow();
+-    let deferred = PromiseUtils.defer();
+-
+-    let onRequestFinished = (success, event) => {
+-      let onCompletion = () => {
+-        if (success) {
+-          deferred.resolve();
+-        } else {
+-          deferred.reject(event);
+-        }
+-      };
+-
+-      this._pendingPingRequests.delete(id);
+-      this._onPingRequestFinished(
+-        success,
+-        monotonicStartTime,
+-        id,
+-        isPersisted
+-      ).then(
+-        () => onCompletion(),
+-        error => {
+-          this._log.error(
+-            "_doPing - request success: " + success + ", error: " + error
+-          );
+-          onCompletion();
+-        }
+-      );
+-    };
+-
+-    let errorhandler = event => {
+-      let failure = event.type;
+-      if (failure === "error") {
+-        failure = XHR_ERROR_TYPE[request.errorCode];
+-      }
+-
+-      TelemetryHealthPing.recordSendFailure(failure);
+-
+-      if (this.fallbackHttp) {
+-        // only one attempt
+-        this.fallbackHttp = false;
+-
+-        request.channel.securityInfo
+-          .QueryInterface(Ci.nsITransportSecurityInfo)
+-          .QueryInterface(Ci.nsISerializable);
+-        if (request.channel.securityInfo.errorCodeString.startsWith("SEC_")) {
+-          // re-open the request with the HTTP version of the URL
+-          let fallbackUrl = new URL(url);
+-          fallbackUrl.protocol = "http:";
+-          // TODO encrypt payload
+-          request.open("POST", fallbackUrl, true);
+-          request.sendInputStream(this.payloadStream);
+-        }
+-      }
+-
+-      Telemetry.getHistogramById("TELEMETRY_SEND_FAILURE_TYPE").add(failure);
+-      Telemetry.getKeyedHistogramById(
+-        "TELEMETRY_SEND_FAILURE_TYPE_PER_PING"
+-      ).add(ping.type, failure);
+-
+-      this._log.error(
+-        "_doPing - error making request to " + url + ": " + failure
+-      );
+-      onRequestFinished(false, event);
+-    };
+-    request.onerror = errorhandler;
+-    request.ontimeout = errorhandler;
+-    request.onabort = errorhandler;
+-
+-    request.onload = event => {
+-      let status = request.status;
+-      let statusClass = status - (status % 100);
+-      let success = false;
+-
+-      if (statusClass === 200) {
+-        // We can treat all 2XX as success.
+-        this._log.info("_doPing - successfully loaded, status: " + status);
+-        success = true;
+-      } else if (statusClass === 400) {
+-        // 4XX means that something with the request was broken.
+-        this._log.error(
+-          "_doPing - error submitting to " +
+-            url +
+-            ", status: " +
+-            status +
+-            " - ping request broken?"
+-        );
+-        Telemetry.getHistogramById(
+-          "TELEMETRY_PING_EVICTED_FOR_SERVER_ERRORS"
+-        ).add();
+-        // TODO: we should handle this better, but for now we should avoid resubmitting
+-        // broken requests by pretending success.
+-        success = true;
+-      } else if (statusClass === 500) {
+-        // 5XX means there was a server-side error and we should try again later.
+-        this._log.error(
+-          "_doPing - error submitting to " +
+-            url +
+-            ", status: " +
+-            status +
+-            " - server error, should retry later"
+-        );
+-      } else {
+-        // We received an unexpected status code.
+-        this._log.error(
+-          "_doPing - error submitting to " +
+-            url +
+-            ", status: " +
+-            status +
+-            ", type: " +
+-            event.type
+-        );
+-      }
+-
+-      onRequestFinished(success, event);
+-    };
+-
+-    // If that's a legacy ping format, just send its payload.
+-    let networkPayload = isV4PingFormat(ping) ? ping : ping.payload;
+-    request.setRequestHeader("Content-Encoding", "gzip");
+-    let converter = Cc[
+-      "@mozilla.org/intl/scriptableunicodeconverter"
+-    ].createInstance(Ci.nsIScriptableUnicodeConverter);
+-    converter.charset = "UTF-8";
+-    let startTime = Utils.monotonicNow();
+-    let utf8Payload = converter.ConvertFromUnicode(
+-      JSON.stringify(networkPayload)
+-    );
+-    utf8Payload += converter.Finish();
+-    Telemetry.getHistogramById("TELEMETRY_STRINGIFY").add(
+-      Utils.monotonicNow() - startTime
+-    );
+-
+-    let payloadStream = Cc[
+-      "@mozilla.org/io/string-input-stream;1"
+-    ].createInstance(Ci.nsIStringInputStream);
+-    startTime = Utils.monotonicNow();
+-    payloadStream.data = Policy.gzipCompressString(utf8Payload);
+-
+-    // Check the size and drop pings which are too big.
+-    const compressedPingSizeBytes = payloadStream.data.length;
+-    if (compressedPingSizeBytes > TelemetryStorage.MAXIMUM_PING_SIZE) {
+-      this._log.error(
+-        "_doPing - submitted ping exceeds the size limit, size: " +
+-          compressedPingSizeBytes
+-      );
+-      Telemetry.getHistogramById("TELEMETRY_PING_SIZE_EXCEEDED_SEND").add();
+-      Telemetry.getHistogramById("TELEMETRY_DISCARDED_SEND_PINGS_SIZE_MB").add(
+-        Math.floor(compressedPingSizeBytes / 1024 / 1024)
+-      );
+-      // We don't need to call |request.abort()| as it was not sent yet.
+-      this._pendingPingRequests.delete(id);
+-
+-      TelemetryHealthPing.recordDiscardedPing(ping.type);
+-      return TelemetryStorage.removePendingPing(id);
+-    }
+-
+-    Telemetry.getHistogramById("TELEMETRY_COMPRESS").add(
+-      Utils.monotonicNow() - startTime
+-    );
+-    request.sendInputStream(payloadStream);
+-
+-    this.payloadStream = payloadStream;
+-
+-    return deferred.promise;
+   },
+ 
+   /**
+@@ -1462,30 +1237,7 @@ var TelemetrySendImpl = {
+    * @return {Boolean} True if pings can be send to the servers, false otherwise.
+    */
+   sendingEnabled(ping = null) {
+-    // We only send pings from official builds, but allow overriding this for tests.
+-    if (
+-      !Telemetry.isOfficialTelemetry &&
+-      !this._testMode &&
+-      !this._overrideOfficialCheck
+-    ) {
+       return false;
+-    }
+-
+-    // With unified Telemetry, the FHR upload setting controls whether we can send pings.
+-    // The Telemetry pref enables sending extended data sets instead.
+-    if (IS_UNIFIED_TELEMETRY) {
+-      // Optout pings are sent once even if the upload is disabled.
+-      if (ping && isOptoutPing(ping)) {
+-        return true;
+-      }
+-      return Services.prefs.getBoolPref(
+-        TelemetryUtils.Preferences.FhrUploadEnabled,
+-        false
+-      );
+-    }
+-
+-    // Without unified Telemetry, the Telemetry enabled pref controls ping sending.
+-    return Utils.isTelemetryEnabled;
+   },
+ 
+   /**
+@@ -1554,22 +1306,5 @@ var TelemetrySendImpl = {
+   },
+ 
+   runPingSender(url, pingPath) {
+-    if (AppConstants.platform === "android") {
+-      throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+-    }
+-
+-    const exeName =
+-      AppConstants.platform === "win" ? "pingsender.exe" : "pingsender";
+-
+-    let exe = Services.dirsvc.get("GreBinD", Ci.nsIFile);
+-    exe.append(exeName);
+-
+-    let process = Cc["@mozilla.org/process/util;1"].createInstance(
+-      Ci.nsIProcess
+-    );
+-    process.init(exe);
+-    process.startHidden = true;
+-    process.noShell = true;
+-    process.run(/* blocking */ false, [url, pingPath], 2);
+   },
+ };
+diff --git a/toolkit/components/telemetry/app/TelemetryUtils.jsm b/toolkit/components/telemetry/app/TelemetryUtils.jsm
+--- a/toolkit/components/telemetry/app/TelemetryUtils.jsm
++++ b/toolkit/components/telemetry/app/TelemetryUtils.jsm
+@@ -106,7 +106,7 @@ var TelemetryUtils = {
+    * it correctly evaluates to a boolean type.
+    */
+   get isTelemetryEnabled() {
+-    return Services.prefs.getBoolPref(PREF_TELEMETRY_ENABLED, false) === true;
++    return false;
+   },
+ 
+   /**
+diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/components/telemetry/core/Telemetry.cpp
+--- a/toolkit/components/telemetry/core/Telemetry.cpp
++++ b/toolkit/components/telemetry/core/Telemetry.cpp
+@@ -1103,7 +1103,7 @@ TelemetryImpl::GetKeyedHistogramById(con
+  */
+ NS_IMETHODIMP
+ TelemetryImpl::GetCanRecordBase(bool* ret) {
+-  *ret = mCanRecordBase;
++  *ret = false;
+   return NS_OK;
+ }
+ 
+@@ -1132,7 +1132,7 @@ TelemetryImpl::SetCanRecordBase(bool can
+  */
+ NS_IMETHODIMP
+ TelemetryImpl::GetCanRecordExtended(bool* ret) {
+-  *ret = mCanRecordExtended;
++  *ret = false;
+   return NS_OK;
+ }
+ 
+@@ -1154,13 +1154,13 @@ TelemetryImpl::SetCanRecordExtended(bool
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::GetCanRecordReleaseData(bool* ret) {
+-  *ret = mCanRecordBase;
++  *ret = false;
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::GetCanRecordPrereleaseData(bool* ret) {
+-  *ret = mCanRecordExtended;
++  *ret = false;
+   return NS_OK;
+ }
+ 
+diff --git a/toolkit/components/telemetry/core/TelemetryCommon.cpp b/toolkit/components/telemetry/core/TelemetryCommon.cpp
+--- a/toolkit/components/telemetry/core/TelemetryCommon.cpp
++++ b/toolkit/components/telemetry/core/TelemetryCommon.cpp
+@@ -45,32 +45,12 @@ bool IsInDataset(uint32_t aDataset, uint
+ 
+ bool CanRecordDataset(uint32_t aDataset, bool aCanRecordBase,
+                       bool aCanRecordExtended) {
+-  // If we are extended telemetry is enabled, we are allowed to record
+-  // regardless of the dataset.
+-  if (aCanRecordExtended) {
+-    return true;
+-  }
+-
+-  // If base telemetry data is enabled and we're trying to record base
+-  // telemetry, allow it.
+-  if (aCanRecordBase &&
+-      IsInDataset(aDataset, nsITelemetry::DATASET_ALL_CHANNELS)) {
+-    return true;
+-  }
+-
+-  // We're not recording extended telemetry or this is not the base
+-  // dataset. Bail out.
+   return false;
+ }
+ 
+ bool CanRecordInProcess(RecordedProcessType processes,
+                         GeckoProcessType processType) {
+-  // We can use (1 << ProcessType) due to the way RecordedProcessType is
+-  // defined.
+-  bool canRecordProcess =
+-      !!(processes & static_cast<RecordedProcessType>(1 << processType));
+-
+-  return canRecordProcess;
++  return false;
+ }
+ 
+ bool CanRecordInProcess(RecordedProcessType processes, ProcessID processId) {
+@@ -78,7 +58,7 @@ bool CanRecordInProcess(RecordedProcessT
+ }
+ 
+ bool CanRecordProduct(SupportedProduct aProducts) {
+-  return !!(aProducts & GetCurrentProduct());
++  return false;
+ }
+ 
+ nsresult MsSinceProcessStart(double* aResult) {
+diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/components/telemetry/core/TelemetryEvent.cpp
+--- a/toolkit/components/telemetry/core/TelemetryEvent.cpp
++++ b/toolkit/components/telemetry/core/TelemetryEvent.cpp
+@@ -343,29 +343,7 @@ nsCString GetCategory(const StaticMutexA
+ 
+ bool CanRecordEvent(const StaticMutexAutoLock& lock, const EventKey& eventKey,
+                     ProcessID process) {
+-  if (!gCanRecordBase) {
+     return false;
+-  }
+-
+-  if (!CanRecordDataset(GetDataset(lock, eventKey), gCanRecordBase,
+-                        gCanRecordExtended)) {
+-    return false;
+-  }
+-
+-  // We don't allow specifying a process to record in for dynamic events.
+-  if (!eventKey.dynamic) {
+-    const CommonEventInfo& info = gEventInfo[eventKey.id].common_info;
+-
+-    if (!CanRecordProduct(info.products)) {
+-      return false;
+-    }
+-
+-    if (!CanRecordInProcess(info.record_in_processes, process)) {
+-      return false;
+-    }
+-  }
+-
+-  return true;
+ }
+ 
+ bool IsExpired(const EventKey& key) { return key.id == kExpiredEventId; }
+@@ -423,69 +401,6 @@ RecordEventResult RecordEvent(const Stat
+                               const nsACString& object,
+                               const Maybe<nsCString>& value,
+                               const ExtraArray& extra) {
+-  // Look up the event id.
+-  EventKey* eventKey = GetEventKey(lock, category, method, object);
+-  if (!eventKey) {
+-    mozilla::Telemetry::AccumulateCategorical(
+-        LABELS_TELEMETRY_EVENT_RECORDING_ERROR::UnknownEvent);
+-    return RecordEventResult::UnknownEvent;
+-  }
+-
+-  // If the event is expired or not enabled for this process, we silently drop
+-  // this call. We don't want recording for expired probes to be an error so
+-  // code doesn't have to be removed at a specific time or version. Even logging
+-  // warnings would become very noisy.
+-  if (IsExpired(*eventKey)) {
+-    mozilla::Telemetry::AccumulateCategorical(
+-        LABELS_TELEMETRY_EVENT_RECORDING_ERROR::Expired);
+-    return RecordEventResult::ExpiredEvent;
+-  }
+-
+-  // Fixup the process id only for non-builtin (e.g. supporting build faster)
+-  // dynamic events.
+-  if (eventKey->dynamic && !(*gDynamicEventInfo)[eventKey->id].builtin) {
+-    processType = ProcessID::Dynamic;
+-  }
+-
+-  // Check whether the extra keys passed are valid.
+-  if (!CheckExtraKeysValid(*eventKey, extra)) {
+-    mozilla::Telemetry::AccumulateCategorical(
+-        LABELS_TELEMETRY_EVENT_RECORDING_ERROR::ExtraKey);
+-    return RecordEventResult::InvalidExtraKey;
+-  }
+-
+-  // Check whether we can record this event.
+-  if (!CanRecordEvent(lock, *eventKey, processType)) {
+-    return RecordEventResult::Ok;
+-  }
+-
+-  // Count the number of times this event has been recorded, even if its
+-  // category does not have recording enabled.
+-  TelemetryScalar::SummarizeEvent(UniqueEventName(category, method, object),
+-                                  processType, eventKey->dynamic);
+-
+-  // Check whether this event's category has recording enabled
+-  if (!gEnabledCategories.GetEntry(GetCategory(lock, *eventKey))) {
+-    return RecordEventResult::Ok;
+-  }
+-
+-  static bool sEventPingEnabled = mozilla::Preferences::GetBool(
+-      "toolkit.telemetry.eventping.enabled", true);
+-  if (!sEventPingEnabled) {
+-    return RecordEventResult::Ok;
+-  }
+-
+-  EventRecordArray* eventRecords =
+-      GetEventRecordsForProcess(lock, processType, *eventKey);
+-  eventRecords->AppendElement(EventRecord(timestamp, *eventKey, value, extra));
+-
+-  // Notify observers when we hit the "event" ping event record limit.
+-  static uint32_t sEventPingLimit = mozilla::Preferences::GetUint(
+-      "toolkit.telemetry.eventping.eventLimit", 1000);
+-  if (eventRecords->Length() == sEventPingLimit) {
+-    return RecordEventResult::StorageLimitReached;
+-  }
+-
+   return RecordEventResult::Ok;
+ }
+ 
+diff --git a/toolkit/components/telemetry/core/TelemetryHistogram.cpp b/toolkit/components/telemetry/core/TelemetryHistogram.cpp
+--- a/toolkit/components/telemetry/core/TelemetryHistogram.cpp
++++ b/toolkit/components/telemetry/core/TelemetryHistogram.cpp
+@@ -491,9 +491,9 @@ nsresult internal_GetHistogramIdByName(c
+ 
+ namespace {
+ 
+-bool internal_CanRecordBase() { return gCanRecordBase; }
+-
+-bool internal_CanRecordExtended() { return gCanRecordExtended; }
++bool internal_CanRecordBase() { return false; }
++
++bool internal_CanRecordExtended() { return false; }
+ 
+ bool internal_AttemptedGPUProcess() {
+   // Check if it was tried to launch a process.
+diff --git a/toolkit/components/telemetry/core/TelemetryScalar.cpp b/toolkit/components/telemetry/core/TelemetryScalar.cpp
+--- a/toolkit/components/telemetry/core/TelemetryScalar.cpp
++++ b/toolkit/components/telemetry/core/TelemetryScalar.cpp
+@@ -1264,11 +1264,11 @@ void internal_LogScalarError(const nsACS
+ namespace {
+ 
+ bool internal_CanRecordBase(const StaticMutexAutoLock& lock) {
+-  return gCanRecordBase;
++  return false;
+ }
+ 
+ bool internal_CanRecordExtended(const StaticMutexAutoLock& lock) {
+-  return gCanRecordExtended;
++  return false;
+ }
+ 
+ /**
+diff --git a/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm b/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm
+--- a/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm
++++ b/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm
+@@ -18,6 +18,7 @@ const { XPCOMUtils } = ChromeUtils.impor
+ let HybridContentTelemetry = {
+   _logger: null,
+   _observerInstalled: false,
++  _hybridContentEnabled: false,
+ 
+   get _log() {
+     if (!this._logger) {
+@@ -31,27 +32,6 @@ let HybridContentTelemetry = {
+   },
+ 
+   /**
+-   * Lazily initialized observer for the Telemetry upload preference. This is
+-   * only ever executed if a page uses hybrid content telemetry and has enough
+-   * privileges to run it.
+-   */
+-  _lazyObserverInit() {
+-    if (this._observerInstalled) {
+-      // We only want to install the observers once, if needed.
+-      return;
+-    }
+-    this._log.trace("_lazyObserverInit - installing the pref observers.");
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "_uploadEnabled",
+-      TelemetryUtils.Preferences.FhrUploadEnabled,
+-      false /* aDefaultValue */,
+-      () => this._broadcastPolicyUpdate()
+-    );
+-    this._observerInstalled = true;
+-  },
+-
+-  /**
+    * This is the handler for the async "HybridContentTelemetry:onTelemetryMessage"
+    * message. This function is getting called by the listener in
+    * BrowserGlue.jsm.
+@@ -81,19 +61,6 @@ let HybridContentTelemetry = {
+   },
+ 
+   /**
+-   * Broadcast the upload policy state to the pages using hybrid
+-   * content telemetry.
+-   */
+-  _broadcastPolicyUpdate() {
+-    this._log.trace(
+-      `_broadcastPolicyUpdate - New value is ${this._uploadEnabled}.`
+-    );
+-    Services.mm.broadcastAsyncMessage("HybridContentTelemetry:PolicyChanged", {
+-      canUpload: this._uploadEnabled,
+-    });
+-  },
+-
+-  /**
+    * Dispatches the calls to the Telemetry service.
+    * @param {String} aEndpoint The name of the api endpoint to call.
+    * @param {Object} aData An object containing the data to pass to the API.
+@@ -108,10 +75,6 @@ let HybridContentTelemetry = {
+     // any error.
+     try {
+       switch (aEndpoint) {
+-        case "init":
+-          this._lazyObserverInit();
+-          this._broadcastPolicyUpdate();
+-          break;
+         case "registerEvents":
+           Services.telemetry.registerEvents(aData.category, aData.eventData);
+           break;
+@@ -139,10 +102,3 @@ let HybridContentTelemetry = {
+     }
+   },
+ };
+-
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  HybridContentTelemetry,
+-  "_hybridContentEnabled",
+-  TelemetryUtils.Preferences.HybridContentEnabled,
+-  false /* aDefaultValue */
+-);
+diff --git a/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js b/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js
+--- a/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js
++++ b/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js
+@@ -26,6 +26,7 @@ const HCT_POLICY_CHANGE_MSG = "HybridCon
+ var HybridContentTelemetryListener = {
+   _logger: null,
+   _hasListener: false,
++  _hybridContentEnabled: false,
+ 
+   get _log() {
+     if (!this._logger) {
+@@ -189,13 +190,6 @@ var HybridContentTelemetryListener = {
+   },
+ };
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  HybridContentTelemetryListener,
+-  "_hybridContentEnabled",
+-  TelemetryUtils.Preferences.HybridContentEnabled,
+-  false /* aDefaultValue */
+-);
+-
+ // The following function installs the handler for "mozTelemetry"
+ // events in the chrome. Please note that the name of the message (i.e.
+ // "mozTelemetry") needs to match the one in HybridContentTelemetry-lib.js.
+diff --git a/toolkit/components/telemetry/other/UITelemetry.jsm b/toolkit/components/telemetry/other/UITelemetry.jsm
+--- a/toolkit/components/telemetry/other/UITelemetry.jsm
++++ b/toolkit/components/telemetry/other/UITelemetry.jsm
+@@ -26,17 +26,10 @@ var UITelemetry = {
+     }
+ 
+     // Set an observer to watch for changes at runtime.
+-    Services.prefs.addObserver(
+-      TelemetryUtils.Preferences.TelemetryEnabled,
+-      this
+-    );
+     Services.obs.addObserver(this, "profile-before-change");
+ 
+     // Pick up the current value.
+-    this._enabled = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.TelemetryEnabled,
+-      false
+-    );
++    this._enabled = false;
+ 
+     return this._enabled;
+   },
+@@ -44,30 +37,9 @@ var UITelemetry = {
+   observe(aSubject, aTopic, aData) {
+     if (aTopic == "profile-before-change") {
+       Services.obs.removeObserver(this, "profile-before-change");
+-      Services.prefs.removeObserver(
+-        TelemetryUtils.Preferences.TelemetryEnabled,
+-        this
+-      );
+       this._enabled = undefined;
+       return;
+     }
+-
+-    if (aTopic == "nsPref:changed") {
+-      switch (aData) {
+-        case TelemetryUtils.Preferences.TelemetryEnabled:
+-          let on = Services.prefs.getBoolPref(
+-            TelemetryUtils.Preferences.TelemetryEnabled
+-          );
+-          this._enabled = on;
+-
+-          // Wipe ourselves if we were just disabled.
+-          if (!on) {
+-            this._activeSessions = {};
+-            this._measurements = [];
+-          }
+-          break;
+-      }
+-    }
+   },
+ 
+   /**
+diff --git a/toolkit/components/telemetry/pings/CoveragePing.jsm b/toolkit/components/telemetry/pings/CoveragePing.jsm
+--- a/toolkit/components/telemetry/pings/CoveragePing.jsm
++++ b/toolkit/components/telemetry/pings/CoveragePing.jsm
+@@ -31,12 +31,10 @@ var EXPORTED_SYMBOLS = ["CoveragePing"];
+ 
+ const COVERAGE_VERSION = "2";
+ 
+-const COVERAGE_ENABLED_PREF = "toolkit.coverage.enabled";
+ const LOG_LEVEL_PREF = "toolkit.coverage.log-level";
+ const OPT_OUT_PREF = "toolkit.coverage.opt-out";
+ const ALREADY_RUN_PREF = `toolkit.coverage.already-run.v${COVERAGE_VERSION}`;
+ const COVERAGE_UUID_PREF = `toolkit.coverage.uuid.v${COVERAGE_VERSION}`;
+-const TELEMETRY_ENABLED_PREF = "datareporting.healthreport.uploadEnabled";
+ const REPORTING_ENDPOINT_BASE_PREF = `toolkit.coverage.endpoint.base`;
+ const REPORTING_ENDPOINT = "submit/coverage/coverage";
+ const PING_SUBMISSION_TIMEOUT = 30 * 1000; // 30 seconds
+@@ -47,127 +45,14 @@ log.addAppender(new Log.ConsoleAppender(
+ 
+ var CoveragePing = Object.freeze({
+   async startup() {
+-    if (!Services.prefs.getCharPref(REPORTING_ENDPOINT_BASE_PREF, null)) {
+-      log.error("no endpoint base set");
+-      return;
+-    }
+-
+-    if (!Services.prefs.getBoolPref(COVERAGE_ENABLED_PREF, false)) {
+-      log.debug("coverage not enabled");
+-      return;
+-    }
+-
+-    if (Services.prefs.getBoolPref(OPT_OUT_PREF, false)) {
+-      log.debug("user has set opt-out pref");
+-      return;
+-    }
+-
+-    if (Services.prefs.getBoolPref(ALREADY_RUN_PREF, false)) {
+-      log.debug("already run on this profile");
+-      return;
+-    }
+-
+-    try {
+-      await this.reportTelemetrySetting();
+-    } catch (e) {
+-      log.error("unable to upload payload", e);
+-    }
+   },
+ 
+   // NOTE - this does not use existing Telemetry code or honor Telemetry opt-out prefs,
+   // by design. It also sends no identifying data like the client ID. See the "coverage ping"
+   // documentation for details.
+   reportTelemetrySetting() {
+-    const enabled = Services.prefs.getBoolPref(TELEMETRY_ENABLED_PREF, false);
+-
+-    const payload = {
+-      appVersion: Services.appinfo.version,
+-      appUpdateChannel: UpdateUtils.getUpdateChannel(false),
+-      osName: Services.sysinfo.getProperty("name"),
+-      osVersion: Services.sysinfo.getProperty("version"),
+-      telemetryEnabled: enabled,
+-    };
+-
+-    let cachedUuid = Services.prefs.getCharPref(COVERAGE_UUID_PREF, null);
+-    if (!cachedUuid) {
+-      // Totally random UUID, just for detecting duplicates.
+-      cachedUuid = CommonUtils.generateUUID();
+-      Services.prefs.setCharPref(COVERAGE_UUID_PREF, cachedUuid);
+-    }
+-
+-    let reportingEndpointBase = Services.prefs.getCharPref(
+-      REPORTING_ENDPOINT_BASE_PREF,
+-      null
+-    );
+-
+-    let endpoint = `${reportingEndpointBase}/${REPORTING_ENDPOINT}/${COVERAGE_VERSION}/${cachedUuid}`;
+-
+-    log.debug(`putting to endpoint ${endpoint} with payload:`, payload);
+-
+     let deferred = PromiseUtils.defer();
+-
+-    let request = new ServiceRequest({ mozAnon: true });
+-    request.mozBackgroundRequest = true;
+-    request.timeout = PING_SUBMISSION_TIMEOUT;
+-
+-    request.open("PUT", endpoint, true);
+-    request.overrideMimeType("text/plain");
+-    request.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+-    request.setRequestHeader("Date", new Date().toUTCString());
+-
+-    let errorhandler = event => {
+-      let failure = event.type;
+-      log.error(`error making request to ${endpoint}: ${failure}`);
+-      deferred.reject(event);
+-    };
+-
+-    request.onerror = errorhandler;
+-    request.ontimeout = errorhandler;
+-    request.onabort = errorhandler;
+-
+-    request.onloadend = event => {
+-      let status = request.status;
+-      let statusClass = status - (status % 100);
+-      let success = false;
+-
+-      if (statusClass === 200) {
+-        // We can treat all 2XX as success.
+-        log.info(`successfully submitted, status: ${status}`);
+-        success = true;
+-      } else if (statusClass === 400) {
+-        // 4XX means that something with the request was broken.
+-
+-        // TODO: we should handle this better, but for now we should avoid resubmitting
+-        // broken requests by pretending success.
+-        success = true;
+-        log.error(
+-          `error submitting to ${endpoint}, status: ${status} - ping request broken?`
+-        );
+-      } else if (statusClass === 500) {
+-        // 5XX means there was a server-side error and we should try again later.
+-        log.error(
+-          `error submitting to ${endpoint}, status: ${status} - server error, should retry later`
+-        );
+-      } else {
+-        // We received an unexpected status code.
+-        log.error(
+-          `error submitting to ${endpoint}, status: ${status}, type: ${
+-            event.type
+-          }`
+-        );
+-      }
+-
+-      if (success) {
+-        Services.prefs.setBoolPref(ALREADY_RUN_PREF, true);
+-        log.debug(`result from PUT: ${request.responseText}`);
+-        deferred.resolve();
+-      } else {
+-        deferred.reject(event);
+-      }
+-    };
+-
+-    request.send(JSON.stringify(payload));
+-
++    deferred.reject();
+     return deferred.promise;
+   },
+ });
+diff --git a/toolkit/components/telemetry/pings/EcosystemTelemetry.jsm b/toolkit/components/telemetry/pings/EcosystemTelemetry.jsm
+--- a/toolkit/components/telemetry/pings/EcosystemTelemetry.jsm
++++ b/toolkit/components/telemetry/pings/EcosystemTelemetry.jsm
+@@ -69,23 +69,7 @@ var EcosystemTelemetry = {
+   _initialized: false,
+ 
+   enabled() {
+-    // Never enabled when not Unified Telemetry (e.g. not enabled on Fennec)
+-    if (
+-      !Services.prefs.getBoolPref(TelemetryUtils.Preferences.Unified, false)
+-    ) {
+       return false;
+-    }
+-
+-    if (
+-      !Services.prefs.getBoolPref(
+-        TelemetryUtils.Preferences.EcosystemTelemetryEnabled,
+-        false
+-      )
+-    ) {
+-      return false;
+-    }
+-
+-    return true;
+   },
+ 
+   /**
+diff --git a/toolkit/components/telemetry/pings/EventPing.jsm b/toolkit/components/telemetry/pings/EventPing.jsm
+--- a/toolkit/components/telemetry/pings/EventPing.jsm
++++ b/toolkit/components/telemetry/pings/EventPing.jsm
+@@ -89,39 +89,6 @@ var TelemetryEventPing = {
+   },
+ 
+   startup() {
+-    if (!Services.prefs.getBoolPref(Utils.Preferences.EventPingEnabled, true)) {
+-      return;
+-    }
+-    this._log.trace("Starting up.");
+-
+-    // Calculate process creation once.
+-    this._processStartTimestamp =
+-      Math.round(
+-        (Date.now() - TelemetryUtils.monotonicNow()) / MS_IN_A_MINUTE
+-      ) * MS_IN_A_MINUTE;
+-
+-    Services.obs.addObserver(this, EVENT_LIMIT_REACHED_TOPIC);
+-
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "maxEventsPerPing",
+-      Utils.Preferences.EventPingEventLimit,
+-      DEFAULT_EVENT_LIMIT
+-    );
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "maxFrequency",
+-      Utils.Preferences.EventPingMaximumFrequency,
+-      DEFAULT_MAX_FREQUENCY_MS
+-    );
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "minFrequency",
+-      Utils.Preferences.EventPingMinimumFrequency,
+-      DEFAULT_MIN_FREQUENCY_MS
+-    );
+-
+-    this._startTimer();
+   },
+ 
+   shutdown() {
+diff --git a/toolkit/components/telemetry/pings/HealthPing.jsm b/toolkit/components/telemetry/pings/HealthPing.jsm
+--- a/toolkit/components/telemetry/pings/HealthPing.jsm
++++ b/toolkit/components/telemetry/pings/HealthPing.jsm
+@@ -45,10 +45,7 @@ ChromeUtils.defineModuleGetter(
+ const Utils = TelemetryUtils;
+ 
+ const MS_IN_A_MINUTE = 60 * 1000;
+-const IS_HEALTH_PING_ENABLED = Preferences.get(
+-  TelemetryUtils.Preferences.HealthPingEnabled,
+-  true
+-);
++const IS_HEALTH_PING_ENABLED = false;
+ 
+ // Send health ping every hour
+ const SEND_TICK_DELAY = 60 * MS_IN_A_MINUTE;
+diff --git a/toolkit/components/telemetry/pings/PrioPing.jsm b/toolkit/components/telemetry/pings/PrioPing.jsm
+--- a/toolkit/components/telemetry/pings/PrioPing.jsm
++++ b/toolkit/components/telemetry/pings/PrioPing.jsm
+@@ -58,21 +58,6 @@ var TelemetryPrioPing = {
+   _timeoutId: null,
+ 
+   startup() {
+-    if (!this._testing && !Telemetry.canRecordPrereleaseData) {
+-      this._log.trace("Extended collection disabled. Prio ping disabled.");
+-      return;
+-    }
+-
+-    if (
+-      !this._testing &&
+-      !Services.prefs.getBoolPref(Utils.Preferences.PrioPingEnabled, true)
+-    ) {
+-      this._log.trace("Prio ping disabled by pref.");
+-      return;
+-    }
+-    this._log.trace("Starting up.");
+-
+-    Services.obs.addObserver(this, PRIO_LIMIT_REACHED_TOPIC);
+   },
+ 
+   async shutdown() {
+diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+--- a/toolkit/components/telemetry/pings/TelemetrySession.jsm
++++ b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+@@ -55,10 +55,7 @@ const LOGGER_PREFIX =
+ 
+ // Whether the FHR/Telemetry unification features are enabled.
+ // Changing this pref requires a restart.
+-const IS_UNIFIED_TELEMETRY = Services.prefs.getBoolPref(
+-  TelemetryUtils.Preferences.Unified,
+-  false
+-);
++const IS_UNIFIED_TELEMETRY = false;
+ 
+ var gWasDebuggerAttached = false;
+ 
+@@ -980,95 +977,6 @@ var Impl = {
+     // on all pings to be saved after kicking off their collection.
+     let p = [];
+ 
+-    if (IS_UNIFIED_TELEMETRY) {
+-      let shutdownPayload = this.getSessionPayload(REASON_SHUTDOWN, false);
+-
+-      // Only send the shutdown ping using the pingsender from the second
+-      // browsing session on, to mitigate issues with "bot" profiles (see bug 1354482).
+-      const sendOnThisSession =
+-        Services.prefs.getBoolPref(
+-          Utils.Preferences.ShutdownPingSenderFirstSession,
+-          false
+-        ) || !TelemetryReportingPolicy.isFirstRun();
+-      let sendWithPingsender =
+-        Services.prefs.getBoolPref(
+-          TelemetryUtils.Preferences.ShutdownPingSender,
+-          false
+-        ) && sendOnThisSession;
+-
+-      let options = {
+-        addClientId: true,
+-        addEnvironment: true,
+-        usePingSender: sendWithPingsender,
+-      };
+-      p.push(
+-        TelemetryController.submitExternalPing(
+-          getPingType(shutdownPayload),
+-          shutdownPayload,
+-          options
+-        ).catch(e =>
+-          this._log.error(
+-            "saveShutdownPings - failed to submit shutdown ping",
+-            e
+-          )
+-        )
+-      );
+-
+-      // Send a duplicate of first-shutdown pings as a new ping type, in order to properly
+-      // evaluate first session profiles (see bug 1390095).
+-      const sendFirstShutdownPing =
+-        Services.prefs.getBoolPref(
+-          Utils.Preferences.ShutdownPingSender,
+-          false
+-        ) &&
+-        Services.prefs.getBoolPref(
+-          Utils.Preferences.FirstShutdownPingEnabled,
+-          false
+-        ) &&
+-        TelemetryReportingPolicy.isFirstRun();
+-
+-      if (sendFirstShutdownPing) {
+-        let options = {
+-          addClientId: true,
+-          addEnvironment: true,
+-          usePingSender: true,
+-        };
+-        p.push(
+-          TelemetryController.submitExternalPing(
+-            "first-shutdown",
+-            shutdownPayload,
+-            options
+-          ).catch(e =>
+-            this._log.error(
+-              "saveShutdownPings - failed to submit first shutdown ping",
+-              e
+-            )
+-          )
+-        );
+-      }
+-    }
+-
+-    if (AppConstants.platform == "android" && Telemetry.canRecordExtended) {
+-      let payload = this.getSessionPayload(REASON_SAVED_SESSION, false);
+-
+-      let options = {
+-        addClientId: true,
+-        addEnvironment: true,
+-      };
+-      p.push(
+-        TelemetryController.submitExternalPing(
+-          getPingType(payload),
+-          payload,
+-          options
+-        ).catch(e =>
+-          this._log.error(
+-            "saveShutdownPings - failed to submit saved-session ping",
+-            e
+-          )
+-        )
+-      );
+-    }
+-
+     // Wait on pings to be saved.
+     return Promise.all(p);
+   },
+diff --git a/toolkit/components/telemetry/pings/UpdatePing.jsm b/toolkit/components/telemetry/pings/UpdatePing.jsm
+--- a/toolkit/components/telemetry/pings/UpdatePing.jsm
++++ b/toolkit/components/telemetry/pings/UpdatePing.jsm
+@@ -34,10 +34,6 @@ var UpdatePing = {
+       LOGGER_NAME,
+       "UpdatePing::"
+     );
+-    this._enabled = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.UpdatePing,
+-      false
+-    );
+ 
+     this._log.trace("init - enabled: " + this._enabled);
+ 
+diff --git a/toolkit/content/aboutTelemetry.js b/toolkit/content/aboutTelemetry.js
+--- a/toolkit/content/aboutTelemetry.js
++++ b/toolkit/content/aboutTelemetry.js
+@@ -44,11 +44,9 @@ const brandBundle = Services.strings.cre
+ const MAX_BAR_HEIGHT = 8;
+ const MAX_BAR_CHARS = 25;
+ const PREF_TELEMETRY_SERVER_OWNER = "toolkit.telemetry.server_owner";
+-const PREF_TELEMETRY_ENABLED = "toolkit.telemetry.enabled";
+ const PREF_DEBUG_SLOW_SQL = "toolkit.telemetry.debugSlowSql";
+ const PREF_SYMBOL_SERVER_URI = "profiler.symbolicationUrl";
+ const DEFAULT_SYMBOL_SERVER_URI = "https://symbols.mozilla.org/symbolicate/v4";
+-const PREF_FHR_UPLOAD_ENABLED = "datareporting.healthreport.uploadEnabled";
+ 
+ // ms idle before applying the filter (allow uninterrupted typing)
+ const FILTER_IDLE_TIMEOUT = 500;
+@@ -175,25 +173,7 @@ function removeAllChildNodes(node) {
+ }
+ 
+ var Settings = {
+-  SETTINGS: [
+-    // data upload
+-    {
+-      pref: PREF_FHR_UPLOAD_ENABLED,
+-      defaultPrefValue: false,
+-    },
+-    // extended "Telemetry" recording
+-    {
+-      pref: PREF_TELEMETRY_ENABLED,
+-      defaultPrefValue: false,
+-    },
+-  ],
+-
+   attachObservers() {
+-    for (let s of this.SETTINGS) {
+-      let setting = s;
+-      Preferences.observe(setting.pref, this.render, this);
+-    }
+-
+     let elements = document.getElementsByClassName("change-data-choices-link");
+     for (let el of elements) {
+       el.parentElement.addEventListener("click", function(event) {
+@@ -217,9 +197,6 @@ var Settings = {
+   },
+ 
+   detachObservers() {
+-    for (let setting of this.SETTINGS) {
+-      Preferences.ignore(setting.pref, this.render, this);
+-    }
+   },
+ 
+   /**
+@@ -227,7 +204,7 @@ var Settings = {
+    */
+   render() {
+     let settingsExplanation = document.getElementById("settings-explanation");
+-    let extendedEnabled = Services.telemetry.canRecordExtended;
++    let extendedEnabled = false;
+ 
+     let channel = extendedEnabled ? "prerelease" : "release";
+     let uploadcase = TelemetrySend.sendingEnabled() ? "enabled" : "disabled";
+@@ -1099,20 +1076,6 @@ SymbolicationRequest.prototype.handleSym
+  * Send a request to the symbolication server to symbolicate this stack.
+  */
+ SymbolicationRequest.prototype.fetchSymbols = function SymbolicationRequest_fetchSymbols() {
+-  let symbolServerURI = Preferences.get(
+-    PREF_SYMBOL_SERVER_URI,
+-    DEFAULT_SYMBOL_SERVER_URI
+-  );
+-  let request = { memoryMap: this.memoryMap, stacks: this.stacks, version: 3 };
+-  let requestJSON = JSON.stringify(request);
+-
+-  this.symbolRequest = new XMLHttpRequest();
+-  this.symbolRequest.open("POST", symbolServerURI, true);
+-  this.symbolRequest.setRequestHeader("Content-type", "application/json");
+-  this.symbolRequest.setRequestHeader("Content-length", requestJSON.length);
+-  this.symbolRequest.setRequestHeader("Connection", "close");
+-  this.symbolRequest.onreadystatechange = this.handleSymbolResponse.bind(this);
+-  this.symbolRequest.send(requestJSON);
+ };
+ 
+ var CapturedStacks = {
+diff --git a/toolkit/mozapps/extensions/content/aboutaddons.js b/toolkit/mozapps/extensions/content/aboutaddons.js
+--- a/toolkit/mozapps/extensions/content/aboutaddons.js
++++ b/toolkit/mozapps/extensions/content/aboutaddons.js
+@@ -91,8 +91,6 @@ const PREF_DISCOVERY_API_URL = "extensio
+ const PREF_THEME_RECOMMENDATION_URL =
+   "extensions.recommendations.themeRecommendationUrl";
+ const PREF_PRIVACY_POLICY_URL = "extensions.recommendations.privacyPolicyUrl";
+-const PREF_RECOMMENDATION_ENABLED = "browser.discovery.enabled";
+-const PREF_TELEMETRY_ENABLED = "datareporting.healthreport.uploadEnabled";
+ const PRIVATE_BROWSING_PERM_NAME = "internal:privateBrowsingAllowed";
+ const PRIVATE_BROWSING_PERMS = {
+   permissions: [PRIVATE_BROWSING_PERM_NAME],
+@@ -496,11 +494,7 @@ var DiscoveryAPI = {
+ 
+   get clientIdDiscoveryEnabled() {
+     // These prefs match Discovery.jsm for enabling clientId cookies.
+-    return (
+-      Services.prefs.getBoolPref(PREF_RECOMMENDATION_ENABLED, false) &&
+-      Services.prefs.getBoolPref(PREF_TELEMETRY_ENABLED, false) &&
+-      !PrivateBrowsingUtils.isContentWindowPrivate(window)
+-    );
++    return false;
+   },
+ 
+   async _fetchRecommendedAddons(useClientId) {
+diff --git a/toolkit/mozapps/extensions/content/extensions.js b/toolkit/mozapps/extensions/content/extensions.js
+--- a/toolkit/mozapps/extensions/content/extensions.js
++++ b/toolkit/mozapps/extensions/content/extensions.js
+@@ -2342,14 +2342,7 @@ var gDiscoverView = {
+ 
+   get clientIdDiscoveryEnabled() {
+     // These prefs match Discovery.jsm for enabling clientId cookies.
+-    return (
+-      Services.prefs.getBoolPref(
+-        "datareporting.healthreport.uploadEnabled",
+-        false
+-      ) &&
+-      Services.prefs.getBoolPref("browser.discovery.enabled", false) &&
+-      !PrivateBrowsingUtils.isContentWindowPrivate(window)
+-    );
++    return false;
+   },
+ 
+   async getClientHeader() {
+diff --git a/toolkit/xre/LauncherRegistryInfo.cpp b/toolkit/xre/LauncherRegistryInfo.cpp
+--- a/toolkit/xre/LauncherRegistryInfo.cpp
++++ b/toolkit/xre/LauncherRegistryInfo.cpp
+@@ -438,28 +438,7 @@ LauncherResult<DWORD> LauncherRegistryIn
+ }
+ 
+ LauncherResult<bool> LauncherRegistryInfo::GetTelemetrySetting() {
+-  std::wstring telemetryValueName = ResolveTelemetryValueName();
+-
+-  DWORD value;
+-  DWORD valueLen = sizeof(value);
+-  DWORD type;
+-  LSTATUS result = ::RegQueryValueExW(
+-      mRegKey.get(), telemetryValueName.c_str(), nullptr, &type,
+-      reinterpret_cast<PBYTE>(&value), &valueLen);
+-  if (result == ERROR_FILE_NOT_FOUND) {
+-    // Value does not exist, treat as false
+     return false;
+-  }
+-
+-  if (result != ERROR_SUCCESS) {
+-    return LAUNCHER_ERROR_FROM_WIN32(result);
+-  }
+-
+-  if (type != REG_DWORD) {
+-    return LAUNCHER_ERROR_FROM_WIN32(ERROR_DATATYPE_MISMATCH);
+-  }
+-
+-  return value != 0;
+ }
+ 
+ LauncherResult<uint64_t> LauncherRegistryInfo::GetStartTimestamp(
+diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
+--- a/toolkit/xre/nsAppRunner.cpp
++++ b/toolkit/xre/nsAppRunner.cpp
+@@ -246,11 +246,6 @@ extern void InstallSignalHandlers(const 
+ #define FILE_INVALIDATE_CACHES NS_LITERAL_CSTRING(".purgecaches")
+ #define FILE_STARTUP_INCOMPLETE NS_LITERAL_STRING(".startup-incomplete")
+ 
+-#if defined(MOZ_BLOCK_PROFILE_DOWNGRADE) || defined(MOZ_LAUNCHER_PROCESS)
+-static const char kPrefHealthReportUploadEnabled[] =
+-    "datareporting.healthreport.uploadEnabled";
+-#endif  // defined(MOZ_BLOCK_PROFILE_DOWNGRADE) || defined(MOZ_LAUNCHER_PROCESS)
+-
+ int gArgc;
+ char** gArgv;
+ 
+@@ -1524,7 +1519,7 @@ static void OnLauncherPrefChanged(const 
+ }
+ 
+ static void OnLauncherTelemetryPrefChanged(const char* aPref, void* aData) {
+-  bool prefVal = Preferences::GetBool(kPrefHealthReportUploadEnabled, true);
++  bool prefVal = false;
+ 
+   mozilla::LauncherRegistryInfo launcherRegInfo;
+   mozilla::LauncherVoidResult reflectResult =
+@@ -1559,13 +1554,11 @@ static void SetupLauncherProcessPref() {
+ 
+   mozilla::LauncherVoidResult reflectResult =
+       launcherRegInfo.ReflectTelemetryPrefToRegistry(
+-          Preferences::GetBool(kPrefHealthReportUploadEnabled, true));
++          false);
+   MOZ_ASSERT(reflectResult.isOk());
+ 
+   Preferences::RegisterCallback(&OnLauncherPrefChanged,
+                                 PREF_WIN_LAUNCHER_PROCESS_ENABLED);
+-  Preferences::RegisterCallback(&OnLauncherTelemetryPrefChanged,
+-                                kPrefHealthReportUploadEnabled);
+ }
+ 
+ #  endif  // defined(MOZ_LAUNCHER_PROCESS)
+@@ -2042,170 +2035,6 @@ struct FileWriteFunc : public JSONWriteF
+ 
+ static void SubmitDowngradeTelemetry(const nsCString& aLastVersion,
+                                      bool aHasSync, int32_t aButton) {
+-  nsCOMPtr<nsIPrefService> prefSvc =
+-      do_GetService("@mozilla.org/preferences-service;1");
+-  NS_ENSURE_TRUE_VOID(prefSvc);
+-
+-  nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(prefSvc);
+-  NS_ENSURE_TRUE_VOID(prefBranch);
+-
+-  bool enabled;
+-  nsresult rv =
+-      prefBranch->GetBoolPref(kPrefHealthReportUploadEnabled, &enabled);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  if (!enabled) {
+-    return;
+-  }
+-
+-  nsCString server;
+-  rv = prefBranch->GetCharPref("toolkit.telemetry.server", server);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsCString clientId;
+-  rv = prefBranch->GetCharPref("toolkit.telemetry.cachedClientID", clientId);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  rv = prefSvc->GetDefaultBranch(nullptr, getter_AddRefs(prefBranch));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsCString channel("default");
+-  rv = prefBranch->GetCharPref("app.update.channel", channel);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsID uuid;
+-  nsCOMPtr<nsIUUIDGenerator> uuidGen =
+-      do_GetService("@mozilla.org/uuid-generator;1");
+-  NS_ENSURE_TRUE_VOID(uuidGen);
+-  rv = uuidGen->GenerateUUIDInPlace(&uuid);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  char strid[NSID_LENGTH];
+-  uuid.ToProvidedString(strid);
+-
+-  nsCString arch("null");
+-  nsCOMPtr<nsIPropertyBag2> sysInfo =
+-      do_GetService("@mozilla.org/system-info;1");
+-  NS_ENSURE_TRUE_VOID(sysInfo);
+-  sysInfo->GetPropertyAsACString(NS_LITERAL_STRING("arch"), arch);
+-
+-  time_t now;
+-  time(&now);
+-  char date[sizeof "YYYY-MM-DDThh:mm:ss.000Z"];
+-  strftime(date, sizeof date, "%FT%T.000Z", gmtime(&now));
+-
+-  // NSID_LENGTH includes the trailing \0 and we also want to strip off the
+-  // surrounding braces so the length becomes NSID_LENGTH - 3.
+-  nsDependentCSubstring pingId(strid + 1, NSID_LENGTH - 3);
+-  NS_NAMED_LITERAL_CSTRING(pingType, "downgrade");
+-
+-  int32_t pos = aLastVersion.Find("_");
+-  if (pos == kNotFound) {
+-    return;
+-  }
+-
+-  const nsDependentCSubstring lastVersion = Substring(aLastVersion, 0, pos);
+-  const nsDependentCSubstring lastBuildId =
+-      Substring(aLastVersion, pos + 1, 14);
+-
+-  nsPrintfCString url("%s/submit/telemetry/%s/%s/%s/%s/%s/%s?v=%d",
+-                      server.get(), PromiseFlatCString(pingId).get(),
+-                      pingType.get(), (const char*)gAppData->name,
+-                      (const char*)gAppData->version, channel.get(),
+-                      (const char*)gAppData->buildID,
+-                      TELEMETRY_PING_FORMAT_VERSION);
+-
+-  nsCOMPtr<nsIFile> pingFile;
+-  rv = NS_GetSpecialDirectory(XRE_USER_APP_DATA_DIR, getter_AddRefs(pingFile));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  rv = pingFile->Append(NS_LITERAL_STRING("Pending Pings"));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  rv = pingFile->Create(nsIFile::DIRECTORY_TYPE, 0755);
+-  if (NS_FAILED(rv) && rv != NS_ERROR_FILE_ALREADY_EXISTS) {
+-    return;
+-  }
+-  rv = pingFile->Append(NS_ConvertUTF8toUTF16(pingId));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsCOMPtr<nsIFile> pingSender;
+-  rv = NS_GetSpecialDirectory(NS_GRE_BIN_DIR, getter_AddRefs(pingSender));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-#  ifdef XP_WIN
+-  pingSender->Append(NS_LITERAL_STRING("pingsender.exe"));
+-#  else
+-  pingSender->Append(NS_LITERAL_STRING("pingsender"));
+-#  endif
+-
+-  bool exists;
+-  rv = pingSender->Exists(&exists);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  if (!exists) {
+-    return;
+-  }
+-
+-  FILE* file;
+-  rv = pingFile->OpenANSIFileDesc("w", &file);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  JSONWriter w(MakeUnique<FileWriteFunc>(file));
+-  w.Start();
+-  {
+-    w.StringProperty("type", pingType.get());
+-    w.StringProperty("id", PromiseFlatCString(pingId).get());
+-    w.StringProperty("creationDate", date);
+-    w.IntProperty("version", TELEMETRY_PING_FORMAT_VERSION);
+-    w.StringProperty("clientId", clientId.get());
+-    w.StartObjectProperty("application");
+-    {
+-      w.StringProperty("architecture", arch.get());
+-      w.StringProperty("buildId", gAppData->buildID);
+-      w.StringProperty("name", gAppData->name);
+-      w.StringProperty("version", gAppData->version);
+-      w.StringProperty("displayVersion", NS_STRINGIFY(MOZ_APP_VERSION_DISPLAY));
+-      w.StringProperty("vendor", gAppData->vendor);
+-      w.StringProperty("platformVersion", gToolkitVersion);
+-#  ifdef TARGET_XPCOM_ABI
+-      w.StringProperty("xpcomAbi", TARGET_XPCOM_ABI);
+-#  else
+-      w.StringProperty("xpcomAbi", "unknown");
+-#  endif
+-      w.StringProperty("channel", channel.get());
+-    }
+-    w.EndObject();
+-    w.StartObjectProperty("payload");
+-    {
+-      w.StringProperty("lastVersion", PromiseFlatCString(lastVersion).get());
+-      w.StringProperty("lastBuildId", PromiseFlatCString(lastBuildId).get());
+-      w.BoolProperty("hasSync", aHasSync);
+-      w.IntProperty("button", aButton);
+-    }
+-    w.EndObject();
+-  }
+-  w.End();
+-
+-  fclose(file);
+-
+-  PathString filePath = pingFile->NativePath();
+-  const filesystem::Path::value_type* args[2];
+-#  ifdef XP_WIN
+-  nsString urlw = NS_ConvertUTF8toUTF16(url);
+-  args[0] = urlw.get();
+-#  else
+-  args[0] = url.get();
+-#  endif
+-  args[1] = filePath.get();
+-
+-  nsCOMPtr<nsIProcess> process =
+-      do_CreateInstance("@mozilla.org/process/util;1");
+-  NS_ENSURE_TRUE_VOID(process);
+-  process->Init(pingSender);
+-  process->SetStartHidden(true);
+-  process->SetNoShell(true);
+-
+-#  ifdef XP_WIN
+-  process->Runw(false, args, 2);
+-#  else
+-  process->Run(false, args, 2);
+-#  endif
+ }
+ 
+ static const char kProfileDowngradeURL[] =

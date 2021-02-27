@@ -1,0 +1,3 @@
+* Copyright (C) 2019 Renesas Electronics Corp. All rights reserved.
+* Icons (meaning all png and svg files in this directory and under) made by Renesas Electronics Corp for WebViewer are licensed by CC BY 4.0.
+https://creativecommons.org/licenses/by/4.0/legalcode

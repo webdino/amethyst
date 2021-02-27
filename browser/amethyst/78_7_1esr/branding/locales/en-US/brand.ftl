@@ -15,6 +15,6 @@
 -brand-shorter-name = WebViewer
 -brand-short-name = WebViewer
 -brand-full-name = WebViewer
--brand-product-name = Firefox
+-brand-product-name = WebViewer
 -vendor-short-name = Renesas Electronics Corporation
 trademarkInfo = { " " }

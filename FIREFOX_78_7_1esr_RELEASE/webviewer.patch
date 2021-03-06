@@ -60,10 +60,10 @@ new file mode 100644
 +function BrowserFullScreen(){
 +  window.fullScreen = !window.fullScreen;
 +}
-diff --git a/browser/amethyst/content/browser.xul b/browser/amethyst/content/browser.xul
+diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/browser.xhtml
 new file mode 100644
 --- /dev/null
-+++ b/browser/amethyst/content/browser.xul
++++ b/browser/amethyst/content/browser.xhtml
 @@ -0,0 +1,42 @@
 +<?xml version="1.0"?>
 +<!DOCTYPE window [
@@ -116,7 +116,7 @@ new file mode 100644
 +%  content browser %content/browser/ contentaccessible=yes
 +        content/browser/browser.css                   (content/browser.css)
 +        content/browser/browser.js                    (content/browser.js)
-+        content/browser/browser.xul                   (content/browser.xul)
++        content/browser/browser.xhtml                 (content/browser.xhtml)
 diff --git a/browser/amethyst/moz.build b/browser/amethyst/moz.build
 new file mode 100644
 --- /dev/null
@@ -126,20 +126,16 @@ new file mode 100644
 diff --git a/browser/base/jar.mn b/browser/base/jar.mn
 --- a/browser/base/jar.mn
 +++ b/browser/base/jar.mn
-@@ -26,13 +26,6 @@ browser.jar:
+@@ -29,9 +29,6 @@ browser.jar:
          content/browser/aboutTabCrashed.css           (content/aboutTabCrashed.css)
          content/browser/aboutTabCrashed.js            (content/aboutTabCrashed.js)
          content/browser/aboutTabCrashed.xhtml         (content/aboutTabCrashed.xhtml)
 -*       content/browser/browser.css                   (content/browser.css)
 -        content/browser/browser.js                    (content/browser.js)
--#ifdef MOZ_BROWSER_XHTML
 -*       content/browser/browser.xhtml                 (content/browser.xhtml)
--#else
--*       content/browser/browser.xul                   (content/browser.xul)
--#endif
+         content/browser/browser-a11yUtils.js          (content/browser-a11yUtils.js)
          content/browser/browser-addons.js             (content/browser-addons.js)
          content/browser/browser-allTabsMenu.js        (content/browser-allTabsMenu.js)
-         content/browser/browser-captivePortal.js      (content/browser-captivePortal.js)
 diff --git a/browser/moz.build b/browser/moz.build
 --- a/browser/moz.build
 +++ b/browser/moz.build

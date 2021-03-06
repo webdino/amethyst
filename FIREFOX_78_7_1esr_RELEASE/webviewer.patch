@@ -12,7 +12,7 @@ new file mode 100644
 +  /* should occupy space but not be visible */
 +  opacity: 0;
 +  pointer-events: none;
-+  -moz-stack-sizing: ignore;
++  position: absolute;
 +}
 diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/browser.js
 new file mode 100644
@@ -64,17 +64,17 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,43 @@
 +<?xml version="1.0"?>
-+<!DOCTYPE window [
++<!DOCTYPE html [
 +<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 +%brandDTD;
 +]>
 +
-+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
++<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 +<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
 +
-+<window id="main-window"
++<html id="main-window"
 +        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 +        width="800"
 +        height="480"
@@ -102,11 +102,12 @@ new file mode 100644
 +  <description/>
 +</panel>
 +
-+<stack flex="1" class="browserStack">
-+  <browser id="content" type="content" messagemanagergroup="browsers" />
++<stack class="browserStack" flex="10000">
++  <browser id="content" contextmenu="contentAreaContextMenu" datetimepicker="DateTimePickerPanel" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" autoscrollpopup="autoscroller"/>
 +  <hbox id="invalid-form-popup-anchor" class="popup-anchor" hidden="true"/>
 +</stack>
-+</window>
++
++</html>
 diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
 new file mode 100644
 --- /dev/null

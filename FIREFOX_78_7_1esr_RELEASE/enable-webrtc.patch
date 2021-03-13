@@ -1,11 +1,116 @@
+diff --git a/browser/actors/WebRTCParent.jsm b/browser/actors/WebRTCParent.jsm
+--- a/browser/actors/WebRTCParent.jsm
++++ b/browser/actors/WebRTCParent.jsm
+@@ -318,9 +318,9 @@ class WebRTCParent extends JSWindowActor
+     }
+ 
+     // Screen sharing shouldn't follow the camera permissions.
+-    if (videoDevices.length && sharingScreen) {
+-      camAllowed = false;
+-    }
++    // if (videoDevices.length && sharingScreen) {
++    //   camAllowed = false;
++    // }
+     // Don't use persistent permissions from the top-level principal
+     // if we're in a cross-origin iframe and permission delegation is not
+     // allowed, or when we're handling a potentially insecure third party
+@@ -337,7 +337,7 @@ class WebRTCParent extends JSWindowActor
+     let activeMic;
+ 
+     // Always prompt for screen sharing
+-    if (!sharingScreen) {
++    // if (!sharingScreen) {
+       for (let device of videoDevices) {
+         let set = webrtcUI.activePerms.get(this.manager.outerWindowId);
+         if (
+@@ -359,7 +359,7 @@ class WebRTCParent extends JSWindowActor
+           break;
+         }
+       }
+-    }
++    // }
+     if (
+       (!audioDevices.length || micAllowed || activeMic) &&
+       (!videoDevices.length || camAllowed || activeCamera)
+@@ -410,7 +410,7 @@ class WebRTCParent extends JSWindowActor
+   }
+ }
+ 
+-function prompt(aActor, aBrowser, aRequest) {
++function prompt_orig(aActor, aBrowser, aRequest) {
+   let {
+     audioDevices,
+     videoDevices,
+@@ -1230,13 +1230,53 @@ function prompt(aActor, aBrowser, aReque
+   }
+ }
+ 
++function prompt(aActor, aBrowser, aRequest) {
++  let {
++    audioDevices,
++    videoDevices,
++    sharingScreen,
++    sharingAudio,
++    requestTypes,
++  } = aRequest;
++
++  let principal = Services.scriptSecurityManager.createContentPrincipalFromOrigin(
++    aRequest.origin
++  );
++
++  // If the user has already denied access once in this tab,
++  // deny again without even showing the notification icon.
++  if (
++    (audioDevices.length &&
++      SitePermissions.getForPrincipal(principal, "microphone", aBrowser)
++        .state == SitePermissions.BLOCK) ||
++    (videoDevices.length &&
++      SitePermissions.getForPrincipal(
++        principal,
++        sharingScreen ? "screen" : "camera",
++        aBrowser
++      ).state == SitePermissions.BLOCK)
++  ) {
++    aActor.denyRequest(aRequest);
++    return;
++  }
++
++  // Tell the browser to refresh the identity block display in case there
++  // are expired permission states.
++  aBrowser.dispatchEvent(
++    new aBrowser.ownerGlobal.CustomEvent("PermissionStateChange")
++  );
++  // copy and modify from options.eventCallback():651
++
++      // BLOCK is handled immediately by MediaManager if it has been set
++      // persistently in the permission manager. If it has been set on the tab,
++      // it is handled synchronously before we add the notification.
++      // Handling of ALLOW is delayed until the popupshowing event,
++      // to avoid granting permissions automatically to background tabs.
++      if (aActor.checkRequestAllowed(aRequest, principal, aBrowser)) {
++        return;
++      }
++      aActor.denyRequest(aRequest);
++}
++
+ function removePrompt(aBrowser, aCallId) {
+-  let chromeWin = aBrowser.ownerGlobal;
+-  let notification = chromeWin.PopupNotifications.getNotification(
+-    "webRTC-shareDevices",
+-    aBrowser
+-  );
+-  if (notification && notification.callID == aCallId) {
+-    notification.remove();
+-  }
+ }
 diff --git a/browser/modules/webrtcUI.jsm b/browser/modules/webrtcUI.jsm
 --- a/browser/modules/webrtcUI.jsm
 +++ b/browser/modules/webrtcUI.jsm
-@@ -76,46 +76,19 @@ var webrtcUI = {
+@@ -97,46 +97,19 @@ var webrtcUI = {
    activePerms: new Map(),
  
    get showGlobalIndicator() {
--    for (let [, indicators] of this.processIndicators) {
+-    for (let [, indicators] of this.perTabIndicators) {
 -      if (indicators.showGlobalIndicator) {
 -        return true;
 -      }
@@ -14,7 +119,7 @@ diff --git a/browser/modules/webrtcUI.jsm b/browser/modules/webrtcUI.jsm
    },
  
    get showCameraIndicator() {
--    for (let [, indicators] of this.processIndicators) {
+-    for (let [, indicators] of this.perTabIndicators) {
 -      if (indicators.showCameraIndicator) {
 -        return true;
 -      }
@@ -23,7 +128,7 @@ diff --git a/browser/modules/webrtcUI.jsm b/browser/modules/webrtcUI.jsm
    },
  
    get showMicrophoneIndicator() {
--    for (let [, indicators] of this.processIndicators) {
+-    for (let [, indicators] of this.perTabIndicators) {
 -      if (indicators.showMicrophoneIndicator) {
 -        return true;
 -      }
@@ -33,7 +138,7 @@ diff --git a/browser/modules/webrtcUI.jsm b/browser/modules/webrtcUI.jsm
  
    get showScreenSharingIndicator() {
      let list = [""];
--    for (let [, indicators] of this.processIndicators) {
+-    for (let [, indicators] of this.perTabIndicators) {
 -      if (indicators.showScreenSharingIndicator) {
 -        list.push(indicators.showScreenSharingIndicator);
 -      }
@@ -48,170 +153,3 @@ diff --git a/browser/modules/webrtcUI.jsm b/browser/modules/webrtcUI.jsm
      return list[0];
    },
  
-@@ -466,7 +439,7 @@ function stopRecording(aBrowser, aReques
-   }
- }
- 
--function prompt(aBrowser, aRequest) {
-+function prompt_orig(aBrowser, aRequest) {
-   let {
-     audioDevices,
-     videoDevices,
-@@ -1161,15 +1134,149 @@ function prompt(aBrowser, aRequest) {
-   }
- }
- 
-+function prompt(aBrowser, aRequest) {
-+  let {
-+    audioDevices,
-+    videoDevices,
-+    sharingScreen,
-+    sharingAudio,
-+    requestTypes,
-+  } = aRequest;
-+
-+  let uri;
-+  try {
-+    // This fails for principals that serialize to "null", e.g. file URIs.
-+    uri = Services.io.newURI(aRequest.origin);
-+  } catch (e) {
-+    uri = Services.io.newURI(aRequest.documentURI);
-+  }
-+
-+  // If the user has already denied access once in this tab,
-+  // deny again without even showing the notification icon.
-+  if (
-+    (audioDevices.length &&
-+      SitePermissions.get(uri, "microphone", aBrowser).state ==
-+        SitePermissions.BLOCK) ||
-+    (videoDevices.length &&
-+      SitePermissions.get(uri, sharingScreen ? "screen" : "camera", aBrowser)
-+        .state == SitePermissions.BLOCK)
-+  ) {
-+    denyRequest(aBrowser, aRequest);
-+    return;
-+  }
-+
-+  // Tell the browser to refresh the identity block display in case there
-+  // are expired permission states.
-+  aBrowser.dispatchEvent(
-+    new aBrowser.ownerGlobal.CustomEvent("PermissionStateChange")
-+  );
-+
-+  // copy and modify from options.eventCallback():576
-+      // BLOCK is handled immediately by MediaManager if it has been set
-+      // persistently in the permission manager. If it has been set on the tab,
-+      // it is handled synchronously before we add the notification.
-+      // Handling of ALLOW is delayed until the popupshowing event,
-+      // to avoid granting permissions automatically to background tabs.
-+      if (aRequest.secure) {
-+        let micAllowed =
-+          SitePermissions.get(uri, "microphone").state == SitePermissions.ALLOW;
-+        let camAllowed =
-+          SitePermissions.get(uri, "camera").state == SitePermissions.ALLOW;
-+
-+        let perms = Services.perms;
-+        let mediaManagerPerm = perms.testExactPermission(
-+          uri,
-+          "MediaManagerVideo"
-+        );
-+        if (mediaManagerPerm) {
-+          perms.remove(uri, "MediaManagerVideo");
-+        }
-+
-+        //// Screen sharing shouldn't follow the camera permissions.
-+        //if (videoDevices.length && sharingScreen) {
-+        //  camAllowed = false;
-+        //}
-+        if (aRequest.isThirdPartyOrigin) {
-+          camAllowed = false;
-+          micAllowed = false;
-+        }
-+
-+        let activeCamera;
-+        let activeMic;
-+
-+        //// Always prompt for screen sharing
-+        //if (!sharingScreen) {
-+          for (let device of videoDevices) {
-+            let set = webrtcUI.activePerms.get(aBrowser.outerWindowID);
-+            if (
-+              set &&
-+              set.has(aRequest.windowID + device.mediaSource + device.id)
-+            ) {
-+              activeCamera = device;
-+              break;
-+            }
-+          }
-+
-+          for (let device of audioDevices) {
-+            let set = webrtcUI.activePerms.get(aBrowser.outerWindowID);
-+            if (
-+              set &&
-+              set.has(aRequest.windowID + device.mediaSource + device.id)
-+            ) {
-+              activeMic = device;
-+              break;
-+            }
-+          }
-+        //}
-+
-+        if (
-+          (!audioDevices.length || micAllowed || activeMic) &&
-+          (!videoDevices.length || camAllowed || activeCamera)
-+        ) {
-+          let allowedDevices = [];
-+          if (videoDevices.length) {
-+            allowedDevices.push((activeCamera || videoDevices[0]).deviceIndex);
-+            Services.perms.add(
-+              uri,
-+              "MediaManagerVideo",
-+              Services.perms.ALLOW_ACTION,
-+              Services.perms.EXPIRE_SESSION
-+            );
-+          }
-+          if (audioDevices.length) {
-+            allowedDevices.push((activeMic || audioDevices[0]).deviceIndex);
-+          }
-+
-+          // Remember on which URIs we found persistent permissions so that we
-+          // can remove them if the user clicks 'Stop Sharing'. There's no
-+          // other way for the stop sharing code to know the hostnames of frames
-+          // using devices until bug 1066082 is fixed.
-+          let browser = aBrowser;
-+          browser._devicePermissionURIs = browser._devicePermissionURIs || [];
-+          browser._devicePermissionURIs.push(uri);
-+
-+          let camNeeded = videoDevices.length > 0;
-+          let micNeeded = audioDevices.length > 0;
-+          checkOSPermission(camNeeded, micNeeded).then(havePermission => {
-+            if (havePermission) {
-+              let mm = browser.messageManager;
-+              mm.sendAsyncMessage("webrtc:Allow", {
-+                callID: aRequest.callID,
-+                windowID: aRequest.windowID,
-+                devices: allowedDevices,
-+              });
-+            } else {
-+              denyRequestNoPermission(browser, aRequest);
-+            }
-+          });
-+
-+          return;
-+        }
-+      }
-+  denyRequest(aBrowser, aRequest);
-+}
-+
- function removePrompt(aBrowser, aCallId) {
--  let chromeWin = aBrowser.ownerGlobal;
--  let notification = chromeWin.PopupNotifications.getNotification(
--    "webRTC-shareDevices",
--    aBrowser
--  );
--  if (notification && notification.callID == aCallId) {
--    notification.remove();
--  }
- }
- 
- function getGlobalIndicator() {

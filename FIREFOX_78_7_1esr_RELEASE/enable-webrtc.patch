@@ -72,7 +72,7 @@ diff --git a/browser/actors/WebRTCParent.jsm b/browser/actors/WebRTCParent.jsm
    // If the user has already denied access once in this tab,
    // deny again without even showing the notification icon.
    if (
-@@ -479,764 +446,17 @@ function prompt(aActor, aBrowser, aReque
+@@ -479,764 +446,16 @@ function prompt(aActor, aBrowser, aReque
      new aBrowser.ownerGlobal.CustomEvent("PermissionStateChange")
    );
  
@@ -284,7 +284,6 @@ diff --git a/browser/actors/WebRTCParent.jsm b/browser/actors/WebRTCParent.jsm
 -        return false;
 -      }
 -
-+  // copy and modify from options.eventCallback():651
        // BLOCK is handled immediately by MediaManager if it has been set
        // persistently in the permission manager. If it has been set on the tab,
        // it is handled synchronously before we add the notification.
@@ -292,8 +291,8 @@ diff --git a/browser/actors/WebRTCParent.jsm b/browser/actors/WebRTCParent.jsm
        // to avoid granting permissions automatically to background tabs.
        if (aActor.checkRequestAllowed(aRequest, principal, aBrowser)) {
 -        this.remove();
-         return true;
-       }
+-        return true;
+-      }
 -
 -      function listDevices(menupopup, devices) {
 -        while (menupopup.lastChild) {
@@ -543,7 +542,8 @@ diff --git a/browser/actors/WebRTCParent.jsm b/browser/actors/WebRTCParent.jsm
 -
 -        menupopup.appendChild(menuitem);
 -        return menuitem;
--      }
++        return;
+       }
 -
 -      doc.getElementById("webRTC-selectCamera").hidden =
 -        !videoDevices.length || sharingScreen;

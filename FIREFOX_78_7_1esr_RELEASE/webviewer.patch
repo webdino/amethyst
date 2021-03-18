@@ -64,7 +64,7 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,42 @@
 +<?xml version="1.0"?>
 +<!DOCTYPE html [
 +<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -104,7 +104,6 @@ new file mode 100644
 +
 +<stack class="browserStack" flex="10000">
 +  <browser id="content" contextmenu="contentAreaContextMenu" datetimepicker="DateTimePickerPanel" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" autoscrollpopup="autoscroller"/>
-+  <hbox id="invalid-form-popup-anchor" class="popup-anchor" hidden="true"/>
 +</stack>
 +
 +</html>

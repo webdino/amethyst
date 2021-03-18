@@ -1,7 +1,7 @@
-diff --git a/browser/modules/FormValidationHandler.jsm b/browser/modules/FormValidationHandler.jsm
---- a/browser/modules/FormValidationHandler.jsm
-+++ b/browser/modules/FormValidationHandler.jsm
-@@ -75,11 +75,11 @@ var FormValidationHandler = {
+diff --git a/browser/actors/FormValidationParent.jsm b/browser/actors/FormValidationParent.jsm
+--- a/browser/actors/FormValidationParent.jsm
++++ b/browser/actors/FormValidationParent.jsm
+@@ -80,10 +80,10 @@ class FormValidationParent extends JSWin
  
    _onPopupHiding(aEvent) {
      aEvent.originalTarget.removeEventListener("popuphiding", this, true);
@@ -9,38 +9,34 @@ diff --git a/browser/modules/FormValidationHandler.jsm b/browser/modules/FormVal
 -    tabBrowser.selectedBrowser.removeEventListener("scroll", this, true);
 -    tabBrowser.selectedBrowser.removeEventListener("FullZoomChange", this);
 -    tabBrowser.selectedBrowser.removeEventListener("TextZoomChange", this);
--    tabBrowser.selectedBrowser.removeEventListener(
 +    let selectedBrowser = aEvent.originalTarget.ownerGlobal.getSelectedBrowser();
 +    selectedBrowser.removeEventListener("scroll", this, true);
 +    selectedBrowser.removeEventListener("FullZoomChange", this);
 +    selectedBrowser.removeEventListener("TextZoomChange", this);
-+    selectedBrowser.removeEventListener(
-       "ZoomChangeUsingMouseWheel",
-       this
-     );
-@@ -109,8 +109,7 @@ var FormValidationHandler = {
+ 
+     this._panel.hidden = true;
+     this._panel = null;
+@@ -110,8 +110,8 @@ class FormValidationParent extends JSWin
      this._panel.firstChild.textContent = aPanelData.message;
      this._panel.hidden = false;
  
 -    let tabBrowser = aWindow.gBrowser;
--    this._anchor = tabBrowser.popupAnchor;
-+    this._anchor = aWindow.getPopupAnchor();
-     this._anchor.left = aPanelData.contentRect.left;
-     this._anchor.top = aPanelData.contentRect.top;
-     this._anchor.width = aPanelData.contentRect.width;
-@@ -123,10 +122,11 @@ var FormValidationHandler = {
+-    this._anchor = tabBrowser.selectedBrowser.popupAnchor;
++    let selectedBrowser = aWindow.getSelectedBrowser();
++    this._anchor = selectedBrowser.popupAnchor;
+     this._anchor.style.left = aPanelData.contentRect.left + "px";
+     this._anchor.style.top = aPanelData.contentRect.top + "px";
+     this._anchor.style.width = aPanelData.contentRect.width + "px";
+@@ -124,9 +124,9 @@ class FormValidationParent extends JSWin
        this._panel.addEventListener("popuphiding", this, true);
  
        // Hide if the user scrolls the page
 -      tabBrowser.selectedBrowser.addEventListener("scroll", this, true);
 -      tabBrowser.selectedBrowser.addEventListener("FullZoomChange", this);
 -      tabBrowser.selectedBrowser.addEventListener("TextZoomChange", this);
--      tabBrowser.selectedBrowser.addEventListener(
-+      let selectedBrowser = aWindow.getSelectedBrowser();
 +      selectedBrowser.addEventListener("scroll", this, true);
 +      selectedBrowser.addEventListener("FullZoomChange", this);
 +      selectedBrowser.addEventListener("TextZoomChange", this);
-+      selectedBrowser.addEventListener(
-         "ZoomChangeUsingMouseWheel",
-         this
-       );
+ 
+       // Open the popup
+       this._panel.openPopup(this._anchor, aPanelData.position, 0, 0, false);

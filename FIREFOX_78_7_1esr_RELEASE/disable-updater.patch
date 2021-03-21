@@ -1,7 +1,7 @@
 diff --git a/old-configure.in b/old-configure.in
 --- a/old-configure.in
 +++ b/old-configure.in
-@@ -2186,6 +2186,7 @@ MOZ_ARG_DISABLE_BOOL(updater,
+@@ -1962,6 +1962,7 @@ MOZ_ARG_DISABLE_BOOL(updater,
      MOZ_UPDATER=,
      MOZ_UPDATER=1 )
  

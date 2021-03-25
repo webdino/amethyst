@@ -12,11 +12,11 @@ diff --git a/build/appini_header.py b/build/appini_header.py
 -        pass
      appdata = dict(("%s:%s" % (s, o), config.get(s, o))
                     for s in config.sections() for o in config.options(s))
-     appdata['flags'] = ' | '.join(flags) if flags else '0'
+     appdata['flags'] = ' | '.join(sorted(flags)) if flags else '0'
 diff --git a/old-configure.in b/old-configure.in
 --- a/old-configure.in
 +++ b/old-configure.in
-@@ -2089,6 +2089,7 @@ if test "$OS_ARCH" != "$HOST_OS_ARCH" -a
+@@ -1891,6 +1891,7 @@ if test "$OS_ARCH" != "$HOST_OS_ARCH" -a
    MOZ_CRASHREPORTER=
  fi
  
@@ -28,7 +28,7 @@ diff --git a/toolkit/xre/CreateAppData.cpp b/toolkit/xre/CreateAppData.cpp
 --- a/toolkit/xre/CreateAppData.cpp
 +++ b/toolkit/xre/CreateAppData.cpp
 @@ -70,8 +70,6 @@ nsresult XRE_ParseAppData(nsIFile* aINIF
-   ReadString(parser, "App", "UAName", aAppData.UAName);
+   ReadString(parser, "AppUpdate", "URL", aAppData.updateURL);
    ReadFlag(parser, "XRE", "EnableProfileMigrator",
             NS_XRE_ENABLE_PROFILE_MIGRATOR, aAppData.flags);
 -  ReadFlag(parser, "Crash Reporter", "Enabled", NS_XRE_ENABLE_CRASH_REPORTER,
@@ -39,7 +39,7 @@ diff --git a/toolkit/xre/CreateAppData.cpp b/toolkit/xre/CreateAppData.cpp
 diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
 --- a/toolkit/xre/nsAppRunner.cpp
 +++ b/toolkit/xre/nsAppRunner.cpp
-@@ -3181,10 +3181,6 @@ int XREMain::XRE_mainInit(bool* aExitFla
+@@ -3177,10 +3177,6 @@ int XREMain::XRE_mainInit(bool* aExitFla
    rv = mDirProvider.Initialize(mAppData->directory, mAppData->xreDirectory);
    if (NS_FAILED(rv)) return 1;
  

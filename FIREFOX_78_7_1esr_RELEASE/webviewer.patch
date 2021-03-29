@@ -18,7 +18,16 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,132 @@
++const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
++const { Preferences } = ChromeUtils.import(
++  "resource://gre/modules/Preferences.jsm"
++);
++
++const ZOOM_PREF = "devtools.toolbox.zoomValue";
++const MIN_ZOOM = 0.5;
++const MAX_ZOOM = 2;
++
 +function onload(){
 +  window.fullScreen = true;
 +
@@ -39,6 +48,14 @@ new file mode 100644
 +    uriToLoad = "https://urls.jp/amethyst";
 +  }
 +  getSelectedBrowser().src = uriToLoad;
++
++  // Set Environment variable 
++  setEnvVar("WEBVIEWER_ENABLE_HOMEPAGE", "");
++  setEnvVar("WEBVIEWER_ENABLE_BACK", "");
++  setEnvVar("WEBVIEWER_ENABLE_RELOAD", "");
++  setEnvVar("WEBVIEWER_ENABLE_ZOOM", "");
++  setEnvVar("WEBVIEWER_ENABLE_ABOUT", "");
++  setEnvVar("WEBVIEWER_ENABLE_QUIT", "");
 +}
 +
 +function invalidStartupHomepage(uriToLoad){
@@ -53,8 +70,82 @@ new file mode 100644
 +  return document.getElementById("invalid-form-popup-anchor");
 +}
 +
++/**
++ * set・get Environment variable
++ */ 
++function setEnvVar(envVarName, value){
++  let env = Cc["@mozilla.org/process/environment;1"].getService(
++    Ci.nsIEnvironment
++  );
++  env.set(envVarName, value);
++}
++
++function getEnvVar(envVarName){
++  let env = Cc["@mozilla.org/process/environment;1"].getService(
++    Ci.nsIEnvironment
++  );
++  return env.get(envVarName);
++}
++
++/**
++ * Keyboard shortcut 
++ */
++function BrowserHomePage(){
++  if(getEnvVar("WEBVIEWER_ENABLE_HOMEPAGE") || Preferences.get("webviewer.homepage.enable")){
++    return  getSelectedBrowser().src = "about:home";
++  }
++}
++
 +function BrowserBack(){
-+  return getSelectedBrowser().goBack();
++  if(getEnvVar("WEBVIEWER_ENABLE_BACK") || Preferences.get("webviewer.back.enable")){
++    return getSelectedBrowser().goBack();
++  }
++}
++
++function BrowserReload(){
++  if(getEnvVar("WEBVIEWER_ENABLE_RELOAD") || Preferences.get("ebviewer.reload.enable")){
++    return getSelectedBrowser().reload();
++  }
++}
++
++function BrowserReloadSkipCache(){
++  if(getEnvVar("WEBVIEWER_ENABLE_RELOAD") || Preferences.get("ebviewer.reload.enable")){
++    return getSelectedBrowser().reloadWithFlags("LOAD_FLAGS_BYPASS_CACHE");
++  }
++}
++
++function BrowserZoomIn(){
++  if(getEnvVar("WEBVIEWER_ENABLE_ZOOM") || Preferences.get("webviewer.zoom.enable")){
++    if(MAX_ZOOM > getSelectedBrowser().fullZoom){
++    return getSelectedBrowser().fullZoom += 0.1; 
++    }
++  }
++}
++
++function BrowserZoomOut(){
++  if(getEnvVar("WEBVIEWER_ENABLE_ZOOM") || Preferences.get("webviewer.zoom.enable")){
++    if(MIN_ZOOM < getSelectedBrowser().fullZoom){
++    return  getSelectedBrowser().fullZoom -= 0.1;
++    }
++  }
++}
++
++function BrowserZoomReset(){
++  if(getEnvVar("WEBVIEWER_ENABLE_ZOOM") || Preferences.get("webviewer.zoom.enable")){
++    return getSelectedBrowser().fullZoom =  parseFloat(Services.prefs.getCharPref(ZOOM_PREF));
++  }
++}
++
++function BrowserLoadURI(uriToLoad){
++  if(getEnvVar("WEBVIEWER_ENABLE_ABOUT") || Preferences.get("webviewer.about.enable")){
++    return  getSelectedBrowser().src = uriToLoad;
++  }
++}
++
++function BrowserQuit(){
++  if(getEnvVar("WEBVIEWER_ENABLE_QUIT") ||  Preferences.get("webviewer.quit.enable")){
++    window.close();
++  }
 +}
 +
 +function BrowserFullScreen(){
@@ -64,7 +155,7 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,64 @@
 +<?xml version="1.0"?>
 +<!DOCTYPE html [
 +<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -84,11 +175,33 @@ new file mode 100644
 +>
 +
 +<commandset id="mainCommandSet">
++  <command id="Browser:Home"    oncommand="BrowserHomePage();"/>
 +  <command id="Browser:Back"    oncommand="BrowserBack();"/>
++  <command id="Browser:Reload"    oncommand="BrowserReload();"/>
++  <command id="Browser:ReloadSkipCache"    oncommand="BrowserReloadSkipCache();"/>
++  <command id="Browser:ZoomIn"    oncommand="BrowserZoomIn();"/>
++  <command id="Browser:ZoomOut"    oncommand="BrowserZoomOut();"/>
++  <command id="Browser:ZoomReset"    oncommand="BrowserZoomReset();"/>
++  <command id="Browser:about:pre"    oncommand="BrowserLoadURI('about:preferences');"/>
++  <command id="Browser:about:about"    oncommand="BrowserLoadURI('about:about');"/>
++  <command id="Browser:about:config"    oncommand="BrowserLoadURI('about:config');"/>
++  <command id="Browser:Quit"    oncommand="BrowserQuit();"/>
 +  <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
 +</commandset>
 +<keyset id="mainKeyset">
++  <key modifiers="accel" keycode="VK_HOME" command="Browser:Home"/>
 +  <key keycode="VK_BACK" command="Browser:Back"/>
++  <key keycode="VK_F5" command="Browser:Reload"/>
++  <key modifiers="accel" key="R" command="Browser:Reload"/>
++  <key modifiers="accel" keycode="VK_F5" command="Browser:ReloadSkipCache"/>
++  <key modifiers="accel shift" key="R" command="Browser:ReloadSkipCache"/>
++  <key modifiers="accel" key="+" command="Browser:ZoomIn"/>
++  <key modifiers="accel" key="-" command="Browser:ZoomOut"/>
++  <key modifiers="accel" key="0" command="Browser:ZoomReset"/>
++  <key modifiers="accel" key="," command="Browser:about:pre"/>
++  <key modifiers="accel" key="." command="Browser:about:about"/>
++  <key modifiers="accel" key="/" command="Browser:about:config"/>
++  <key modifiers="accel" key="Q" command="Browser:Quit"/>
 +  <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
 +</keyset>
 +
@@ -147,3 +260,21 @@ diff --git a/browser/moz.build b/browser/moz.build
      'actors',
      'base',
      'components',
+diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
+--- a/browser/app/profile/firefox.js
++++ b/browser/app/profile/firefox.js
+@@ -19,6 +19,14 @@
+   #endif
+ #endif
+ 
++// WebViewer pref
++pref("webviewer.homepage.enable", false);
++pref("webviewer.back.enable",     false);
++pref("webviewer.reload.enable",   false);
++pref("webviewer.zoom.enable",     false);
++pref("webviewer.about.enable",    false);
++pref("webviewer.quit.enable",     false);
++
+ pref("browser.hiddenWindowChromeURL", "chrome://browser/content/hiddenWindowMac.xhtml");
+ 
+ // Enables some extra Extension System Logging (can reduce performance)

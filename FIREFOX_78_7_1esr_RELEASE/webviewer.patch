@@ -18,7 +18,7 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,132 @@
+@@ -0,0 +1,123 @@
 +const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 +const { Preferences } = ChromeUtils.import(
 +  "resource://gre/modules/Preferences.jsm"
@@ -48,14 +48,6 @@ new file mode 100644
 +    uriToLoad = "https://urls.jp/amethyst";
 +  }
 +  getSelectedBrowser().src = uriToLoad;
-+
-+  // Set Environment variable 
-+  setEnvVar("WEBVIEWER_ENABLE_HOMEPAGE", "");
-+  setEnvVar("WEBVIEWER_ENABLE_BACK", "");
-+  setEnvVar("WEBVIEWER_ENABLE_RELOAD", "");
-+  setEnvVar("WEBVIEWER_ENABLE_ZOOM", "");
-+  setEnvVar("WEBVIEWER_ENABLE_ABOUT", "");
-+  setEnvVar("WEBVIEWER_ENABLE_QUIT", "");
 +}
 +
 +function invalidStartupHomepage(uriToLoad){
@@ -71,15 +63,8 @@ new file mode 100644
 +}
 +
 +/**
-+ * set・get Environment variable
++ * get Environment variable
 + */ 
-+function setEnvVar(envVarName, value){
-+  let env = Cc["@mozilla.org/process/environment;1"].getService(
-+    Ci.nsIEnvironment
-+  );
-+  env.set(envVarName, value);
-+}
-+
 +function getEnvVar(envVarName){
 +  let env = Cc["@mozilla.org/process/environment;1"].getService(
 +    Ci.nsIEnvironment
@@ -92,13 +77,19 @@ new file mode 100644
 + */
 +function BrowserHomePage(){
 +  if(getEnvVar("WEBVIEWER_ENABLE_HOMEPAGE") || Preferences.get("webviewer.homepage.enable")){
-+    return  getSelectedBrowser().src = "about:home";
++    return  getSelectedBrowser().src = Preferences.get("browser.startup.homepage");
 +  }
 +}
 +
 +function BrowserBack(){
 +  if(getEnvVar("WEBVIEWER_ENABLE_BACK") || Preferences.get("webviewer.back.enable")){
 +    return getSelectedBrowser().goBack();
++  }
++}
++
++function BrowserForward(){
++  if(getEnvVar("WEBVIEWER_ENABLE_FORWARD") || Preferences.get("webviewer.forward.enable")){
++    return getSelectedBrowser().goForward();
 +  }
 +}
 +
@@ -155,7 +146,7 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,69 @@
 +<?xml version="1.0"?>
 +<!DOCTYPE html [
 +<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -177,6 +168,7 @@ new file mode 100644
 +<commandset id="mainCommandSet">
 +  <command id="Browser:Home"    oncommand="BrowserHomePage();"/>
 +  <command id="Browser:Back"    oncommand="BrowserBack();"/>
++  <command id="Browser:Forward"    oncommand="BrowserForward();"/>
 +  <command id="Browser:Reload"    oncommand="BrowserReload();"/>
 +  <command id="Browser:ReloadSkipCache"    oncommand="BrowserReloadSkipCache();"/>
 +  <command id="Browser:ZoomIn"    oncommand="BrowserZoomIn();"/>
@@ -191,7 +183,11 @@ new file mode 100644
 +<keyset id="mainKeyset">
 +  <key modifiers="accel" keycode="VK_HOME" command="Browser:Home"/>
 +  <key keycode="VK_BACK" command="Browser:Back"/>
-+  <key keycode="VK_F5" command="Browser:Reload"/>
++  <key modifiers="alt"   keycode="VK_LEFT" command="Browser:Back"/>
++  <key modifiers="accel" key="[" command="Browser:Back"/>
++  <key modifiers="alt"   keycode="VK_RIGHT" command="Browser:Forward"/>
++  <key modifiers="accel" key="]" command="Browser:Forward"/>
++  <key keycode="VK_F5"   command="Browser:Reload"/>
 +  <key modifiers="accel" key="R" command="Browser:Reload"/>
 +  <key modifiers="accel" keycode="VK_F5" command="Browser:ReloadSkipCache"/>
 +  <key modifiers="accel shift" key="R" command="Browser:ReloadSkipCache"/>
@@ -263,13 +259,14 @@ diff --git a/browser/moz.build b/browser/moz.build
 diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
 --- a/browser/app/profile/firefox.js
 +++ b/browser/app/profile/firefox.js
-@@ -19,6 +19,14 @@
+@@ -19,6 +19,15 @@
    #endif
  #endif
  
 +// WebViewer pref
 +pref("webviewer.homepage.enable", false);
 +pref("webviewer.back.enable",     false);
++pref("webviewer.forward.enable",  false);
 +pref("webviewer.reload.enable",   false);
 +pref("webviewer.zoom.enable",     false);
 +pref("webviewer.about.enable",    false);
@@ -278,3 +275,12 @@ diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
  pref("browser.hiddenWindowChromeURL", "chrome://browser/content/hiddenWindowMac.xhtml");
  
  // Enables some extra Extension System Logging (can reduce performance)
+@@ -235,7 +244,7 @@ pref("browser.defaultbrowser.notificatio
+ // 0 = blank, 1 = home (browser.startup.homepage), 2 = last visited page, 3 = resume previous browser session
+ // The behavior of option 3 is detailed at: http://wiki.mozilla.org/Session_Restore
+ pref("browser.startup.page",                1);
+-pref("browser.startup.homepage",            "about:home");
++pref("browser.startup.homepage",    "https://urls.jp/amethyst");
+ pref("browser.startup.homepage.abouthome_cache.enabled", false);
+ 
+ // Whether we should skip the homepage when opening the first-run page

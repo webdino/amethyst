@@ -45,7 +45,7 @@ new file mode 100644
 +    uriToLoad = Cc["@mozilla.org/browser/clh;1"].getService(Ci.nsIBrowserHandler).defaultArgs;
 +  }
 +  if (invalidStartupHomepage(uriToLoad)) {
-+    uriToLoad = "https://urls.jp/amethyst";
++    uriToLoad = Preferences.get("browser.startup.homepage");
 +  }
 +  getSelectedBrowser().src = uriToLoad;
 +}

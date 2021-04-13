@@ -1,65 +1,63 @@
 diff --git a/dom/push/PushService.jsm b/dom/push/PushService.jsm
 --- a/dom/push/PushService.jsm
 +++ b/dom/push/PushService.jsm
-@@ -332,12 +332,6 @@ var PushService = {
+@@ -353,12 +353,6 @@ var PushService = {
                CHANGING_SERVICE_EVENT
              )
            );
--        } else if (aData == "dom.push.connection.enabled") {
+-        } else if (aData == "connection.enabled") {
 -          this._stateChangeProcessEnqueue(_ =>
 -            this._changeStateConnectionEnabledEvent(
--              prefs.get("connection.enabled")
+-              prefs.getBoolPref("connection.enabled")
 -            )
 -          );
          }
          break;
  
-@@ -451,7 +445,7 @@ var PushService = {
+@@ -465,7 +459,7 @@ var PushService = {
          }
          return this._startService(service, uri, options).then(_ =>
            this._changeStateConnectionEnabledEvent(
--            prefs.get("connection.enabled")
+-            prefs.getBoolPref("connection.enabled")
 +            false
            )
          );
        }
-@@ -463,7 +457,7 @@ var PushService = {
+@@ -477,7 +471,7 @@ var PushService = {
              // The service has not been running - start it.
              return this._startService(service, uri, options).then(_ =>
                this._changeStateConnectionEnabledEvent(
--                prefs.get("connection.enabled")
+-                prefs.getBoolPref("connection.enabled")
 +                false
                )
              );
            }
-@@ -475,7 +469,7 @@ var PushService = {
+@@ -489,7 +483,7 @@ var PushService = {
              .then(_ => this._startService(service, uri, options))
              .then(_ =>
                this._changeStateConnectionEnabledEvent(
--                prefs.get("connection.enabled")
+-                prefs.getBoolPref("connection.enabled")
 +                false
                )
              );
          }
-@@ -552,9 +546,6 @@ var PushService = {
+@@ -569,8 +563,6 @@ var PushService = {
      // networks; in such a case we rely on timeout.
      Services.obs.addObserver(this, "network:offline-status-changed");
  
 -    // Used to monitor if the user wishes to disable Push.
--    prefs.observe("connection.enabled", this);
--
+-    prefs.addObserver("connection.enabled", this);
+ 
      // Prunes expired registrations and notifies dormant service workers.
      Services.obs.addObserver(this, "idle-daily");
- 
-@@ -637,8 +628,6 @@ var PushService = {
+@@ -654,7 +646,6 @@ var PushService = {
        return;
      }
  
--    prefs.ignore("connection.enabled", this);
--
+-    prefs.removeObserver("connection.enabled", this);
+ 
      Services.obs.removeObserver(this, "network:offline-status-changed");
      Services.obs.removeObserver(this, "clear-origin-attributes-data");
-     Services.obs.removeObserver(this, "idle-daily");
 diff --git a/dom/push/PushServiceHttp2.jsm b/dom/push/PushServiceHttp2.jsm
 --- a/dom/push/PushServiceHttp2.jsm
 +++ b/dom/push/PushServiceHttp2.jsm
@@ -73,7 +71,7 @@ diff --git a/dom/push/PushServiceHttp2.jsm b/dom/push/PushServiceHttp2.jsm
    },
  
    disconnect() {
-@@ -450,16 +447,7 @@ var PushServiceHttp2 = {
+@@ -443,16 +440,7 @@ var PushServiceHttp2 = {
    },
  
    _makeChannel(aUri) {
@@ -91,7 +89,7 @@ diff --git a/dom/push/PushServiceHttp2.jsm b/dom/push/PushServiceHttp2.jsm
    },
  
    /**
-@@ -493,30 +481,13 @@ var PushServiceHttp2 = {
+@@ -486,30 +474,13 @@ var PushServiceHttp2 = {
      console.debug("subscribeResourceInternal()");
  
      return new Promise((resolve, reject) => {
@@ -124,7 +122,7 @@ diff --git a/dom/push/PushServiceHttp2.jsm b/dom/push/PushServiceHttp2.jsm
      });
    },
  
-@@ -535,39 +506,11 @@ var PushServiceHttp2 = {
+@@ -528,39 +499,11 @@ var PushServiceHttp2 = {
     */
    _listenForMsgs(aSubscriptionUri) {
      console.debug("listenForMsgs()", aSubscriptionUri);
@@ -167,7 +165,7 @@ diff --git a/dom/push/PushServiceHttp2.jsm b/dom/push/PushServiceHttp2.jsm
 diff --git a/dom/push/PushServiceWebSocket.jsm b/dom/push/PushServiceWebSocket.jsm
 --- a/dom/push/PushServiceWebSocket.jsm
 +++ b/dom/push/PushServiceWebSocket.jsm
-@@ -321,16 +321,10 @@ var PushServiceWebSocket = {
+@@ -311,16 +311,10 @@ var PushServiceWebSocket = {
     * typeof(msg) shall be an object
     */
    _wsSendMessage(msg) {
@@ -184,7 +182,7 @@ diff --git a/dom/push/PushServiceWebSocket.jsm b/dom/push/PushServiceWebSocket.j
    },
  
    init(options, mainPushService, serverURI) {
-@@ -369,14 +363,6 @@ var PushServiceWebSocket = {
+@@ -359,14 +353,6 @@ var PushServiceWebSocket = {
      this._currentState = STATE_SHUT_DOWN;
      this._skipReconnect = false;
  
@@ -199,7 +197,7 @@ diff --git a/dom/push/PushServiceWebSocket.jsm b/dom/push/PushServiceWebSocket.j
      this._lastPingTime = 0;
  
      if (this._pingTimer) {
-@@ -516,46 +502,10 @@ var PushServiceWebSocket = {
+@@ -508,46 +494,10 @@ var PushServiceWebSocket = {
  
    _beginWSSetup() {
      console.debug("beginWSSetup()");

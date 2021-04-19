@@ -99,7 +99,7 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
 -    LOG("Sending request");
 -
 -    let xhr = new XMLHttpRequest();
-     this.onStatus(false, "xhr-start");
+-    this.onStatus(false, "xhr-start");
 -    try {
 -      xhr.open("POST", url, true);
 -      xhr.channel.loadFlags = Ci.nsIChannel.LOAD_ANONYMOUS;
@@ -155,6 +155,7 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
 -    var requestData = JSON.stringify(data);
 -    LOG("sending " + requestData);
 -    xhr.send(requestData);
++    this.onStatus(true, "xhr-error");
    },
  };
  

@@ -1,3 +1,21 @@
+diff --git a/browser/modules/PermissionUI.jsm b/browser/modules/PermissionUI.jsm
+--- a/browser/modules/PermissionUI.jsm
++++ b/browser/modules/PermissionUI.jsm
+@@ -732,6 +732,14 @@ GeolocationPermissionPrompt.prototype = 
+     return options;
+   },
+ 
++  get postPromptEnabled() {
++    return false;
++  },
++
++  get requiresUserInput() {
++    return true;
++  },
++
+   get notificationID() {
+     return "geolocation";
+   },
 diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolocationProvider.jsm
 --- a/dom/system/NetworkGeolocationProvider.jsm
 +++ b/dom/system/NetworkGeolocationProvider.jsm
@@ -158,4 +176,4 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
 +    this.onStatus(true, "xhr-error");
    },
  };
- 
+

@@ -1,7 +1,7 @@
 diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
 --- a/netwerk/base/nsIOService.cpp
 +++ b/netwerk/base/nsIOService.cpp
-@@ -51,7 +51,6 @@
+@@ -48,7 +48,6 @@
  #include "mozilla/dom/ClientInfo.h"
  #include "mozilla/dom/ContentParent.h"
  #include "mozilla/dom/ServiceWorkerDescriptor.h"
@@ -9,7 +9,7 @@ diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
  #include "mozilla/net/NetworkConnectivityService.h"
  #include "mozilla/net/SocketProcessHost.h"
  #include "mozilla/net/SocketProcessParent.h"
-@@ -87,7 +86,6 @@ using mozilla::dom::ServiceWorkerDescrip
+@@ -90,7 +89,6 @@ using mozilla::dom::ServiceWorkerDescrip
  
  nsIOService* gIOService;
  static bool gHasWarnedUploadChannel2;
@@ -17,7 +17,7 @@ diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
  static LazyLogModule gIOServiceLog("nsIOService");
  #undef LOG
  #define LOG(args) MOZ_LOG(gIOServiceLog, LogLevel::Debug, args)
-@@ -289,12 +287,6 @@ nsresult nsIOService::InitializeCaptiveP
+@@ -339,12 +337,6 @@ nsresult nsIOService::InitializeCaptiveP
      return NS_OK;
    }
  
@@ -27,20 +27,21 @@ diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
 -        ->Initialize();
 -  }
 -
+   // Instantiate and initialize the service
    RefPtr<NetworkConnectivityService> ncs =
        NetworkConnectivityService::GetSingleton();
-   ncs->Init();
-@@ -538,48 +530,10 @@ NS_IMPL_ISUPPORTS(nsIOService, nsIIOServ
+@@ -628,48 +620,10 @@ NS_IMPL_ISUPPORTS(nsIOService, nsIIOServ
  
  nsresult nsIOService::RecheckCaptivePortal() {
    MOZ_ASSERT(NS_IsMainThread(), "Must be called on the main thread");
 -  if (!mCaptivePortalService) {
-     return NS_OK;
+-    return NS_OK;
 -  }
 -  nsCOMPtr<nsIRunnable> task = NewRunnableMethod(
 -      "nsIOService::RecheckCaptivePortal", mCaptivePortalService,
 -      &nsICaptivePortalService::RecheckCaptivePortal);
 -  return NS_DispatchToMainThread(task);
++  return NS_OK;
  }
  
  nsresult nsIOService::RecheckCaptivePortalIfLocalRedirect(nsIChannel* newChan) {
@@ -79,7 +80,7 @@ diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
    return NS_OK;
  }
  
-@@ -1174,15 +1128,6 @@ nsresult nsIOService::SetConnectivityInt
+@@ -1274,15 +1228,6 @@ nsresult nsIOService::SetConnectivityInt
    // we have statistic about network change event even if we are offline.
    mLastConnectivityChange = PR_IntervalNow();
  
@@ -95,9 +96,9 @@ diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
    nsCOMPtr<nsIObserverService> observerService = services::GetObserverService();
    if (!observerService) {
      return NS_OK;
-@@ -1303,19 +1248,6 @@ void nsIOService::PrefsChanged(const cha
-       mNetworkNotifyChanged = allow;
-     }
+@@ -1410,19 +1355,6 @@ void nsIOService::PrefsChanged(const cha
+     NS_WARNING_ASSERTION(!(size & (size - 1)),
+                          "network segment size is not a power of 2!");
    }
 -
 -  if (!pref || strcmp(pref, NETWORK_CAPTIVE_PORTAL_PREF) == 0) {
@@ -115,7 +116,7 @@ diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
  }
  
  void nsIOService::ParsePortList(const char* pref, bool remove) {
-@@ -1446,11 +1378,6 @@ nsIOService::Observe(nsISupports* subjec
+@@ -1554,11 +1486,6 @@ nsIOService::Observe(nsISupports* subjec
  
      SetOffline(true);
  
@@ -127,29 +128,10 @@ diff --git a/netwerk/base/nsIOService.cpp b/netwerk/base/nsIOService.cpp
      SSLTokensCache::Shutdown();
  
      DestroySocketProcess();
-diff --git a/netwerk/base/nsIOService.h b/netwerk/base/nsIOService.h
---- a/netwerk/base/nsIOService.h
-+++ b/netwerk/base/nsIOService.h
-@@ -20,7 +20,6 @@
- #include "mozilla/Atomics.h"
- #include "mozilla/Attributes.h"
- #include "prtime.h"
--#include "nsICaptivePortalService.h"
- 
- #define NS_N(x) (sizeof(x) / sizeof(*x))
- 
-@@ -204,7 +203,6 @@ class nsIOService final : public nsIIOSe
-   mozilla::Atomic<bool, mozilla::Relaxed> mHttpHandlerAlreadyShutingDown;
- 
-   nsCOMPtr<nsPISocketTransportService> mSocketTransportService;
--  nsCOMPtr<nsICaptivePortalService> mCaptivePortalService;
-   nsCOMPtr<nsINetworkLinkService> mNetworkLinkService;
-   bool mNetworkLinkServiceInitialized;
- 
 diff --git a/toolkit/components/captivedetect/CaptiveDetect.jsm b/toolkit/components/captivedetect/CaptiveDetect.jsm
 --- a/toolkit/components/captivedetect/CaptiveDetect.jsm
 +++ b/toolkit/components/captivedetect/CaptiveDetect.jsm
-@@ -24,46 +24,6 @@ const kCaptivePortalLoginSuccessEvent = 
+@@ -24,70 +24,6 @@ const kCaptivePortalLoginSuccessEvent = 
  const kCaptivePortalCheckComplete = "captive-portal-check-complete";
  
  function URLFetcher(url, timeout) {
@@ -163,7 +145,22 @@ diff --git a/toolkit/components/captivedetect/CaptiveDetect.jsm b/toolkit/compon
 -  // Prevent privacy leaks
 -  xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_ANONYMOUS;
 -  // Use the system's resolver for this check
--  xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_DISABLE_TRR;
+-  xhr.channel.setTRRMode(Ci.nsIRequest.TRR_DISABLED_MODE);
+-  // We except this from being classified
+-  xhr.channel.loadFlags |= Ci.nsIChannel.LOAD_BYPASS_URL_CLASSIFIER;
+-  // Prevent HTTPS-Only Mode from upgrading the request.
+-  xhr.channel.loadInfo.httpsOnlyStatus |= Ci.nsILoadInfo.HTTPS_ONLY_EXEMPT;
+-  // Allow deprecated HTTP request from SystemPrincipal
+-  xhr.channel.loadInfo.allowDeprecatedSystemRequests = true;
+-
+-  // We don't want to follow _any_ redirects
+-  xhr.channel.QueryInterface(Ci.nsIHttpChannel).redirectionLimit = 0;
+-
+-  // bug 1666072 - firefox.com returns a HSTS header triggering a https upgrade
+-  // but the upgrade triggers an internal redirect causing an incorrect locked
+-  // portal notification. We exclude CP detection from STS.
+-  xhr.channel.QueryInterface(Ci.nsIHttpChannel).allowSTS = false;
+-
 -  // The Cache-Control header is only interpreted by proxies and the
 -  // final destination. It does not help if a resource is already
 -  // cached locally.
@@ -188,6 +185,15 @@ diff --git a/toolkit/components/captivedetect/CaptiveDetect.jsm b/toolkit/compon
 -        self.onsuccess(xhr.responseText);
 -      } else if (xhr.status) {
 -        self.onredirectorerror(xhr.status);
+-      } else if (
+-        xhr.channel &&
+-        xhr.channel.status == Cr.NS_ERROR_REDIRECT_LOOP
+-      ) {
+-        // For some redirects we don't get a status, so we need to check it
+-        // this way. This only works because we set the redirectionLimit to 0.
+-        self.onredirectorerror(300);
+-        // No need to invoke the onerror callback, we handled it here.
+-        xhr.onerror = null;
 -      }
 -    }
 -  };
@@ -196,7 +202,7 @@ diff --git a/toolkit/components/captivedetect/CaptiveDetect.jsm b/toolkit/compon
  }
  
  URLFetcher.prototype = {
-@@ -334,44 +294,7 @@ CaptivePortalDetector.prototype = {
+@@ -358,44 +294,7 @@ CaptivePortalDetector.prototype = {
    },
  
    _startDetection: function _startDetection() {

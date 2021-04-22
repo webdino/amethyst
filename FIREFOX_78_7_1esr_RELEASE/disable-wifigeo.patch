@@ -1,47 +1,69 @@
+diff --git a/browser/modules/PermissionUI.jsm b/browser/modules/PermissionUI.jsm
+--- a/browser/modules/PermissionUI.jsm
++++ b/browser/modules/PermissionUI.jsm
+@@ -732,6 +732,14 @@ GeolocationPermissionPrompt.prototype = 
+     return options;
+   },
+ 
++  get postPromptEnabled() {
++    return false;
++  },
++
++  get requiresUserInput() {
++    return true;
++  },
++
+   get notificationID() {
+     return "geolocation";
+   },
 diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolocationProvider.jsm
 --- a/dom/system/NetworkGeolocationProvider.jsm
 +++ b/dom/system/NetworkGeolocationProvider.jsm
-@@ -27,10 +27,6 @@ var gLoggingEnabled = false;
-    data and xhr it to the location server.
- */
- 
--var gLocationRequestTimeout = 5000;
--
--var gWifiScanningEnabled = true;
--
- function LOG(aMsg) {
-   if (gLoggingEnabled) {
-     aMsg = "*** WIFI GEO: " + aMsg + "\n";
-@@ -255,13 +251,7 @@ function WifiGeoPositionProvider() {
-     "geo.wifi.logging.enabled",
-     false
-   );
--  gLocationRequestTimeout = Services.prefs.getIntPref(
--    "geo.wifi.timeToWaitBeforeSending",
+@@ -253,28 +253,7 @@ function NetworkGeolocationProvider() {
+     isWifiScanningEnabled).  In this case, we use this timer to collect cell/ip
+     data and xhr it to the location server.
+   */
+-  XPCOMUtils.defineLazyPreferenceGetter(
+-    this,
+-    "_wifiMonitorTimeout",
+-    "geo.provider.network.timeToWaitBeforeSending",
 -    5000
 -  );
--  gWifiScanningEnabled = Services.prefs.getBoolPref("geo.wifi.scan", true);
  
+-  XPCOMUtils.defineLazyPreferenceGetter(
+-    this,
+-    "_wifiScanningEnabled",
+-    "geo.provider.network.scan",
+-    true
+-  );
+-
+-  XPCOMUtils.defineLazyPreferenceGetter(
+-    this,
+-    "_wifiScanningEnabledCountry",
+-    "geo.provider-country.network.scan",
+-    true
+-  );
+-
 -  this.wifiService = null;
    this.timer = null;
    this.started = false;
  }
-@@ -285,8 +275,8 @@ WifiGeoPositionProvider.prototype = {
+@@ -303,8 +282,8 @@ NetworkGeolocationProvider.prototype = {
      this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
      this.timer.initWithCallback(
        this,
--      gLocationRequestTimeout,
+-      this._wifiMonitorTimeout,
 -      this.timer.TYPE_REPEATING_SLACK
 +      0,
 +      this.timer.TYPE_ONE_SHOT
      );
    },
  
-@@ -297,16 +287,6 @@ WifiGeoPositionProvider.prototype = {
+@@ -315,16 +294,6 @@ NetworkGeolocationProvider.prototype = {
  
      this.started = true;
  
--    if (gWifiScanningEnabled && Cc["@mozilla.org/wifi/monitor;1"]) {
+-    if (this.isWifiScanningEnabled) {
 -      if (this.wifiService) {
 -        this.wifiService.stopWatching(this);
 -      }
@@ -54,7 +76,7 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
      this.resetTimer();
      LOG("startup called.");
    },
-@@ -330,11 +310,6 @@ WifiGeoPositionProvider.prototype = {
+@@ -348,11 +317,6 @@ NetworkGeolocationProvider.prototype = {
        this.timer = null;
      }
  
@@ -66,9 +88,9 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
      this.listener = null;
      this.started = false;
    },
-@@ -383,84 +358,7 @@ WifiGeoPositionProvider.prototype = {
-   },
- 
+@@ -419,87 +383,7 @@ NetworkGeolocationProvider.prototype = {
+    *                          </code>
+    */
    sendLocationRequest(wifiData) {
 -    let data = { cellTowers: undefined, wifiAccessPoints: undefined };
 -    if (wifiData && wifiData.length >= 2) {
@@ -91,27 +113,30 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
 -    }
 -
 -    // From here on, do a network geolocation request //
--    let url = Services.urlFormatter.formatURLPref("geo.wifi.uri");
+-    let url = Services.urlFormatter.formatURLPref("geo.provider.network.url");
 -    LOG("Sending request");
 -
 -    let xhr = new XMLHttpRequest();
+-    this.onStatus(false, "xhr-start");
 -    try {
 -      xhr.open("POST", url, true);
 -      xhr.channel.loadFlags = Ci.nsIChannel.LOAD_ANONYMOUS;
 -    } catch (e) {
--      notifyPositionUnavailable(this.listener);
+-      this.onStatus(true, "xhr-error");
 -      return;
 -    }
 -    xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
 -    xhr.responseType = "json";
 -    xhr.mozBackgroundRequest = true;
--    xhr.timeout = Services.prefs.getIntPref("geo.wifi.xhr.timeout");
+-    // Allow deprecated HTTP request from SystemPrincipal
+-    xhr.channel.loadInfo.allowDeprecatedSystemRequests = true;
+-    xhr.timeout = Services.prefs.getIntPref("geo.provider.network.timeout");
 -    xhr.ontimeout = () => {
 -      LOG("Location request XHR timed out.");
--      notifyPositionUnavailable(this.listener);
+-      this.onStatus(true, "xhr-timeout");
 -    };
 -    xhr.onerror = () => {
--      notifyPositionUnavailable(this.listener);
+-      this.onStatus(true, "xhr-error");
 -    };
 -    xhr.onload = () => {
 -      LOG(
@@ -122,14 +147,13 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
 -      );
 -      if (
 -        (xhr.channel instanceof Ci.nsIHttpChannel && xhr.status != 200) ||
--        !xhr.response ||
--        !xhr.response.location
+-        !xhr.response
 -      ) {
--        notifyPositionUnavailable(this.listener);
+-        this.onStatus(true, !xhr.response ? "xhr-empty" : "xhr-error");
 -        return;
 -      }
 -
--      let newLocation = new WifiGeoPositionObject(
+-      let newLocation = new NetworkGeoPositionObject(
 -        xhr.response.location.lat,
 -        xhr.response.location.lng,
 -        xhr.response.accuracy
@@ -138,6 +162,7 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
 -      if (this.listener) {
 -        this.listener.update(newLocation);
 -      }
+-
 -      gCachedRequest = new CachedRequest(
 -        newLocation,
 -        data.cellTowers,
@@ -148,7 +173,7 @@ diff --git a/dom/system/NetworkGeolocationProvider.jsm b/dom/system/NetworkGeolo
 -    var requestData = JSON.stringify(data);
 -    LOG("sending " + requestData);
 -    xhr.send(requestData);
-+    notifyPositionUnavailable(this.listener);
- 
-     function notifyPositionUnavailable(listener) {
-       if (listener) {
++    this.onStatus(true, "xhr-error");
+   },
+ };
+

@@ -1,129 +1,35 @@
-diff --git a/dom/base/nsObjectLoadingContent.cpp b/dom/base/nsObjectLoadingContent.cpp
---- a/dom/base/nsObjectLoadingContent.cpp
-+++ b/dom/base/nsObjectLoadingContent.cpp
-@@ -2959,7 +2959,8 @@ static void initializeObjectLoadingConte
-         &sPersistentTimeoutDays,
-         "plugin.persistentPermissionAlways.intervalInDays", 90);
+diff --git a/modules/libpref/init/StaticPrefList.yaml b/modules/libpref/init/StaticPrefList.yaml
+--- a/modules/libpref/init/StaticPrefList.yaml
++++ b/modules/libpref/init/StaticPrefList.yaml
+@@ -980,13 +980,13 @@
+ # Blocked plugin content
+ - name: browser.safebrowsing.blockedURIs.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
  
--    Preferences::AddBoolVarCache(&sBlockURIs, kPrefBlockURIs, false);
-+    sBlockURIs = false;
-+
-     sPrefsInitialized = true;
-   }
- }
-diff --git a/modules/libpref/Preferences.cpp b/modules/libpref/Preferences.cpp
---- a/modules/libpref/Preferences.cpp
-+++ b/modules/libpref/Preferences.cpp
-@@ -4401,9 +4401,11 @@ static nsresult pref_ReadDefaultPrefs(co
-     MOZ_ASSERT(                                                           \
-         GetPref<StripAtomic<cpp_type>>(name, value) == StaticPrefs::id(), \
-         "Incorrect cached value for " name);
-+#  define DEFAULT_PREF(name, id, cpp_type, value)
- #  include "mozilla/StaticPrefList.h"
- #  undef PREF
- #  undef VARCACHE_PREF
-+#  undef DEFAULT_PREF
- #endif
+ # Malware protection
+ - name: browser.safebrowsing.malware.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
  
-     return Ok();
-@@ -5295,9 +5297,11 @@ nsresult Preferences::AddFloatVarCache(f
- #define PREF(name, cpp_type, value)
- #define VARCACHE_PREF(name, id, cpp_type, value) \
-   cpp_type StaticPrefs::sVarCache_##id(value);
-+#define DEFAULT_PREF(name, id, cpp_type, value)
- #include "mozilla/StaticPrefList.h"
- #undef PREF
- #undef VARCACHE_PREF
-+#undef DEFAULT_PREF
+ # Password protection
+@@ -998,7 +998,7 @@
+ # Phishing protection
+ - name: browser.safebrowsing.phishing.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
  
- // The SetPref_*() functions below end in a `_<type>` suffix because they are
- // used by the PREF macro definition in InitAll() below.
-@@ -5463,9 +5467,11 @@ void StaticPrefs::InitAll(bool aIsStartu
- #define VARCACHE_PREF(name, id, cpp_type, value)                           \
-   InitVarCachePref(NS_LITERAL_CSTRING(name), &StaticPrefs::sVarCache_##id, \
-                    value, aIsStartup, isParent);
-+#define DEFAULT_PREF(name, id, cpp_type, value)
- #include "mozilla/StaticPrefList.h"
- #undef PREF
- #undef VARCACHE_PREF
-+#undef DEFAULT_PREF
- }
- 
- }  // namespace mozilla
-diff --git a/modules/libpref/StaticPrefs.h b/modules/libpref/StaticPrefs.h
---- a/modules/libpref/StaticPrefs.h
-+++ b/modules/libpref/StaticPrefs.h
-@@ -75,9 +75,15 @@ class StaticPrefs {
-                "' being accessed on background thread");       \
-     return sVarCache_##id;                                     \
-   }
-+#define DEFAULT_PREF(str, id, cpp_type, default_value)         \
-+ public:                                                       \
-+  static StripAtomic<cpp_type> id() {                          \
-+    return default_value;                                      \
-+  }
- #include "mozilla/StaticPrefList.h"
- #undef PREF
- #undef VARCACHE_PREF
-+#undef DEFAULT_PREF
- 
-  public:
-   static void InitAll(bool aIsStartup);
-diff --git a/modules/libpref/init/StaticPrefList.h b/modules/libpref/init/StaticPrefList.h
---- a/modules/libpref/init/StaticPrefList.h
-+++ b/modules/libpref/init/StaticPrefList.h
-@@ -2579,31 +2579,31 @@ VARCACHE_PREF(
- )
- 
- // Password protection
--VARCACHE_PREF(
-+DEFAULT_PREF(
-   "browser.safebrowsing.passwords.enabled",
-    browser_safebrowsing_passwords_enabled,
-   bool, false
- )
- 
- // Malware protection
--VARCACHE_PREF(
-+DEFAULT_PREF(
-   "browser.safebrowsing.malware.enabled",
-    browser_safebrowsing_malware_enabled,
--  bool, true
-+  bool, false
- )
- 
- // Phishing protection
--VARCACHE_PREF(
-+DEFAULT_PREF(
-   "browser.safebrowsing.phishing.enabled",
-    browser_safebrowsing_phishing_enabled,
--  bool, true
-+  bool, false
- )
- 
- // Blocked plugin content
--VARCACHE_PREF(
-+DEFAULT_PREF(
-   "browser.safebrowsing.blockedURIs.enabled",
-    browser_safebrowsing_blockedURIs_enabled,
--  bool, true
-+  bool, false
- )
- 
- // Maximum size for an array to store the safebrowsing prefixset.
-@@ -2741,7 +2741,7 @@ VARCACHE_PREF(
- // Plugins prefs
- //---------------------------------------------------------------------------
- 
--VARCACHE_PREF(
-+DEFAULT_PREF(
-   "plugins.flashBlock.enabled",
-    plugins_flashBlock_enabled,
-   bool, false
+ # Maximum size for an array to store the safebrowsing prefixset.
 diff --git a/netwerk/url-classifier/nsChannelClassifier.cpp b/netwerk/url-classifier/nsChannelClassifier.cpp
 --- a/netwerk/url-classifier/nsChannelClassifier.cpp
 +++ b/netwerk/url-classifier/nsChannelClassifier.cpp
-@@ -361,26 +361,6 @@ nsresult nsChannelClassifier::SendThreat
+@@ -345,26 +345,6 @@ nsresult nsChannelClassifier::SendThreat
                                                    const nsACString& aFullHash) {
    NS_ENSURE_ARG_POINTER(aChannel);
  
@@ -131,7 +37,7 @@ diff --git a/netwerk/url-classifier/nsChannelClassifier.cpp b/netwerk/url-classi
 -  nsPrintfCString reportEnablePref(
 -      "browser.safebrowsing.provider.%s.dataSharing.enabled", provider.get());
 -  if (!Preferences::GetBool(reportEnablePref.get(), false)) {
--    LOG((
+-    UC_LOG((
 -        "nsChannelClassifier::SendThreatHitReport data sharing disabled for %s",
 -        provider.get()));
 -    return NS_OK;
@@ -153,7 +59,7 @@ diff --git a/netwerk/url-classifier/nsChannelClassifier.cpp b/netwerk/url-classi
 diff --git a/toolkit/components/reputationservice/ApplicationReputation.cpp b/toolkit/components/reputationservice/ApplicationReputation.cpp
 --- a/toolkit/components/reputationservice/ApplicationReputation.cpp
 +++ b/toolkit/components/reputationservice/ApplicationReputation.cpp
-@@ -1551,169 +1551,8 @@ nsresult PendingLookup::SendRemoteQuery(
+@@ -1555,173 +1555,8 @@ nsresult PendingLookup::SendRemoteQuery(
  }
  
  nsresult PendingLookup::SendRemoteQueryInternal(Reason& aReason) {
@@ -170,9 +76,13 @@ diff --git a/toolkit/components/reputationservice/ApplicationReputation.cpp b/to
 -    return NS_ERROR_NOT_AVAILABLE;
 -  }
 -  // If the remote lookup URL is empty or absent, bail.
--  nsAutoCString serviceUrl;
--  if (NS_FAILED(Preferences::GetCString(PREF_SB_APP_REP_URL, serviceUrl)) ||
--      serviceUrl.IsEmpty()) {
+-  nsString serviceUrl;
+-  nsCOMPtr<nsIURLFormatter> formatter(
+-      do_GetService("@mozilla.org/toolkit/URLFormatterService;1"));
+-  if (!formatter ||
+-      NS_FAILED(formatter->FormatURLPref(
+-          NS_ConvertASCIItoUTF16(PREF_SB_APP_REP_URL), serviceUrl)) ||
+-      serviceUrl.IsEmpty() || u"about:blank"_ns.Equals(serviceUrl)) {
 -    LOG(("Remote lookup URL is empty or absent [this = %p]", this));
      aReason = Reason::RemoteLookupDisabled;
      return NS_ERROR_NOT_AVAILABLE;
@@ -199,7 +109,7 @@ diff --git a/toolkit/components/reputationservice/ApplicationReputation.cpp b/to
 -  mRequest.set_user_initiated(true);
 -
 -  nsCString locale;
--  rv = LocaleService::GetInstance()->GetAppLocaleAsLangTag(locale);
+-  rv = LocaleService::GetInstance()->GetAppLocaleAsBCP47(locale);
 -  NS_ENSURE_SUCCESS(rv, rv);
 -  mRequest.set_locale(locale.get());
 -  nsCString sha256Hash;
@@ -281,7 +191,7 @@ diff --git a/toolkit/components/reputationservice/ApplicationReputation.cpp b/to
 -
 -  // Set up the channel to transmit the request to the service.
 -  nsCOMPtr<nsIIOService> ios = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
--  rv = ios->NewChannel(serviceUrl, nullptr, nullptr,
+-  rv = ios->NewChannel(NS_ConvertUTF16toUTF8(serviceUrl), nullptr, nullptr,
 -                       nullptr,  // aLoadingNode
 -                       nsContentUtils::GetSystemPrincipal(),
 -                       nullptr,  // aTriggeringPrincipal
@@ -323,7 +233,7 @@ diff --git a/toolkit/components/reputationservice/ApplicationReputation.cpp b/to
  }
  
  NS_IMETHODIMP
-@@ -1946,32 +1785,5 @@ ApplicationReputationService::QueryReput
+@@ -1954,34 +1789,7 @@ ApplicationReputationService::QueryReput
  nsresult ApplicationReputationService::QueryReputationInternal(
      nsIApplicationReputationQuery* aQuery,
      nsIApplicationReputationCallback* aCallback) {
@@ -356,6 +266,8 @@ diff --git a/toolkit/components/reputationservice/ApplicationReputation.cpp b/to
 -  observerService->AddObserver(lookup, "quit-application", true);
 -  return lookup->StartLookup();
  }
+ 
+ nsresult ApplicationReputationService::IsBinary(const nsACString& aFileName,
 diff --git a/toolkit/components/url-classifier/SafeBrowsing.jsm b/toolkit/components/url-classifier/SafeBrowsing.jsm
 --- a/toolkit/components/url-classifier/SafeBrowsing.jsm
 +++ b/toolkit/components/url-classifier/SafeBrowsing.jsm
@@ -434,19 +346,16 @@ diff --git a/toolkit/components/url-classifier/SafeBrowsing.jsm b/toolkit/compon
      },
      update() {
        return Services.prefs.getBoolPref(
-@@ -174,10 +162,7 @@ const FEATURES = [
-       "urlclassifier.features.fingerprinting.annotate.whitelistTables",
+@@ -175,7 +163,7 @@ const FEATURES = [
      ],
      enabled() {
--      return Services.prefs.getBoolPref(
--        "privacy.trackingprotection.fingerprinting.annotate.enabled",
--        false
--      );
+       // Annotation features are enabled by default.
+-      return true;
 +      return false;
      },
      update() {
        return Services.prefs.getBoolPref(
-@@ -193,10 +178,7 @@ const FEATURES = [
+@@ -191,10 +179,7 @@ const FEATURES = [
        "urlclassifier.features.fingerprinting.whitelistTables",
      ],
      enabled() {
@@ -458,19 +367,16 @@ diff --git a/toolkit/components/url-classifier/SafeBrowsing.jsm b/toolkit/compon
      },
      update() {
        return Services.prefs.getBoolPref(
-@@ -212,10 +194,7 @@ const FEATURES = [
-       "urlclassifier.features.cryptomining.annotate.whitelistTables",
+@@ -211,7 +196,7 @@ const FEATURES = [
      ],
      enabled() {
--      return Services.prefs.getBoolPref(
--        "privacy.trackingprotection.annotate.cryptomining.enabled",
--        false
--      );
+       // Annotation features are enabled by default.
+-      return true;
 +      return false;
      },
      update() {
        return Services.prefs.getBoolPref(
-@@ -231,10 +210,7 @@ const FEATURES = [
+@@ -227,10 +212,7 @@ const FEATURES = [
        "urlclassifier.features.cryptomining.whitelistTables",
      ],
      enabled() {
@@ -485,10 +391,11 @@ diff --git a/toolkit/components/url-classifier/SafeBrowsing.jsm b/toolkit/compon
 diff --git a/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp b/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
 --- a/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
 +++ b/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
-@@ -1945,91 +1945,6 @@ nsUrlClassifierDBService::SendThreatHitR
+@@ -1925,92 +1925,6 @@ nsUrlClassifierDBService::SendThreatHitR
+     LOG(("nsUrlClassifierDBService::SendThreatHitReport missing fullhash"));
      return NS_ERROR_FAILURE;
    }
- 
+-
 -  nsPrintfCString reportUrlPref(
 -      "browser.safebrowsing.provider.%s.dataSharingURL",
 -      PromiseFlatCString(aProvider).get());
@@ -541,7 +448,7 @@ diff --git a/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp b/to
 -                     nsContentUtils::GetSystemPrincipal(),
 -                     nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
 -                     nsIContentPolicy::TYPE_OTHER,
--                     nullptr,  // nsICookieSettings
+-                     nullptr,  // nsICookieJarSettings
 -                     nullptr,  // aPerformanceStorage
 -                     nullptr,  // aLoadGroup
 -                     nullptr, loadFlags);
@@ -599,7 +506,7 @@ diff --git a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp 
 -                     nsContentUtils::GetSystemPrincipal(),
 -                     nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_DATA_IS_NULL,
 -                     nsIContentPolicy::TYPE_OTHER,
--                     nullptr,  // nsICookieSettings
+-                     nullptr,  // nsICookieJarSettings
 -                     nullptr,  // aPerformanceStorage
 -                     nullptr,  // aLoadGroup
 -                     this,     // aInterfaceRequestor
@@ -611,6 +518,8 @@ diff --git a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp 
 -  mozilla::OriginAttributes attrs;
 -  attrs.mFirstPartyDomain.AssignLiteral(NECKO_SAFEBROWSING_FIRST_PARTY_DOMAIN);
 -  loadInfo->SetOriginAttributes(attrs);
+-  // allow deprecated HTTP request from SystemPrincipal
+-  loadInfo->SetAllowDeprecatedSystemRequests(true);
 -
 -  mBeganStream = false;
 -
@@ -640,9 +549,7 @@ diff --git a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp 
 -  // Set the appropriate content type for file/data URIs, for unit testing
 -  // purposes.
 -  // This is only used for testing and should be deleted.
--  bool match;
--  if ((NS_SUCCEEDED(aUpdateUrl->SchemeIs("file", &match)) && match) ||
--      (NS_SUCCEEDED(aUpdateUrl->SchemeIs("data", &match)) && match)) {
+-  if (aUpdateUrl->SchemeIs("file") || aUpdateUrl->SchemeIs("data")) {
 -    mChannel->SetContentType(
 -        NS_LITERAL_CSTRING("application/vnd.google.safebrowsing-update"));
 -  } else {
@@ -694,4 +601,4 @@ diff --git a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp 
 -
    return NS_OK;
  }
- 
+

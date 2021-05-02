@@ -1,24 +1,24 @@
 diff --git a/browser/base/content/browser-sync.js b/browser/base/content/browser-sync.js
 --- a/browser/base/content/browser-sync.js
 +++ b/browser/base/content/browser-sync.js
-@@ -119,11 +119,7 @@ var gSync = {
-       "PRODUCT_INFO_BASE_URL",
-       "app.productInfo.baseURL"
+@@ -126,11 +126,7 @@ var gSync = {
+         }
+       }
      );
 -    XPCOMUtils.defineLazyPreferenceGetter(
 -      this,
--      "SYNC_ENABLED",
+-      "FXA_ENABLED",
 -      "identity.fxaccounts.enabled"
 -    );
-+    this.SYNC_ENABLED = false;
++    this.FXA_ENABLED = false;
    },
  
    maybeUpdateUIState() {
 diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
 --- a/browser/base/content/browser.js
 +++ b/browser/base/content/browser.js
-@@ -653,10 +653,7 @@ var gNavigatorBundle = {
- function showFxaToolbarMenu(enable) {
+@@ -661,10 +661,7 @@ var gNavigatorBundle = {
+ function updateFxaToolbarMenu(enable, isInitialUpdate = false) {
    // We only show the Firefox Account toolbar menu if the feature is enabled and
    // if sync is enabled.
 -  const syncEnabled = Services.prefs.getBoolPref(
@@ -29,10 +29,29 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
    const mainWindowEl = document.documentElement;
    const fxaPanelEl = document.getElementById("PanelUI-fxa");
  
+diff --git a/browser/components/aboutlogins/AboutLoginsParent.jsm b/browser/components/aboutlogins/AboutLoginsParent.jsm
+--- a/browser/components/aboutlogins/AboutLoginsParent.jsm
++++ b/browser/components/aboutlogins/AboutLoginsParent.jsm
+@@ -33,12 +33,9 @@ XPCOMUtils.defineLazyPreferenceGetter(
+   "signon.management.page.breach-alerts.enabled",
+   false
+ );
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "FXA_ENABLED",
+-  "identity.fxaccounts.enabled",
+-  false
+-);
++
++const FXA_ENABLED = false;
++
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+   "OS_AUTH_ENABLED",
 diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
 --- a/browser/components/customizableui/CustomizableWidgets.jsm
 +++ b/browser/components/customizableui/CustomizableWidgets.jsm
-@@ -595,7 +595,7 @@ const CustomizableWidgets = [
+@@ -610,7 +610,7 @@ const CustomizableWidgets = [
    },
  ];
  
@@ -44,19 +63,19 @@ diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser
 diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
 --- a/browser/components/newtab/lib/ASRouterTargeting.jsm
 +++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
-@@ -204,7 +204,7 @@ const TargetingGetters = {
+@@ -380,7 +380,7 @@ const TargetingGetters = {
      return Services.prefs.prefHasUserValue(FXA_USERNAME_PREF);
    },
    get isFxAEnabled() {
--    return Services.prefs.getBoolPref(FXA_ENABLED_PREF, true);
+-    return isFxAEnabled;
 +    return false;
    },
-   get sync() {
-     return {
-diff --git a/browser/components/preferences/in-content/main.js b/browser/components/preferences/in-content/main.js
---- a/browser/components/preferences/in-content/main.js
-+++ b/browser/components/preferences/in-content/main.js
-@@ -85,19 +85,6 @@ const APP_ICON_ATTR_NAME = "appHandlerIc
+   get trailheadInterrupt() {
+     return ASRouterPreferences.trailhead.trailheadInterrupt;
+diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
+--- a/browser/components/preferences/main.js
++++ b/browser/components/preferences/main.js
+@@ -82,19 +82,6 @@ const APP_ICON_ATTR_NAME = "appHandlerIc
  
  ChromeUtils.defineModuleGetter(this, "OS", "resource://gre/modules/osfile.jsm");
  
@@ -76,7 +95,7 @@ diff --git a/browser/components/preferences/in-content/main.js b/browser/compone
  Preferences.addAll([
    // Startup
    { id: "browser.startup.page", type: "int" },
-@@ -785,15 +772,6 @@ var gMainPane = {
+@@ -873,17 +860,6 @@ var gMainPane = {
      if (!win) {
        return;
      }
@@ -86,16 +105,18 @@ diff --git a/browser/components/preferences/in-content/main.js b/browser/compone
 -      win.openTrustedLinkIn("about:preferences#sync", "current");
 -      return;
 -    }
--    let url = await FxAccounts.config.promiseSignInURI("dev-edition-setup");
+-    let url = await FxAccounts.config.promiseConnectAccountURI(
+-      "dev-edition-setup"
+-    );
 -    let accountsTab = win.gBrowser.addWebTab(url);
 -    win.gBrowser.selectedTab = accountsTab;
    },
  
    // HOME PAGE
-diff --git a/browser/components/preferences/in-content/preferences.js b/browser/components/preferences/in-content/preferences.js
---- a/browser/components/preferences/in-content/preferences.js
-+++ b/browser/components/preferences/in-content/preferences.js
-@@ -84,13 +84,6 @@ function init_all() {
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -83,13 +83,6 @@ function init_all() {
    register_module("paneSearch", gSearchPane);
    register_module("panePrivacy", gPrivacyPane);
    register_module("paneContainers", gContainersPane);
@@ -112,7 +133,7 @@ diff --git a/browser/components/preferences/in-content/preferences.js b/browser/
 diff --git a/browser/modules/PageActions.jsm b/browser/modules/PageActions.jsm
 --- a/browser/modules/PageActions.jsm
 +++ b/browser/modules/PageActions.jsm
-@@ -1243,7 +1243,7 @@ var gBuiltInActions = [
+@@ -1236,7 +1236,7 @@ var gBuiltInActions = [
  ];
  
  // send to device
@@ -124,9 +145,9 @@ diff --git a/browser/modules/PageActions.jsm b/browser/modules/PageActions.jsm
 diff --git a/services/fxaccounts/FxAccounts.jsm b/services/fxaccounts/FxAccounts.jsm
 --- a/services/fxaccounts/FxAccounts.jsm
 +++ b/services/fxaccounts/FxAccounts.jsm
-@@ -99,12 +99,7 @@ ChromeUtils.defineModuleGetter(
-   "resource://services-sync/util.js"
- );
+@@ -109,12 +109,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   Preferences: "resource://gre/modules/Preferences.jsm",
+ });
  
 -XPCOMUtils.defineLazyPreferenceGetter(
 -  this,
@@ -136,12 +157,12 @@ diff --git a/services/fxaccounts/FxAccounts.jsm b/services/fxaccounts/FxAccounts
 -);
 +const FXA_ENABLED = false;
  
- // All properties exposed by the public FxAccounts API.
- var publicProperties = [
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
 diff --git a/services/sync/Weave.jsm b/services/sync/Weave.jsm
 --- a/services/sync/Weave.jsm
 +++ b/services/sync/Weave.jsm
-@@ -138,10 +138,7 @@ WeaveService.prototype = {
+@@ -139,10 +139,7 @@ WeaveService.prototype = {
     * For that, you'll want to check Weave.Status.checkSetup().
     */
    get enabled() {
@@ -156,8 +177,8 @@ diff --git a/services/sync/Weave.jsm b/services/sync/Weave.jsm
 diff --git a/toolkit/components/extensions/ExtensionStorageSync.jsm b/toolkit/components/extensions/ExtensionStorageSync.jsm
 --- a/toolkit/components/extensions/ExtensionStorageSync.jsm
 +++ b/toolkit/components/extensions/ExtensionStorageSync.jsm
-@@ -64,12 +64,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
-   Utils: "resource://services-sync/util.js",
+@@ -20,12 +20,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   ExtensionUtils: "resource://gre/modules/ExtensionUtils.jsm",
  });
  
 -XPCOMUtils.defineLazyPreferenceGetter(
@@ -167,6 +188,6 @@ diff --git a/toolkit/components/extensions/ExtensionStorageSync.jsm b/toolkit/co
 -  true
 -);
 +const prefPermitsStorageSync = false;
- XPCOMUtils.defineLazyPreferenceGetter(
-   this,
-   "prefStorageSyncServerURL",
+ 
+ // This xpcom service implements a "bridge" from the JS world to the Rust world.
+ // It sets up the database and implements a callback-based version of the

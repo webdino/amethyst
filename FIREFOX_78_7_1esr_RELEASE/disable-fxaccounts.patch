@@ -29,6 +29,25 @@ diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
    const mainWindowEl = document.documentElement;
    const fxaPanelEl = document.getElementById("PanelUI-fxa");
  
+diff --git a/browser/components/aboutlogins/AboutLoginsParent.jsm b/browser/components/aboutlogins/AboutLoginsParent.jsm
+--- a/browser/components/aboutlogins/AboutLoginsParent.jsm
++++ b/browser/components/aboutlogins/AboutLoginsParent.jsm
+@@ -33,12 +33,9 @@ XPCOMUtils.defineLazyPreferenceGetter(
+   "signon.management.page.breach-alerts.enabled",
+   false
+ );
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "FXA_ENABLED",
+-  "identity.fxaccounts.enabled",
+-  false
+-);
++
++const FXA_ENABLED = false;
++
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+   "OS_AUTH_ENABLED",
 diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
 --- a/browser/components/customizableui/CustomizableWidgets.jsm
 +++ b/browser/components/customizableui/CustomizableWidgets.jsm

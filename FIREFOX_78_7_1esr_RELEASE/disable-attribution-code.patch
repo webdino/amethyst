@@ -1,46 +1,59 @@
 diff --git a/browser/components/attribution/AttributionCode.jsm b/browser/components/attribution/AttributionCode.jsm
 --- a/browser/components/attribution/AttributionCode.jsm
 +++ b/browser/components/attribution/AttributionCode.jsm
-@@ -86,42 +86,6 @@ var AttributionCode = {
-       }
+@@ -108,55 +108,6 @@ var AttributionCode = {
+     }
  
-       gCachedAttrData = {};
--      if (AppConstants.platform == "win") {
+     gCachedAttrData = {};
+-    if (AppConstants.platform == "win") {
+-      let bytes;
+-      try {
+-        bytes = await OS.File.read(getAttributionFile().path);
+-      } catch (ex) {
+-        if (ex instanceof OS.File.Error && ex.becauseNoSuchFile) {
+-          return gCachedAttrData;
+-        }
+-        Services.telemetry
+-          .getHistogramById("BROWSER_ATTRIBUTION_ERRORS")
+-          .add("read_error");
+-      }
+-      if (bytes) {
 -        try {
--          let bytes = await OS.File.read(getAttributionFile().path);
 -          let decoder = new TextDecoder();
 -          let code = decoder.decode(bytes);
--          gCachedAttrData = parseAttributionCode(code);
+-          gCachedAttrData = this.parseAttributionCode(code);
 -        } catch (ex) {
--          // The attribution file may already have been deleted,
--          // or it may have never been installed at all;
--          // failure to open or read it isn't an error.
+-          // TextDecoder can throw an error
+-          Services.telemetry
+-            .getHistogramById("BROWSER_ATTRIBUTION_ERRORS")
+-            .add("decode_error");
 -        }
--      } else if (AppConstants.platform == "macosx") {
--        try {
--          let appPath = Services.dirsvc.get("GreD", Ci.nsIFile).parent.parent
--            .path;
--          let attributionSvc = Cc["@mozilla.org/mac-attribution;1"].getService(
--            Ci.nsIMacAttributionService
--          );
--          let referrer = attributionSvc.getReferrerUrl(appPath);
--          let params = new URL(referrer).searchParams;
--          for (let key of ATTR_CODE_KEYS) {
--            // We support the key prefixed with utm_ or not, but intentionally
--            // choose non-utm params over utm params.
--            for (let paramKey of [`utm_${key}`, key]) {
--              if (params.has(paramKey)) {
--                let value = params.get(paramKey);
--                if (value && ATTR_CODE_VALUE_REGEX.test(value)) {
--                  gCachedAttrData[key] = value;
--                }
+-      }
+-    } else if (AppConstants.platform == "macosx") {
+-      try {
+-        let appPath = Services.dirsvc.get("GreD", Ci.nsIFile).parent.parent
+-          .path;
+-        let attributionSvc = Cc["@mozilla.org/mac-attribution;1"].getService(
+-          Ci.nsIMacAttributionService
+-        );
+-        let referrer = attributionSvc.getReferrerUrl(appPath);
+-        let params = new URL(referrer).searchParams;
+-        for (let key of ATTR_CODE_KEYS) {
+-          // We support the key prefixed with utm_ or not, but intentionally
+-          // choose non-utm params over utm params.
+-          for (let paramKey of [`utm_${key}`, `funnel_${key}`, key]) {
+-            if (params.has(paramKey)) {
+-              let value = params.get(paramKey);
+-              if (value && ATTR_CODE_VALUE_REGEX.test(value)) {
+-                gCachedAttrData[key] = value;
 -              }
 -            }
 -          }
--        } catch (ex) {
--          // No attributions
 -        }
+-      } catch (ex) {
+-        // No attributions
 -      }
-       return gCachedAttrData;
-     })();
+-    }
+     return gCachedAttrData;
    },
+

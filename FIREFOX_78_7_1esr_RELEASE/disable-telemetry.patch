@@ -1,17 +1,17 @@
 diff --git a/browser/components/newtab/lib/TelemetryFeed.jsm b/browser/components/newtab/lib/TelemetryFeed.jsm
 --- a/browser/components/newtab/lib/TelemetryFeed.jsm
 +++ b/browser/components/newtab/lib/TelemetryFeed.jsm
-@@ -54,9 +54,6 @@ const USER_PREFS_ENCODING = {
+@@ -88,9 +88,6 @@ const USER_PREFS_ENCODING = {
  };
  
  const PREF_IMPRESSION_ID = "impressionId";
 -const TELEMETRY_PREF = "telemetry";
 -const EVENTS_TELEMETRY_PREF = "telemetry.ut.events";
 -const STRUCTURED_INGESTION_TELEMETRY_PREF = "telemetry.structuredIngestion";
- const STRUCTURED_INGESTION_ENDPOINT_PREF = "telemetry.structuredIngestion.endpoint";
- 
- this.TelemetryFeed = class TelemetryFeed {
-@@ -71,15 +68,15 @@ this.TelemetryFeed = class TelemetryFeed
+ const STRUCTURED_INGESTION_ENDPOINT_PREF =
+   "telemetry.structuredIngestion.endpoint";
+ // List of namespaces for the structured ingestion system.
+@@ -128,15 +125,15 @@ this.TelemetryFeed = class TelemetryFeed
    }
  
    get telemetryEnabled() {
@@ -30,7 +30,7 @@ diff --git a/browser/components/newtab/lib/TelemetryFeed.jsm b/browser/component
    }
  
    get structuredIngestionEndpointBase() {
-@@ -937,8 +934,5 @@ const EXPORTED_SYMBOLS = [
+@@ -1152,8 +1149,5 @@ const EXPORTED_SYMBOLS = [
    "TelemetryFeed",
    "USER_PREFS_ENCODING",
    "PREF_IMPRESSION_ID",
@@ -42,7 +42,7 @@ diff --git a/browser/components/newtab/lib/TelemetryFeed.jsm b/browser/component
 diff --git a/browser/extensions/screenshots/background/analytics.js b/browser/extensions/screenshots/background/analytics.js
 --- a/browser/extensions/screenshots/background/analytics.js
 +++ b/browser/extensions/screenshots/background/analytics.js
-@@ -33,39 +33,11 @@ this.analytics = (function() {
+@@ -37,39 +37,11 @@ this.analytics = (function() {
    }
  
    function flushEvents() {
@@ -82,7 +82,7 @@ diff --git a/browser/extensions/screenshots/background/analytics.js b/browser/ex
    }
  
    function sendTiming(timingLabel, timingVar, timingValue) {
-@@ -90,61 +62,6 @@ this.analytics = (function() {
+@@ -94,61 +66,6 @@ this.analytics = (function() {
    }
  
    exports.sendEvent = function(action, label, options) {
@@ -144,7 +144,7 @@ diff --git a/browser/extensions/screenshots/background/analytics.js b/browser/ex
      return Promise.resolve();
    };
  
-@@ -161,14 +78,9 @@ this.analytics = (function() {
+@@ -165,14 +82,9 @@ this.analytics = (function() {
    };
  
    exports.refreshTelemetryPref = function() {
@@ -212,21 +212,17 @@ diff --git a/browser/modules/Discovery.jsm b/browser/modules/Discovery.jsm
 diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
 --- a/browser/modules/PingCentre.jsm
 +++ b/browser/modules/PingCentre.jsm
-@@ -31,11 +31,9 @@ ChromeUtils.defineModuleGetter(
+@@ -27,7 +27,6 @@ ChromeUtils.defineModuleGetter(
  
  const PREF_BRANCH = "browser.ping-centre.";
  
 -const TELEMETRY_PREF = `${PREF_BRANCH}telemetry`;
  const LOGGING_PREF = `${PREF_BRANCH}log`;
- const PRODUCTION_ENDPOINT_PREF = `${PREF_BRANCH}production.endpoint`;
+ const STRUCTURED_INGESTION_SEND_TIMEOUT = 30 * 1000; // 30 seconds
  
--const FHR_UPLOAD_ENABLED_PREF = "datareporting.healthreport.uploadEnabled";
- const BROWSER_SEARCH_REGION_PREF = "browser.search.region";
- 
- // Only report region for following regions, to ensure that users in countries
-@@ -197,14 +195,6 @@ class PingCentre {
- 
-     this._setPingEndpoint(options.topic, options.overrideEndpointPref);
+@@ -49,35 +48,19 @@ class PingCentre {
+     this._topic = options.topic;
+     this._prefs = Services.prefs.getBranch("");
  
 -    this._enabled = this._prefs.getBoolPref(TELEMETRY_PREF);
 -    this._onTelemetryPrefChange = this._onTelemetryPrefChange.bind(this);
@@ -239,7 +235,6 @@ diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
      this.logging = this._prefs.getBoolPref(LOGGING_PREF);
      this._onLoggingPrefChange = this._onLoggingPrefChange.bind(this);
      this._prefs.addObserver(LOGGING_PREF, this._onLoggingPrefChange);
-@@ -221,7 +211,7 @@ class PingCentre {
    }
  
    get enabled() {
@@ -247,8 +242,7 @@ diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
 +    return false;
    }
  
-   _setPingEndpoint(topic, overrideEndpointPref) {
-@@ -238,14 +228,6 @@ class PingCentre {
+   _onLoggingPrefChange(aSubject, aTopic, prefKey) {
      this.logging = this._prefs.getBoolPref(prefKey);
    }
  
@@ -260,79 +254,31 @@ diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
 -    this._fhrEnabled = this._prefs.getBoolPref(prefKey);
 -  }
 -
-   _createExperimentsString(activeExperiments, filter) {
-     let experimentsString = "";
-     for (let experimentID in activeExperiments) {
-@@ -333,36 +315,7 @@ class PingCentre {
-   }
- 
-   async sendPing(data, options) {
--    if (!this.enabled) {
-       return Promise.resolve();
--    }
--
--    const payload = await this._createPing(data, options);
--
--    if (this.logging) {
--      // performance related pings cause a lot of logging, so we mute them
--      if (data.action !== "activity_stream_performance") {
--        Services.console.logStringMessage(
--          `TELEMETRY PING: ${JSON.stringify(payload)}\n`
--        );
--      }
--    }
--
--    return fetch(this._pingEndpoint, {
--      method: "POST",
--      body: JSON.stringify(payload),
--      credentials: "omit",
--    })
--      .then(response => {
--        if (!response.ok) {
--          Cu.reportError(
--            `Ping failure with HTTP response code: ${response.status}`
--          );
--        }
--      })
--      .catch(e => {
--        Cu.reportError(`Ping failure with error: ${e}`);
--      });
-   }
- 
-   /**
-@@ -376,45 +329,12 @@ class PingCentre {
-    * @param {Object} options  Other options for this ping.
+   _createExperimentsPayload() {
+     let activeExperiments = TelemetryEnvironment.getActiveExperiments();
+     let experiments = {};
+@@ -185,34 +168,12 @@ class PingCentre {
+    *                          https://github.com/mozilla/gcp-ingestion/blob/master/docs/edge.md#postput-request
     */
-   async sendStructuredIngestionPing(data, endpoint, options) {
+   sendStructuredIngestionPing(data, endpoint) {
 -    if (!this.enabled) {
        return Promise.resolve();
 -    }
 -
--    const payload = await this._createStructuredIngestionPing(data, options);
+-    const ping = this._createStructuredIngestionPing(data);
+-    const payload = JSON.stringify(ping);
 -
 -    if (this.logging) {
 -      Services.console.logStringMessage(
--        `TELEMETRY PING (STRUCTURED INGESTION): ${JSON.stringify(payload)}\n`
+-        `TELEMETRY PING (${this._topic}): ${payload}\n`
 -      );
 -    }
 -
--    return fetch(endpoint, {
--      method: "POST",
--      body: JSON.stringify(payload),
--      credentials: "omit",
--    })
--      .then(response => {
--        if (!response.ok) {
--          Cu.reportError(
--            `Structured Ingestion ping failure with HTTP response code: ${
--              response.status
--            }`
--          );
--        }
--      })
--      .catch(e => {
--        Cu.reportError(`Structured Ingestion ping failure with error: ${e}`);
--      });
+-    return PingCentre._sendInGzip(endpoint, payload).catch(event => {
+-      Cu.reportError(
+-        `Structured Ingestion ping failure with error: ${event.type}`
+-      );
+-    });
    }
  
    uninit() {
@@ -346,10 +292,10 @@ diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
      } catch (e) {
        Cu.reportError(e);
      }
-@@ -424,8 +344,6 @@ class PingCentre {
+@@ -221,8 +182,6 @@ class PingCentre {
+ 
  this.PingCentre = PingCentre;
  this.PingCentreConstants = {
-   PRODUCTION_ENDPOINT_PREF,
 -  FHR_UPLOAD_ENABLED_PREF,
 -  TELEMETRY_PREF,
    LOGGING_PREF,
@@ -369,18 +315,18 @@ diff --git a/browser/moz.configure b/browser/moz.configure
 diff --git a/old-configure.in b/old-configure.in
 --- a/old-configure.in
 +++ b/old-configure.in
-@@ -3116,6 +3116,7 @@ AC_SUBST(MOZ_INCLUDE_SOURCE_INFO)
+@@ -2783,6 +2785,7 @@ AC_SUBST(MOZ_INCLUDE_SOURCE_INFO)
  dnl If we have any service that uploads data (and requires data submission
  dnl policy alert), set MOZ_DATA_REPORTING.
  dnl We need SUBST for build system and DEFINE for xul preprocessor.
 +MOZ_TELEMETRY_REPORTING=
- if test -n "$MOZ_TELEMETRY_REPORTING" || test -n "$MOZ_SERVICES_HEALTHREPORT" || test -n "$MOZ_CRASHREPORTER"; then
+ if test -n "$MOZ_TELEMETRY_REPORTING" || test -n "$MOZ_SERVICES_HEALTHREPORT" || test -n "$MOZ_CRASHREPORTER"  || test -n "$MOZ_NORMANDY"; then
    MOZ_DATA_REPORTING=1
    AC_DEFINE(MOZ_DATA_REPORTING)
 diff --git a/toolkit/components/extensions/parent/ext-telemetry.js b/toolkit/components/extensions/parent/ext-telemetry.js
 --- a/toolkit/components/extensions/parent/ext-telemetry.js
 +++ b/toolkit/components/extensions/parent/ext-telemetry.js
-@@ -54,13 +54,7 @@ this.telemetry = class extends Extension
+@@ -102,13 +102,7 @@ this.telemetry = class extends Extension
            // Note: remove the ternary and direct pref check when
            // TelemetryController.canUpload() is implemented (bug 1440089).
            try {
@@ -398,33 +344,28 @@ diff --git a/toolkit/components/extensions/parent/ext-telemetry.js b/toolkit/com
 diff --git a/toolkit/components/normandy/lib/RecipeRunner.jsm b/toolkit/components/normandy/lib/RecipeRunner.jsm
 --- a/toolkit/components/normandy/lib/RecipeRunner.jsm
 +++ b/toolkit/components/normandy/lib/RecipeRunner.jsm
-@@ -39,20 +39,15 @@ const TIMER_NAME = "recipe-client-addon-
- const REMOTE_SETTINGS_COLLECTION = "normandy-recipes";
- const PREF_CHANGED_TOPIC = "nsPref:changed";
+@@ -44,7 +44,6 @@ const PREF_CHANGED_TOPIC = "nsPref:chang
  
--const TELEMETRY_ENABLED_PREF = "datareporting.healthreport.uploadEnabled";
--
- const PREF_PREFIX = "app.normandy";
- const RUN_INTERVAL_PREF = `${PREF_PREFIX}.run_interval_seconds`;
- const FIRST_RUN_PREF = `${PREF_PREFIX}.first_run`;
--const SHIELD_ENABLED_PREF = `${PREF_PREFIX}.enabled`;
- const DEV_MODE_PREF = `${PREF_PREFIX}.dev_mode`;
- const API_URL_PREF = `${PREF_PREFIX}.api_url`;
- const LAZY_CLASSIFY_PREF = `${PREF_PREFIX}.experiments.lazy_classify`;
+ const RUN_INTERVAL_PREF = "app.normandy.run_interval_seconds";
+ const FIRST_RUN_PREF = "app.normandy.first_run";
+-const SHIELD_ENABLED_PREF = "app.normandy.enabled";
+ const DEV_MODE_PREF = "app.normandy.dev_mode";
+ const API_URL_PREF = "app.normandy.api_url";
+ const LAZY_CLASSIFY_PREF = "app.normandy.experiments.lazy_classify";
+@@ -54,7 +53,7 @@ const ONSYNC_SKEW_SEC_PREF = "app.norman
+ // see https://searchfox.org/mozilla-central/rev/11cfa0462/toolkit/components/timermanager/UpdateTimerManager.jsm#8
+ const TIMER_LAST_UPDATE_PREF = `app.update.lastUpdateTime.${TIMER_NAME}`;
  
- const PREFS_TO_WATCH = [
-   RUN_INTERVAL_PREF,
--  TELEMETRY_ENABLED_PREF,
--  SHIELD_ENABLED_PREF,
-   API_URL_PREF,
- ];
+-const PREFS_TO_WATCH = [RUN_INTERVAL_PREF, SHIELD_ENABLED_PREF, API_URL_PREF];
++const PREFS_TO_WATCH = [RUN_INTERVAL_PREF, API_URL_PREF];
  
-@@ -160,13 +155,6 @@ var RecipeRunner = {
+ XPCOMUtils.defineLazyGetter(this, "gRemoteSettingsClient", () => {
+   return RemoteSettings(REMOTE_SETTINGS_COLLECTION);
+@@ -178,12 +177,6 @@ var RecipeRunner = {
              this.updateRunInterval();
              break;
  
 -          // explicit fall-through
--          case TELEMETRY_ENABLED_PREF:
 -          case SHIELD_ENABLED_PREF:
 -          case API_URL_PREF:
 -            this.checkPrefs();
@@ -433,30 +374,15 @@ diff --git a/toolkit/components/normandy/lib/RecipeRunner.jsm b/toolkit/componen
            default:
              log.debug(
                `Observer fired with unexpected pref change: ${prefName}`
-@@ -179,45 +167,7 @@ var RecipeRunner = {
+@@ -196,30 +189,7 @@ var RecipeRunner = {
    },
  
    checkPrefs() {
--    // Only run if Unified Telemetry is enabled.
--    if (!Services.prefs.getBoolPref(TELEMETRY_ENABLED_PREF)) {
--      log.debug(
--        "Disabling RecipeRunner because Unified Telemetry is disabled."
--      );
-       this.disable();
--      return;
--    }
--
 -    if (!Services.prefs.getBoolPref(SHIELD_ENABLED_PREF)) {
 -      log.debug(
 -        `Disabling Shield because ${SHIELD_ENABLED_PREF} is set to false`
 -      );
--      this.disable();
--      return;
--    }
--
--    if (!Services.policies.isAllowed("Shield")) {
--      log.debug("Disabling Shield because it's blocked by policy.");
--      this.disable();
+       this.disable();
 -      return;
 -    }
 -
@@ -506,7 +432,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/
  
  const PING_FORMAT_VERSION = 4;
  
-@@ -727,8 +724,6 @@ var Impl = {
+@@ -838,8 +835,6 @@ var Impl = {
        return Promise.resolve();
      }
  
@@ -515,19 +441,19 @@ diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/
      // Perform a lightweight, early initialization for the component, just registering
      // a few observers and initializing the session.
      TelemetrySession.earlyInit(this._testMode);
-@@ -764,10 +759,7 @@ var Impl = {
+@@ -873,10 +868,7 @@ var Impl = {
+           this._clientID = await ClientID.getClientID();
+ 
            // Fix-up a canary client ID if detected.
-           if (IS_UNIFIED_TELEMETRY) {
-             // On desktop respect the upload preference.
--            const uploadEnabled = Services.prefs.getBoolPref(
--              TelemetryUtils.Preferences.FhrUploadEnabled,
--              false
--            );
-+            const uploadEnabled = false;
-             if (uploadEnabled && this._clientID == Utils.knownClientID) {
-               this._log.trace(
-                 "Upload enabled, but got canary client ID. Resetting."
-@@ -799,17 +791,6 @@ var Impl = {
+-          const uploadEnabled = Services.prefs.getBoolPref(
+-            TelemetryUtils.Preferences.FhrUploadEnabled,
+-            false
+-          );
++          const uploadEnabled = false;
+           if (uploadEnabled && this._clientID == Utils.knownClientID) {
+             this._log.trace(
+               "Upload enabled, but got canary client ID. Resetting."
+@@ -897,17 +889,6 @@ var Impl = {
            await TelemetrySession.delayedInit();
            await Services.telemetry.delayedInit();
  
@@ -545,15 +471,15 @@ diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/
            // Purge the pings archive by removing outdated pings. We don't wait for
            // this task to complete, but TelemetryStorage blocks on it during
            // shutdown.
-@@ -897,7 +878,6 @@ var Impl = {
-     }
+@@ -998,7 +979,6 @@ var Impl = {
+     this._shutdownStep = "_cleanupOnShutdown begin " + now();
  
      Services.prefs.removeObserver(PREF_BRANCH_LOG, configureLogging);
 -    this._detachObservers();
  
      // Now do an orderly shutdown.
      try {
-@@ -990,10 +970,6 @@ var Impl = {
+@@ -1112,10 +1092,6 @@ var Impl = {
        case "app-startup":
          // app-startup is only registered for content processes.
          return this.setupContentTelemetry();
@@ -564,13 +490,13 @@ diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/
      }
      return undefined;
    },
-@@ -1013,97 +989,8 @@ var Impl = {
+@@ -1136,114 +1112,8 @@ var Impl = {
      };
    },
  
 -  /**
 -   * Called whenever the FHR Upload preference changes (e.g. when user disables FHR from
--   * the preferences panel), this triggers sending the optout ping.
+-   * the preferences panel), this triggers sending the "deletion-request" ping.
 -   */
 -  _onUploadPrefChange() {
 -    const uploadEnabled = Services.prefs.getBoolPref(
@@ -618,19 +544,36 @@ diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/
 -        TelemetrySession.resetSubsessionCounter();
 -
 -        // 5. Set ClientID to a known value
+-        let oldClientId = await ClientID.getClientID();
 -        this._clientID = await ClientID.setClientID(
 -          TelemetryUtils.knownClientID
 -        );
 -
--        // 6. Send the optout ping.
--        this._log.trace("_onUploadPrefChange - Sending optout ping.");
--        this.submitExternalPing(PING_TYPE_OPTOUT, {}, { addClientId: false });
+-        // 6. Send the deletion-request ping.
+-        this._log.trace("_onUploadPrefChange - Sending deletion-request ping.");
+-        const scalars = Telemetry.getSnapshotForScalars(
+-          "deletion-request",
+-          /* clear */ true
+-        );
+-
+-        this.submitExternalPing(
+-          PING_TYPE_DELETION_REQUEST,
+-          { scalars },
+-          { overrideClientId: oldClientId }
+-        );
+-        this._deletionRequestPingSubmittedPromise = null;
 -      }
 -    })();
 -
+-    this._deletionRequestPingSubmittedPromise = p;
 -    this._shutdownBarrier.client.addBlocker(
 -      "TelemetryController: removing pending pings after data upload was disabled",
 -      p
+-    );
+-
+-    Services.obs.notifyObservers(
+-      null,
+-      TelemetryUtils.TELEMETRY_UPLOAD_DISABLED_TOPIC
 -    );
 -  },
 -
@@ -638,7 +581,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/
  
 -  _attachObservers() {
 -    if (IS_UNIFIED_TELEMETRY) {
--      // Watch the FHR upload setting to trigger optout pings.
+-      // Watch the FHR upload setting to trigger "deletion-request" pings.
 -      Services.prefs.addObserver(
 -        TelemetryUtils.Preferences.FhrUploadEnabled,
 -        this,
@@ -662,7 +605,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryController.jsm b/toolkit/
    /**
     * Allows waiting for TelemetryControllers delayed initialization to complete.
     * This will complete before TelemetryController is shutting down.
-@@ -1134,7 +1021,6 @@ var Impl = {
+@@ -1274,7 +1144,6 @@ var Impl = {
  
    async reset() {
      this._clientID = null;
@@ -682,11 +625,10 @@ diff --git a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm b/too
  
    get _log() {
      if (!this._logger) {
-@@ -249,11 +249,7 @@ var TelemetryReportingPolicyImpl = {
-    * false, we never request upload or deletion.
+@@ -250,10 +250,7 @@ var TelemetryReportingPolicyImpl = {
     */
    get dataSubmissionEnabled() {
--    // Default is true because we are opt-out.
+     // Default is true because we are opt-out.
 -    return Services.prefs.getBoolPref(
 -      TelemetryUtils.Preferences.DataSubmissionEnabled,
 -      true
@@ -695,7 +637,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm b/too
    },
  
    get currentPolicyVersion() {
-@@ -374,19 +370,7 @@ var TelemetryReportingPolicyImpl = {
+@@ -374,19 +371,7 @@ var TelemetryReportingPolicyImpl = {
     * @return {Boolean} True if we are allowed to upload data, false otherwise.
     */
    canUpload() {
@@ -715,7 +657,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm b/too
    },
  
    isFirstRun() {
-@@ -407,32 +391,7 @@ var TelemetryReportingPolicyImpl = {
+@@ -407,32 +392,7 @@ var TelemetryReportingPolicyImpl = {
     * Determine whether the user should be notified.
     */
    _shouldNotify() {
@@ -748,7 +690,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm b/too
    },
  
    /**
-@@ -553,10 +512,7 @@ var TelemetryReportingPolicyImpl = {
+@@ -553,10 +513,7 @@ var TelemetryReportingPolicyImpl = {
        return;
      }
  
@@ -775,7 +717,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
  
  const MS_IN_A_MINUTE = 60 * 1000;
  
-@@ -678,11 +675,6 @@ var TelemetrySendImpl = {
+@@ -697,11 +694,6 @@ var TelemetrySendImpl = {
      TOPIC_PROFILE_CHANGE_NET_TEARDOWN,
    ],
  
@@ -787,7 +729,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
    // Whether sending pings has been overridden.
    get _overrideOfficialCheck() {
      return Services.prefs.getBoolPref(
-@@ -739,13 +731,10 @@ var TelemetrySendImpl = {
+@@ -758,13 +750,10 @@ var TelemetrySendImpl = {
        TelemetryUtils.Preferences.Server,
        undefined
      );
@@ -802,7 +744,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
      this._annotateCrashReport();
  
      // Check the pending pings on disk now.
-@@ -824,13 +813,6 @@ var TelemetrySendImpl = {
+@@ -843,13 +832,6 @@ var TelemetrySendImpl = {
    async shutdown() {
      this._shutdown = true;
  
@@ -816,7 +758,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
      for (let topic of this.OBSERVER_TOPICS) {
        try {
          Services.obs.removeObserver(this, topic);
-@@ -865,7 +847,7 @@ var TelemetrySendImpl = {
+@@ -894,7 +876,7 @@ var TelemetrySendImpl = {
      this._currentPings = new Map();
      this._tooLateToSend = false;
      this._isOSShutdown = false;
@@ -825,7 +767,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
  
      const histograms = [
        "TELEMETRY_SUCCESS",
-@@ -919,11 +901,6 @@ var TelemetrySendImpl = {
+@@ -948,11 +930,6 @@ var TelemetrySendImpl = {
            setOSShutdown();
          }
          break;
@@ -837,7 +779,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
        case TOPIC_PROFILE_CHANGE_NET_TEARDOWN:
          this._tooLateToSend = true;
          break;
-@@ -1233,209 +1210,7 @@ var TelemetrySendImpl = {
+@@ -1260,209 +1237,7 @@ var TelemetrySendImpl = {
    },
  
    _doPing(ping, id, isPersisted) {
@@ -1047,7 +989,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
    },
  
    /**
-@@ -1462,30 +1237,7 @@ var TelemetrySendImpl = {
+@@ -1489,30 +1264,7 @@ var TelemetrySendImpl = {
     * @return {Boolean} True if pings can be send to the servers, false otherwise.
     */
    sendingEnabled(ping = null) {
@@ -1063,8 +1005,8 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
 -    // With unified Telemetry, the FHR upload setting controls whether we can send pings.
 -    // The Telemetry pref enables sending extended data sets instead.
 -    if (IS_UNIFIED_TELEMETRY) {
--      // Optout pings are sent once even if the upload is disabled.
--      if (ping && isOptoutPing(ping)) {
+-      // "deletion-request" pings are sent once even if the upload is disabled.
+-      if (ping && isDeletionRequestPing(ping)) {
 -        return true;
 -      }
 -      return Services.prefs.getBoolPref(
@@ -1078,12 +1020,12 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
    },
  
    /**
-@@ -1554,22 +1306,5 @@ var TelemetrySendImpl = {
+@@ -1578,23 +1330,5 @@ var TelemetrySendImpl = {
    },
  
-   runPingSender(url, pingPath) {
+   runPingSender(pings, observer) {
 -    if (AppConstants.platform === "android") {
--      throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+-      throw Components.Exception("", Cr.NS_ERROR_NOT_IMPLEMENTED);
 -    }
 -
 -    const exeName =
@@ -1092,19 +1034,20 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
 -    let exe = Services.dirsvc.get("GreBinD", Ci.nsIFile);
 -    exe.append(exeName);
 -
+-    let params = pings.flatMap(ping => [ping.url, ping.path]);
 -    let process = Cc["@mozilla.org/process/util;1"].createInstance(
 -      Ci.nsIProcess
 -    );
 -    process.init(exe);
 -    process.startHidden = true;
 -    process.noShell = true;
--    process.run(/* blocking */ false, [url, pingPath], 2);
+-    process.runAsync(params, params.length, observer);
    },
  };
 diff --git a/toolkit/components/telemetry/app/TelemetryUtils.jsm b/toolkit/components/telemetry/app/TelemetryUtils.jsm
 --- a/toolkit/components/telemetry/app/TelemetryUtils.jsm
 +++ b/toolkit/components/telemetry/app/TelemetryUtils.jsm
-@@ -106,7 +106,7 @@ var TelemetryUtils = {
+@@ -131,7 +131,7 @@ var TelemetryUtils = {
     * it correctly evaluates to a boolean type.
     */
    get isTelemetryEnabled() {
@@ -1116,7 +1059,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryUtils.jsm b/toolkit/compo
 diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/components/telemetry/core/Telemetry.cpp
 --- a/toolkit/components/telemetry/core/Telemetry.cpp
 +++ b/toolkit/components/telemetry/core/Telemetry.cpp
-@@ -1103,7 +1103,7 @@ TelemetryImpl::GetKeyedHistogramById(con
+@@ -1116,7 +1116,7 @@ TelemetryImpl::GetKeyedHistogramById(con
   */
  NS_IMETHODIMP
  TelemetryImpl::GetCanRecordBase(bool* ret) {
@@ -1125,7 +1068,7 @@ diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/component
    return NS_OK;
  }
  
-@@ -1132,7 +1132,7 @@ TelemetryImpl::SetCanRecordBase(bool can
+@@ -1142,7 +1142,7 @@ TelemetryImpl::SetCanRecordBase(bool can
   */
  NS_IMETHODIMP
  TelemetryImpl::GetCanRecordExtended(bool* ret) {
@@ -1134,7 +1077,7 @@ diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/component
    return NS_OK;
  }
  
-@@ -1154,13 +1154,13 @@ TelemetryImpl::SetCanRecordExtended(bool
+@@ -1161,13 +1161,13 @@ TelemetryImpl::SetCanRecordExtended(bool
  
  NS_IMETHODIMP
  TelemetryImpl::GetCanRecordReleaseData(bool* ret) {
@@ -1187,11 +1130,13 @@ diff --git a/toolkit/components/telemetry/core/TelemetryCommon.cpp b/toolkit/com
  }
  
  bool CanRecordInProcess(RecordedProcessType processes, ProcessID processId) {
-@@ -78,7 +58,7 @@ bool CanRecordInProcess(RecordedProcessT
+@@ -78,9 +58,7 @@ bool CanRecordInProcess(RecordedProcessT
  }
  
  bool CanRecordProduct(SupportedProduct aProducts) {
--  return !!(aProducts & GetCurrentProduct());
+-  return mozilla::StaticPrefs::
+-             toolkit_telemetry_testing_overrideProductsCheck() ||
+-         !!(aProducts & GetCurrentProduct());
 +  return false;
  }
  
@@ -1199,7 +1144,7 @@ diff --git a/toolkit/components/telemetry/core/TelemetryCommon.cpp b/toolkit/com
 diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/components/telemetry/core/TelemetryEvent.cpp
 --- a/toolkit/components/telemetry/core/TelemetryEvent.cpp
 +++ b/toolkit/components/telemetry/core/TelemetryEvent.cpp
-@@ -343,29 +343,7 @@ nsCString GetCategory(const StaticMutexA
+@@ -342,29 +342,7 @@ nsCString GetCategory(const StaticMutexA
  
  bool CanRecordEvent(const StaticMutexAutoLock& lock, const EventKey& eventKey,
                      ProcessID process) {
@@ -1229,7 +1174,7 @@ diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/comp
  }
  
  bool IsExpired(const EventKey& key) { return key.id == kExpiredEventId; }
-@@ -423,69 +401,6 @@ RecordEventResult RecordEvent(const Stat
+@@ -421,70 +399,6 @@ RecordEventResult RecordEvent(const Stat
                                const nsACString& object,
                                const Maybe<nsCString>& value,
                                const ExtraArray& extra) {
@@ -1253,7 +1198,9 @@ diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/comp
 -
 -  // Fixup the process id only for non-builtin (e.g. supporting build faster)
 -  // dynamic events.
--  if (eventKey->dynamic && !(*gDynamicEventInfo)[eventKey->id].builtin) {
+-  auto dynamicNonBuiltin =
+-      eventKey->dynamic && !(*gDynamicEventInfo)[eventKey->id].builtin;
+-  if (dynamicNonBuiltin) {
 -    processType = ProcessID::Dynamic;
 -  }
 -
@@ -1272,7 +1219,7 @@ diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/comp
 -  // Count the number of times this event has been recorded, even if its
 -  // category does not have recording enabled.
 -  TelemetryScalar::SummarizeEvent(UniqueEventName(category, method, object),
--                                  processType, eventKey->dynamic);
+-                                  processType, dynamicNonBuiltin);
 -
 -  // Check whether this event's category has recording enabled
 -  if (!gEnabledCategories.GetEntry(GetCategory(lock, *eventKey))) {
@@ -1285,8 +1232,7 @@ diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/comp
 -    return RecordEventResult::Ok;
 -  }
 -
--  EventRecordArray* eventRecords =
--      GetEventRecordsForProcess(lock, processType, *eventKey);
+-  EventRecordArray* eventRecords = GetEventRecordsForProcess(lock, processType);
 -  eventRecords->AppendElement(EventRecord(timestamp, *eventKey, value, extra));
 -
 -  // Notify observers when we hit the "event" ping event record limit.
@@ -1302,7 +1248,7 @@ diff --git a/toolkit/components/telemetry/core/TelemetryEvent.cpp b/toolkit/comp
 diff --git a/toolkit/components/telemetry/core/TelemetryHistogram.cpp b/toolkit/components/telemetry/core/TelemetryHistogram.cpp
 --- a/toolkit/components/telemetry/core/TelemetryHistogram.cpp
 +++ b/toolkit/components/telemetry/core/TelemetryHistogram.cpp
-@@ -491,9 +491,9 @@ nsresult internal_GetHistogramIdByName(c
+@@ -494,9 +494,9 @@ nsresult internal_GetHistogramIdByName(c
  
  namespace {
  
@@ -1318,7 +1264,7 @@ diff --git a/toolkit/components/telemetry/core/TelemetryHistogram.cpp b/toolkit/
 diff --git a/toolkit/components/telemetry/core/TelemetryScalar.cpp b/toolkit/components/telemetry/core/TelemetryScalar.cpp
 --- a/toolkit/components/telemetry/core/TelemetryScalar.cpp
 +++ b/toolkit/components/telemetry/core/TelemetryScalar.cpp
-@@ -1264,11 +1264,11 @@ void internal_LogScalarError(const nsACS
+@@ -1334,11 +1334,11 @@ void internal_LogScalarError(const nsACS
  namespace {
  
  bool internal_CanRecordBase(const StaticMutexAutoLock& lock) {
@@ -1332,112 +1278,6 @@ diff --git a/toolkit/components/telemetry/core/TelemetryScalar.cpp b/toolkit/com
  }
  
  /**
-diff --git a/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm b/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm
---- a/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm
-+++ b/toolkit/components/telemetry/hybrid-content/HybridContentTelemetry.jsm
-@@ -18,6 +18,7 @@ const { XPCOMUtils } = ChromeUtils.impor
- let HybridContentTelemetry = {
-   _logger: null,
-   _observerInstalled: false,
-+  _hybridContentEnabled: false,
- 
-   get _log() {
-     if (!this._logger) {
-@@ -31,27 +32,6 @@ let HybridContentTelemetry = {
-   },
- 
-   /**
--   * Lazily initialized observer for the Telemetry upload preference. This is
--   * only ever executed if a page uses hybrid content telemetry and has enough
--   * privileges to run it.
--   */
--  _lazyObserverInit() {
--    if (this._observerInstalled) {
--      // We only want to install the observers once, if needed.
--      return;
--    }
--    this._log.trace("_lazyObserverInit - installing the pref observers.");
--    XPCOMUtils.defineLazyPreferenceGetter(
--      this,
--      "_uploadEnabled",
--      TelemetryUtils.Preferences.FhrUploadEnabled,
--      false /* aDefaultValue */,
--      () => this._broadcastPolicyUpdate()
--    );
--    this._observerInstalled = true;
--  },
--
--  /**
-    * This is the handler for the async "HybridContentTelemetry:onTelemetryMessage"
-    * message. This function is getting called by the listener in
-    * BrowserGlue.jsm.
-@@ -81,19 +61,6 @@ let HybridContentTelemetry = {
-   },
- 
-   /**
--   * Broadcast the upload policy state to the pages using hybrid
--   * content telemetry.
--   */
--  _broadcastPolicyUpdate() {
--    this._log.trace(
--      `_broadcastPolicyUpdate - New value is ${this._uploadEnabled}.`
--    );
--    Services.mm.broadcastAsyncMessage("HybridContentTelemetry:PolicyChanged", {
--      canUpload: this._uploadEnabled,
--    });
--  },
--
--  /**
-    * Dispatches the calls to the Telemetry service.
-    * @param {String} aEndpoint The name of the api endpoint to call.
-    * @param {Object} aData An object containing the data to pass to the API.
-@@ -108,10 +75,6 @@ let HybridContentTelemetry = {
-     // any error.
-     try {
-       switch (aEndpoint) {
--        case "init":
--          this._lazyObserverInit();
--          this._broadcastPolicyUpdate();
--          break;
-         case "registerEvents":
-           Services.telemetry.registerEvents(aData.category, aData.eventData);
-           break;
-@@ -139,10 +102,3 @@ let HybridContentTelemetry = {
-     }
-   },
- };
--
--XPCOMUtils.defineLazyPreferenceGetter(
--  HybridContentTelemetry,
--  "_hybridContentEnabled",
--  TelemetryUtils.Preferences.HybridContentEnabled,
--  false /* aDefaultValue */
--);
-diff --git a/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js b/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js
---- a/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js
-+++ b/toolkit/components/telemetry/hybrid-content/content-HybridContentTelemetry.js
-@@ -26,6 +26,7 @@ const HCT_POLICY_CHANGE_MSG = "HybridCon
- var HybridContentTelemetryListener = {
-   _logger: null,
-   _hasListener: false,
-+  _hybridContentEnabled: false,
- 
-   get _log() {
-     if (!this._logger) {
-@@ -189,13 +190,6 @@ var HybridContentTelemetryListener = {
-   },
- };
- 
--XPCOMUtils.defineLazyPreferenceGetter(
--  HybridContentTelemetryListener,
--  "_hybridContentEnabled",
--  TelemetryUtils.Preferences.HybridContentEnabled,
--  false /* aDefaultValue */
--);
--
- // The following function installs the handler for "mozTelemetry"
- // events in the chrome. Please note that the name of the message (i.e.
- // "mozTelemetry") needs to match the one in HybridContentTelemetry-lib.js.
 diff --git a/toolkit/components/telemetry/other/UITelemetry.jsm b/toolkit/components/telemetry/other/UITelemetry.jsm
 --- a/toolkit/components/telemetry/other/UITelemetry.jsm
 +++ b/toolkit/components/telemetry/other/UITelemetry.jsm
@@ -1507,7 +1347,7 @@ diff --git a/toolkit/components/telemetry/pings/CoveragePing.jsm b/toolkit/compo
  const REPORTING_ENDPOINT_BASE_PREF = `toolkit.coverage.endpoint.base`;
  const REPORTING_ENDPOINT = "submit/coverage/coverage";
  const PING_SUBMISSION_TIMEOUT = 30 * 1000; // 30 seconds
-@@ -47,127 +45,14 @@ log.addAppender(new Log.ConsoleAppender(
+@@ -47,125 +45,14 @@ log.addAppender(new Log.ConsoleAppender(
  
  var CoveragePing = Object.freeze({
    async startup() {
@@ -1615,9 +1455,7 @@ diff --git a/toolkit/components/telemetry/pings/CoveragePing.jsm b/toolkit/compo
 -      } else {
 -        // We received an unexpected status code.
 -        log.error(
--          `error submitting to ${endpoint}, status: ${status}, type: ${
--            event.type
--          }`
+-          `error submitting to ${endpoint}, status: ${status}, type: ${event.type}`
 -        );
 -      }
 -
@@ -1761,7 +1599,7 @@ diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/c
  
  var gWasDebuggerAttached = false;
  
-@@ -980,95 +977,6 @@ var Impl = {
+@@ -988,95 +985,6 @@ var Impl = {
      // on all pings to be saved after kicking off their collection.
      let p = [];
  
@@ -1860,7 +1698,7 @@ diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/c
 diff --git a/toolkit/components/telemetry/pings/UpdatePing.jsm b/toolkit/components/telemetry/pings/UpdatePing.jsm
 --- a/toolkit/components/telemetry/pings/UpdatePing.jsm
 +++ b/toolkit/components/telemetry/pings/UpdatePing.jsm
-@@ -34,10 +34,6 @@ var UpdatePing = {
+@@ -35,10 +35,6 @@ var UpdatePing = {
        LOGGER_NAME,
        "UpdatePing::"
      );
@@ -1886,7 +1724,7 @@ diff --git a/toolkit/content/aboutTelemetry.js b/toolkit/content/aboutTelemetry.
  
  // ms idle before applying the filter (allow uninterrupted typing)
  const FILTER_IDLE_TIMEOUT = 500;
-@@ -175,25 +173,7 @@ function removeAllChildNodes(node) {
+@@ -175,24 +173,8 @@ function removeAllChildNodes(node) {
  }
  
  var Settings = {
@@ -1902,17 +1740,16 @@ diff --git a/toolkit/content/aboutTelemetry.js b/toolkit/content/aboutTelemetry.
 -      defaultPrefValue: false,
 -    },
 -  ],
--
+ 
    attachObservers() {
 -    for (let s of this.SETTINGS) {
 -      let setting = s;
 -      Preferences.observe(setting.pref, this.render, this);
 -    }
--
+ 
      let elements = document.getElementsByClassName("change-data-choices-link");
      for (let el of elements) {
-       el.parentElement.addEventListener("click", function(event) {
-@@ -217,9 +197,6 @@ var Settings = {
+@@ -217,9 +199,6 @@ var Settings = {
    },
  
    detachObservers() {
@@ -1922,7 +1759,7 @@ diff --git a/toolkit/content/aboutTelemetry.js b/toolkit/content/aboutTelemetry.
    },
  
    /**
-@@ -227,7 +204,7 @@ var Settings = {
+@@ -227,7 +206,7 @@ var Settings = {
     */
    render() {
      let settingsExplanation = document.getElementById("settings-explanation");
@@ -1931,7 +1768,7 @@ diff --git a/toolkit/content/aboutTelemetry.js b/toolkit/content/aboutTelemetry.
  
      let channel = extendedEnabled ? "prerelease" : "release";
      let uploadcase = TelemetrySend.sendingEnabled() ? "enabled" : "disabled";
-@@ -1099,20 +1076,6 @@ SymbolicationRequest.prototype.handleSym
+@@ -1098,20 +1077,6 @@ SymbolicationRequest.prototype.handleSym
   * Send a request to the symbolication server to symbolicate this stack.
   */
  SymbolicationRequest.prototype.fetchSymbols = function SymbolicationRequest_fetchSymbols() {
@@ -1955,16 +1792,16 @@ diff --git a/toolkit/content/aboutTelemetry.js b/toolkit/content/aboutTelemetry.
 diff --git a/toolkit/mozapps/extensions/content/aboutaddons.js b/toolkit/mozapps/extensions/content/aboutaddons.js
 --- a/toolkit/mozapps/extensions/content/aboutaddons.js
 +++ b/toolkit/mozapps/extensions/content/aboutaddons.js
-@@ -91,8 +91,6 @@ const PREF_DISCOVERY_API_URL = "extensio
- const PREF_THEME_RECOMMENDATION_URL =
+@@ -115,8 +115,6 @@ const PREF_THEME_RECOMMENDATION_URL =
    "extensions.recommendations.themeRecommendationUrl";
+ const PREF_RECOMMENDATION_HIDE_NOTICE = "extensions.recommendations.hideNotice";
  const PREF_PRIVACY_POLICY_URL = "extensions.recommendations.privacyPolicyUrl";
 -const PREF_RECOMMENDATION_ENABLED = "browser.discovery.enabled";
 -const PREF_TELEMETRY_ENABLED = "datareporting.healthreport.uploadEnabled";
  const PRIVATE_BROWSING_PERM_NAME = "internal:privateBrowsingAllowed";
  const PRIVATE_BROWSING_PERMS = {
    permissions: [PRIVATE_BROWSING_PERM_NAME],
-@@ -496,11 +494,7 @@ var DiscoveryAPI = {
+@@ -607,11 +605,7 @@ var DiscoveryAPI = {
  
    get clientIdDiscoveryEnabled() {
      // These prefs match Discovery.jsm for enabling clientId cookies.
@@ -1977,73 +1814,42 @@ diff --git a/toolkit/mozapps/extensions/content/aboutaddons.js b/toolkit/mozapps
    },
  
    async _fetchRecommendedAddons(useClientId) {
-diff --git a/toolkit/mozapps/extensions/content/extensions.js b/toolkit/mozapps/extensions/content/extensions.js
---- a/toolkit/mozapps/extensions/content/extensions.js
-+++ b/toolkit/mozapps/extensions/content/extensions.js
-@@ -2342,14 +2342,7 @@ var gDiscoverView = {
- 
-   get clientIdDiscoveryEnabled() {
-     // These prefs match Discovery.jsm for enabling clientId cookies.
--    return (
--      Services.prefs.getBoolPref(
--        "datareporting.healthreport.uploadEnabled",
--        false
--      ) &&
--      Services.prefs.getBoolPref("browser.discovery.enabled", false) &&
--      !PrivateBrowsingUtils.isContentWindowPrivate(window)
--    );
-+    return false;
-   },
- 
-   async getClientHeader() {
+   async _fetchRecommendedAddons(useClientId) {
 diff --git a/toolkit/xre/LauncherRegistryInfo.cpp b/toolkit/xre/LauncherRegistryInfo.cpp
 --- a/toolkit/xre/LauncherRegistryInfo.cpp
 +++ b/toolkit/xre/LauncherRegistryInfo.cpp
-@@ -438,28 +438,7 @@ LauncherResult<DWORD> LauncherRegistryIn
- }
- 
- LauncherResult<bool> LauncherRegistryInfo::GetTelemetrySetting() {
--  std::wstring telemetryValueName = ResolveTelemetryValueName();
+@@ -413,13 +413,7 @@ LauncherResult<bool> LauncherRegistryInf
+   if (result.isErr()) {
+     return LAUNCHER_ERROR_FROM_RESULT(result);
+   }
 -
--  DWORD value;
--  DWORD valueLen = sizeof(value);
--  DWORD type;
--  LSTATUS result = ::RegQueryValueExW(
--      mRegKey.get(), telemetryValueName.c_str(), nullptr, &type,
--      reinterpret_cast<PBYTE>(&value), &valueLen);
--  if (result == ERROR_FILE_NOT_FOUND) {
+-  if (result.inspect().isNothing()) {
 -    // Value does not exist, treat as false
-     return false;
+-    return false;
 -  }
 -
--  if (result != ERROR_SUCCESS) {
--    return LAUNCHER_ERROR_FROM_WIN32(result);
--  }
--
--  if (type != REG_DWORD) {
--    return LAUNCHER_ERROR_FROM_WIN32(ERROR_DATATYPE_MISMATCH);
--  }
--
--  return value != 0;
+-  return result.inspect().value() != 0;
++  return false;
  }
- 
- LauncherResult<uint64_t> LauncherRegistryInfo::GetStartTimestamp(
+
+ const std::wstring& LauncherRegistryInfo::ResolveLauncherValueName() {
 diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
 --- a/toolkit/xre/nsAppRunner.cpp
 +++ b/toolkit/xre/nsAppRunner.cpp
-@@ -246,11 +246,6 @@ extern void InstallSignalHandlers(const 
+@@ -249,12 +249,6 @@ extern void InstallSignalHandlers(const 
  #define FILE_INVALIDATE_CACHES NS_LITERAL_CSTRING(".purgecaches")
  #define FILE_STARTUP_INCOMPLETE NS_LITERAL_STRING(".startup-incomplete")
  
--#if defined(MOZ_BLOCK_PROFILE_DOWNGRADE) || defined(MOZ_LAUNCHER_PROCESS)
+-#if defined(MOZ_BLOCK_PROFILE_DOWNGRADE) || defined(MOZ_LAUNCHER_PROCESS) || \
+-    defined(MOZ_DEFAULT_BROWSER_AGENT)
 -static const char kPrefHealthReportUploadEnabled[] =
 -    "datareporting.healthreport.uploadEnabled";
 -#endif  // defined(MOZ_BLOCK_PROFILE_DOWNGRADE) || defined(MOZ_LAUNCHER_PROCESS)
--
- int gArgc;
- char** gArgv;
- 
-@@ -1524,7 +1519,7 @@ static void OnLauncherPrefChanged(const 
+-        // || defined(MOZ_DEFAULT_BROWSER_AGENT)
+ #if defined(MOZ_DEFAULT_BROWSER_AGENT)
+ static const char kPrefDefaultAgentEnabled[] = "default-browser-agent.enabled";
+ #endif  // defined(MOZ_DEFAULT_BROWSER_AGENT)
+@@ -1569,7 +1563,7 @@ static void OnLauncherPrefChanged(const 
  }
  
  static void OnLauncherTelemetryPrefChanged(const char* aPref, void* aData) {
@@ -2052,7 +1858,7 @@ diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
  
    mozilla::LauncherRegistryInfo launcherRegInfo;
    mozilla::LauncherVoidResult reflectResult =
-@@ -1559,13 +1554,11 @@ static void SetupLauncherProcessPref() {
+@@ -1604,13 +1598,11 @@ static void SetupLauncherProcessPref() {
  
    mozilla::LauncherVoidResult reflectResult =
        launcherRegInfo.ReflectTelemetryPrefToRegistry(
@@ -2067,7 +1873,7 @@ diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
  }
  
  #  endif  // defined(MOZ_LAUNCHER_PROCESS)
-@@ -2042,170 +2035,6 @@ struct FileWriteFunc : public JSONWriteF
+@@ -2146,171 +2138,6 @@ struct FileWriteFunc : public JSONWriteF
  
  static void SubmitDowngradeTelemetry(const nsCString& aLastVersion,
                                       bool aHasSync, int32_t aButton) {
@@ -2189,7 +1995,8 @@ diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
 -      w.StringProperty("buildId", gAppData->buildID);
 -      w.StringProperty("name", gAppData->name);
 -      w.StringProperty("version", gAppData->version);
--      w.StringProperty("displayVersion", NS_STRINGIFY(MOZ_APP_VERSION_DISPLAY));
+-      w.StringProperty("displayVersion",
+-                       MOZ_STRINGIFY(MOZ_APP_VERSION_DISPLAY));
 -      w.StringProperty("vendor", gAppData->vendor);
 -      w.StringProperty("platformVersion", gToolkitVersion);
 -#  ifdef TARGET_XPCOM_ABI

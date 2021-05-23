@@ -18,7 +18,7 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,132 @@
 +const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 +const { Preferences } = ChromeUtils.import(
 +  "resource://gre/modules/Preferences.jsm"
@@ -47,6 +47,15 @@ new file mode 100644
 +  if (invalidStartupHomepage(uriToLoad)) {
 +    uriToLoad = Preferences.get("browser.startup.homepage");
 +  }
++
++  if(uriToLoad.indexOf('about:') == 0){
++    document.getElementById("content").remove();
++    var element = document.getElementById("aboutContent");
++    element.id = "content";
++  }else{
++    document.getElementById("aboutContent").remove();
++  }
++
 +  getSelectedBrowser().src = uriToLoad;
 +}
 +
@@ -73,7 +82,7 @@ new file mode 100644
 +}
 +
 +/**
-+ * Keyboard shortcut 
++ * Keyboard shortcut
 + */
 +function BrowserHomePage(){
 +  if(getEnvVar("WEBVIEWER_ENABLE_HOMEPAGE") || Preferences.get("webviewer.homepage.enable")){
@@ -108,7 +117,7 @@ new file mode 100644
 +function BrowserZoomIn(){
 +  if(getEnvVar("WEBVIEWER_ENABLE_ZOOM") || Preferences.get("webviewer.zoom.enable")){
 +    if(MAX_ZOOM > getSelectedBrowser().fullZoom){
-+    return getSelectedBrowser().fullZoom += 0.1; 
++    return getSelectedBrowser().fullZoom += 0.1;
 +    }
 +  }
 +}
@@ -146,7 +155,7 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,70 @@
 +<?xml version="1.0"?>
 +<!DOCTYPE html [
 +<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -213,6 +222,7 @@ new file mode 100644
 +
 +<stack class="browserStack" flex="10000">
 +  <browser id="content" contextmenu="contentAreaContextMenu" datetimepicker="DateTimePickerPanel" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" autoscrollpopup="autoscroller"/>
++  <browser id="aboutContent" contextmenu="contentAreaContextMenu" datetimepicker="DateTimePickerPanel" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" remote="false" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" autoscrollpopup="autoscroller"/>
 +</stack>
 +
 +</html>
@@ -250,7 +260,7 @@ diff --git a/browser/moz.build b/browser/moz.build
 +++ b/browser/moz.build
 @@ -12,6 +12,7 @@ with Files('docs/**'):
      SCHEDULES.exclusive = ['docs']
- 
+
  DIRS += [
 +    'amethyst',
      'actors',

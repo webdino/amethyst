@@ -21,8 +21,8 @@ WebViewer 本体です。Firefox ブラウザのメインウィンドウを実�
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/webviewer.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/webviewer.patch
 ```
 
 メインウィンドウ以外のコードを残すことで、必要に応じて `about:config` や `about:preferences` などの画面を使って設定変更を行ったり、ブラウザが搭載する各種の機能を温存することが出来ます。但し、メインウィンドウの実装に依存するような機能や WebAPI は (そのままでは) すべて動作しなくなります。
@@ -49,8 +49,8 @@ modificationTime=1561519336884 -- Date.now()
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/enable-webrtc.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/enable-webrtc.patch
 ```
 
 ### enable-form-validation.patch
@@ -60,8 +60,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/enable-webrtc.patch
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/enable-form-validation.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/enable-form-validation.patch
 ```
 
 ### disable-crashreporter.patch
@@ -71,8 +71,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/enable-form-validation.
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-crashreporter.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-crashreporter.patch
 ```
 
 ### disable-updater.patch
@@ -82,8 +82,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-crashreporter.p
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-updater.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-updater.patch
 ```
 
 ### disable-addon-autoupdate.patch
@@ -93,8 +93,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-updater.patch
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-addon-autoupdate.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-addon-autoupdate.patch
 ```
 
 ### disable-telemetry.patch
@@ -104,8 +104,8 @@ Telemetry と Studies を無効にするパッチです。設定値に関係な�
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-telemetry.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-telemetry.patch
 ```
 
 ### disable-webpush.patch
@@ -115,8 +115,8 @@ Web Push API を無効にするパッチです。設定値に関係なく mozill
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-webpush.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-webpush.patch
 ```
 
 ### disable-wifigeo.patch
@@ -126,8 +126,8 @@ Geolocation API を無効にするパッチです。設定値に関係なく moz
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-wifigeo.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-wifigeo.patch
 ```
 
 ### disable-captivedetect.patch
@@ -137,8 +137,8 @@ Captive Portal を検知する機能を無効にするパッチです。通常�
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-captivedetect.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-captivedetect.patch
 ```
 
 ### disable-ocsp.patch
@@ -148,8 +148,8 @@ OCSP による証明書の自動更新を無効にするパッチです。通常
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-ocsp.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-ocsp.patch
 ```
 
 ### disable-safebrowsing.patch
@@ -159,8 +159,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-ocsp.patch
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-safebrowsing.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-safebrowsing.patch
 ```
 
 ### disable-searchengine-update.patch
@@ -170,8 +170,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-safebrowsing.pa
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-searchengine-update.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-searchengine-update.patch
 ```
 
 ### disable-snippets.patch
@@ -181,8 +181,8 @@ about:home に表示されるスニペットの取得を無効にするパッチ
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-snippets.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-snippets.patch
 ```
 
 ### disable-homepage-override.patch
@@ -192,8 +192,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-snippets.patch
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-homepage-override.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-homepage-override.patch
 ```
 
 ### disable-attribution-code.patch
@@ -203,8 +203,8 @@ mozilla のマーケティングを測定および支援を無効にするパッ
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-attribution-code.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-attribution-code.patch
 ```
 
 ### disable-fxaccounts.patch
@@ -214,8 +214,8 @@ Firefox Account と Firefox Sync を無効にするパッチです。設定値�
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-fxaccounts.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-fxaccounts.patch
 ```
 
 ### disable-remote-settings.patch
@@ -225,8 +225,8 @@ Mozilla Remote Settings を無効にするパッチです。設定値に関係�
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-remote-settings.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/disable-remote-settings.patch
 ```
 
 ### removed-files.patch
@@ -237,8 +237,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/disable-remote-settings
 以下のコマンドで Firefox のソースツリーにパッチを当てます。
 
 ```
-cd /path/to/mozilla-esr68
-patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/removed-files.patch
+cd /path/to/mozilla-esr78
+patch -p1 -i /path/to/amethyst/FIREFOX_78_10_1esr_RELEASE/removed-files.patch
 ```
 
 ### browser/amethyst/branding
@@ -249,8 +249,8 @@ patch -p1 -i /path/to/amethyst/FIREFOX_68_1_0esr_RELEASE/removed-files.patch
 以下のコマンドで Firefox のソースツリーにコピーします。
 
 ```
-mkdir -p /path/to/mozilla-esr68/browser/amethyst
-cp -rp /path/to/amethyst/browser/amethyst/branding /path/to/mozilla-esr68/browser/amethyst/
+mkdir -p /path/to/mozilla-esr78/browser/amethyst
+cp -rp /path/to/amethyst/browser/amethyst/78_10_1esr/branding /path/to/mozilla-esr78/browser/amethyst/
 ```
 
 ビルド前にビルド設定ファイル `.mozconfig` に以下の行を追加します。

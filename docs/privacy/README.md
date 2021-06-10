@@ -302,3 +302,31 @@ grep -E 'Host:[[:space:]]+[^[:space:]]+' firstrun.log | wc -l
 | 環境             | 結果 | アクセス先 | 実際のログファイル                               |
 | ---------------- | ---- | ---------- | ------------------------------------------------ |
 | RG/G2E webviewer | 0    |            | [webviewer-firstrun.log](webviewer-firstrun.log) |
+
+
+## OCSPの無効化
+
+http://ocsp.digicert.com へのアクセスが発生しない。
+
+### 確認内容
+
+引数にOCSPによる証明書確認を行っているサイトを与えて起動し、その時の HTTP 通信ログにホスト ocsp.digicert.com が存在しない。
+
+今回は https://github.com を使用する
+
+ログを取得する際に実際に使用したコマンド:
+```log
+# export NSPR_LOG_MODULES=nsHttp:5,nsSocketTransport:5,nsHostResolver:5
+# webviewer https://github.com 2>webviewer-ocsp.log
+```
+アクセスする回数を計測するために使用したコマンド:
+
+```sh
+grep -E  http://ocsp.digicert.com  webviewer-ocsp.log | wc -l
+```
+結果の一覧:
+
+| 環境                  | 結果 | アクセス先                                                                                                                                                                                                                                                                                                                                             | 実際のログファイル                               |
+| --------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| Linux PC | 30   | http://ocsp.digicert.com  |  [firefox-ocsp.log](firefox-ocsp.log)   |
+| RG/G2E webviewer | 0    |                           |  [webviewer-ocsp.log](webviewer-ocsp.log) |

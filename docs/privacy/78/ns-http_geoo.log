@@ -1,0 +1,1185 @@
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: Failed to create EGLConfig! (t=2.64251) [GFX1-]: Failed to create EGLConfig!
+NOTE: This GSX library has the time limitation by reason of an evaluation module.
+[Parent 3596: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff86346000]
+[Parent 3596: Main Thread]: E/nsHttp host=ypvfr.csb.app port=-1
+[Parent 3596: Main Thread]: E/nsHttp uri=https://ypvfr.csb.app/
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel::Init [this=0xffff86346000]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel 0xffff86346000 created nsHttpTransaction 0xffff83af7410
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction::Init [this=0xffff83af7400 caps=201021]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction 0xffff83af7400 SetRequestContext 0xffff8478f510
+[Parent 3596: Main Thread]: E/nsHttp http request [
+[Parent 3596: Main Thread]: E/nsHttp   GET / HTTP/1.1
+[Parent 3596: Main Thread]: E/nsHttp   Host: ypvfr.csb.app
+[Parent 3596: Main Thread]: E/nsHttp   User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:78.0) Gecko/20100101 Firefox/78.0
+[Parent 3596: Main Thread]: E/nsHttp   Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Language: en-US,en;q=0.5
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Encoding: gzip, deflate, br
+[Parent 3596: Main Thread]: E/nsHttp   Connection: keep-alive
+[Parent 3596: Main Thread]: E/nsHttp   Upgrade-Insecure-Requests: 1
+[Parent 3596: Main Thread]: E/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Init this=0xffff83af9000 sockettransport=0xffff83af7018
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x401 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ALPNCallback sslsocketcontrol=0xffff84176860
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ALPNCallback version=304
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x401 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Activate [this=0xffff83af9000 trans=0xffff83af7400 caps=201021]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af7400 status=804b000c progress=0]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff83af9000 - early selected alpn not available, we will try one more time.
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff83af9000 - early selected alpn not available
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff83af9000 [.S......[tlsflags0x00000000]ypvfr.csb.app:443] negotiated to 'h2'
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::Http2Session 0xffff82846800 serial=0x1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::SendHello 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Session Window increase at start of session 0xffff82846800 12517377
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 generate Priority Frame 0x3 depends on 0x0 weight 200 for leader class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 generate Priority Frame 0x5 depends on 0x0 weight 100 for other class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 generate Priority Frame 0x7 depends on 0x0 weight 0 for background class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 generate Priority Frame 0x9 depends on 0x7 weight 0 for speculative class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 generate Priority Frame 0xB depends on 0x3 weight 0 for follower class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 generate Priority Frame 0xD depends on 0x0 weight 240 for urgentStart class
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream first session=0xffff82846800 trans=0xffff83af7400 
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::Http2Stream 0xffff84133760 trans=0xffff83af7400 atrans=0xffff83af7400
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream session=0xffff82846800 stream=0xffff84133760 serial=1 NextID=0xF (tentative)
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af7400 status=804b000d progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff82846800 mConnection=0xffff841735e0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff82846800 sslsocketcontrol=0xffff84176860
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff82846800 version=304
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff82846800 MAC Algortihm (aead==6) 6
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 will write from Http2Stream 0xffff84133760 0x0 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133760 ReadSegments reader=0xffff82846818 count=32768 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnReadSegment 0xffff84133760 count=329 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ParseHttpRequestHeaders 0xffff84133760 avail=329 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Pushed Stream Lookup session=0xffff82846800 key=https://ypvfr.csb.app/[]/[http2.1]/ requestcontext=0xffff8478f510 cache=(nil) hit=(nil)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::TryToActivate 0xffff82846800 stream=0xffff84133760
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::IncrementCounter 0xffff82846800 counting stream 0xffff84133760 Currently 1 streams in session, high water mark is 1
+[Parent 3596: Socket Thread]: E/nsHttp Http2Session::RegisterStreamID session=0xffff82846800 stream=0xffff84133760 id=0xF concurrent=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133760 Stream ID 0xF [session=0xffff82846800] for URI /
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133760 depends on stream 0xD
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream 0xffff84133760 Generating 204 bytes of HEADERS for stream 0xF with priority weight 41 dep 0xD frames 1 uri=/
+[Parent 3596: Socket Thread]: I/nsHttp ParseHttpRequestHeaders 0xffff84133760 used 329 of 329. requestheadersdone = 1 mOpenGenerated = 1
+[Parent 3596: Socket Thread]: I/nsHttp AdjustInitialwindow increased flow control window 0xffff84133760 0xF 12451840
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame 0xffff84133760 inline=217 stream=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff82846800 sz=148 rv=0 actual=148
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame for inline BufferOutput session=0xffff82846800 stream=0xffff84133760 result 0 len=217
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff82846800 sz=217 rv=0 actual=217
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af7400 status=804b0005 progress=217]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnTransportStatus 0xffff83af7400 SENDING_TO without request body
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af7400 status=804b000a progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133760 from 0 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133760 trans readsegments rv 0 read=329
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800 stream=0xffff84133760 countread=329
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 will write from Http2Stream 0xffff84133760 0xF block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133760 ReadSegments reader=0xffff82846818 count=32768 state=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133760 trans readsegments rv 0 read=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133760 0xF: Sending request data complete, mUpstreamState=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133760 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800 stream=0xffff84133760 stream send complete
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 4 data len 18 flags 0 id 0x0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 0 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvSettings 0xffff82846800 SETTINGS Control Frame with 3 entries ack=0
+[Parent 3596: Socket Thread]: I/nsHttp Settings ID 3, Value 256
+[Parent 3596: Socket Thread]: I/nsHttp Settings ID 4, Value 65536
+[Parent 3596: Socket Thread]: I/nsHttp Settings ID 5, Value 16777215
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 2 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::GenerateSettingsAck 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff82846800 sz=9 rv=0 actual=9
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ProcessWaitingWebsockets 0xffff82846800 nothing to do
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 8 data len 4 flags 0 id 0x0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvWindowUpdate 0xffff82846800 len=2147418112 Stream 0x0.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvWindowUpdate 0xffff82846800 session window 65535 increased by 2147418112 now 2147483647.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 2 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 buffering frame header read failure 80470007
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 could not identify a stream to write; suspending.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 4 data len 0 flags 1 id 0x0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvSettings 0xffff82846800 SETTINGS Control Frame with 0 entries ack=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 2 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 buffering frame header read failure 80470007
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 1 data len 421 flags 4 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvHeaders 0xffff82846800 stream 0xF priorityLen=0 stream=0xffff84133760 end_stream=0 end_headers=4 priority_group=0 paddingLength=0 padded=0
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af7400 status=804b0006 progress=421]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResponseHeadersComplete 0xffff82846800 for 0xF fin=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ConvertResponseHeaders 0xffff84133760 response code 200
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 2 to 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133760 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133760 count=32768 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 7 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff83af7400 count=667]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [HTTP/2 200]
+[Parent 3596: Socket Thread]: E/nsHttp Have status line [version=20 status=200 statusText=OK]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [date: Wed, 16 Jun 2021 14:18:05 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-type: text/html]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [vary: Accept-Encoding]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cache-control: private, max-age=0, no-cache, no-store]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [x-request-id: FokVxx6uszX_f70J3MTF]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [set-cookie: signedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; HttpOnly]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [via: 1.1 google]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-cache-status: DYNAMIC]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-request-id: 0ab6c8cb0600001fa528aa0000000001]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [server: cloudflare]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-ray: 6604aa580af71fa5-NRT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-encoding: br]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [X-Firefox-Spdy: h2]
+[Parent 3596: Socket Thread]: I/nsHttp http response [
+[Parent 3596: Socket Thread]: E/nsHttp   HTTP/2 200 OK
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:05 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: text/html
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: private, max-age=0, no-cache, no-store
+[Parent 3596: Socket Thread]: E/nsHttp   x-request-id: FokVxx6uszX_f70J3MTF
+[Parent 3596: Socket Thread]: E/nsHttp   set-cookie: signedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; HttpOnly
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: DYNAMIC
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cb0600001fa528aa0000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa580af71fa5-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: E/nsHttp     OriginalHeaders
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:05 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: text/html
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: private, max-age=0, no-cache, no-store
+[Parent 3596: Socket Thread]: E/nsHttp   x-request-id: FokVxx6uszX_f70J3MTF
+[Parent 3596: Socket Thread]: E/nsHttp   set-cookie: signedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; HttpOnly
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: DYNAMIC
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cb0600001fa528aa0000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa580af71fa5-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: I/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff83af7400 count=0 read=0 mContentRead=0 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 0 data len 551 flags 0 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff82846800 Stream ID 0xF Stream Ptr 0xffff84133760 Fin=0 Len=551
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff82846800 id=0xF newbytes=551 unacked=551 localWindow=12582361
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff82846800 newbytes=551 localWindow=12582361
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133760 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133760 count=32768 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af7400 status=804b0006 progress=972]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff83af7400 count=551]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff83af7400 count=551 read=551 mContentRead=551 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133760 count=32217 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 0 data len 0 flags 1 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff82846800 Stream ID 0xF Stream Ptr 0xffff84133760 Fin=1 Len=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133760 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133760 count=32217 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::SetNeedsCleanup 0xffff82846800 - recorded downstream fin of stream 0xffff84133760 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 4 to 1
+[Parent 3596: Socket Thread]: I/nsHttp   SetRecvdFin id=0xf
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff82846800 id=0xF concurrent=1 active=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments session=0xffff82846800 stream=0xffff84133760 0xF cleanup stream based on mNeedsCleanup.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CleanupStream 0xffff82846800 0xffff84133760 0xF 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CloseStream 0xffff82846800 0xffff84133760 0xf 0
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff82846800 id=0xF concurrent=0 active=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::~Http2Stream 0xffff84133760
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 buffering frame header read failure 80470007
+[Child 3629: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff8737d830]
+[Child 3629: Main Thread]: E/nsHttp host=ypvfr.csb.app port=-1
+[Child 3629: Main Thread]: E/nsHttp uri=https://ypvfr.csb.app/
+[Child 3629: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff8738d830]
+[Child 3629: Main Thread]: E/nsHttp host=codesandbox.io port=-1
+[Child 3629: Main Thread]: E/nsHttp uri=https://codesandbox.io/public/sse-hooks/sse-hooks.f648b14c15c640a14a557113a991cb8d.js
+[Child 3629: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff8738e030]
+[Child 3629: Main Thread]: E/nsHttp host=codesandbox.io port=-1
+[Child 3629: Main Thread]: E/nsHttp uri=https://codesandbox.io/static/js/banner.be879265d.js
+[Parent 3596: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff819f2000]
+[Parent 3596: Main Thread]: E/nsHttp host=codesandbox.io port=-1
+[Parent 3596: Main Thread]: E/nsHttp uri=https://codesandbox.io/public/sse-hooks/sse-hooks.f648b14c15c640a14a557113a991cb8d.js
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel::Init [this=0xffff819f2000]
+[Parent 3596: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff818d1000]
+[Parent 3596: Main Thread]: E/nsHttp host=codesandbox.io port=-1
+[Parent 3596: Main Thread]: E/nsHttp uri=https://codesandbox.io/static/js/banner.be879265d.js
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel::Init [this=0xffff818d1000]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel 0xffff819f2000 created nsHttpTransaction 0xffff81847c10
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction::Init [this=0xffff81847c00 caps=61]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction 0xffff81847c00 SetRequestContext 0xffff8478f510
+[Parent 3596: Main Thread]: E/nsHttp http request [
+[Parent 3596: Main Thread]: E/nsHttp   GET /public/sse-hooks/sse-hooks.f648b14c15c640a14a557113a991cb8d.js HTTP/1.1
+[Parent 3596: Main Thread]: E/nsHttp   Host: codesandbox.io
+[Parent 3596: Main Thread]: E/nsHttp   User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:78.0) Gecko/20100101 Firefox/78.0
+[Parent 3596: Main Thread]: E/nsHttp   Accept: */*
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Language: en-US,en;q=0.5
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Encoding: gzip, deflate, br
+[Parent 3596: Main Thread]: E/nsHttp   Connection: keep-alive
+[Parent 3596: Main Thread]: E/nsHttp   Referer: https://ypvfr.csb.app/
+[Parent 3596: Main Thread]: E/nsHttp ]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel 0xffff818d1000 created nsHttpTransaction 0xffff81848010
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction::Init [this=0xffff81848000 caps=61]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction 0xffff81848000 SetRequestContext 0xffff8478f510
+[Parent 3596: Main Thread]: E/nsHttp http request [
+[Parent 3596: Main Thread]: E/nsHttp   GET /static/js/banner.be879265d.js HTTP/1.1
+[Parent 3596: Main Thread]: E/nsHttp   Host: codesandbox.io
+[Parent 3596: Main Thread]: E/nsHttp   User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:78.0) Gecko/20100101 Firefox/78.0
+[Parent 3596: Main Thread]: E/nsHttp   Accept: */*
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Language: en-US,en;q=0.5
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Encoding: gzip, deflate, br
+[Parent 3596: Main Thread]: E/nsHttp   Connection: keep-alive
+[Parent 3596: Main Thread]: E/nsHttp   Referer: https://ypvfr.csb.app/
+[Parent 3596: Main Thread]: E/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Init this=0xffff8184f400 sockettransport=0xffff8184e018
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x401 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ALPNCallback sslsocketcontrol=0xffff84176f60
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ALPNCallback version=304
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x401 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Activate [this=0xffff8184f400 trans=0xffff81847c00 caps=61]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b000c progress=0]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff8184f400 - early selected alpn not available, we will try one more time.
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff8184f400 - early selected alpn not available
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Init this=0xffff81853c00 sockettransport=0xffff81847018
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff81853c00 caps=0x401 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ALPNCallback sslsocketcontrol=0xffff819c5160
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ALPNCallback version=304
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff81853c00 caps=0x401 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Activate [this=0xffff81853c00 trans=0xffff81848000 caps=61]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff81853c00 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81848000 status=804b000c progress=0]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff81853c00 - early selected alpn not available, we will try one more time.
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff81853c00 - early selected alpn not available
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff8184f400 [.S......[tlsflags0x00000000]codesandbox.io:443] negotiated to 'h2'
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::Http2Session 0xffff8197f800 serial=0x2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::SendHello 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Session Window increase at start of session 0xffff8197f800 12517377
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 generate Priority Frame 0x3 depends on 0x0 weight 200 for leader class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 generate Priority Frame 0x5 depends on 0x0 weight 100 for other class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 generate Priority Frame 0x7 depends on 0x0 weight 0 for background class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 generate Priority Frame 0x9 depends on 0x7 weight 0 for speculative class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 generate Priority Frame 0xB depends on 0x3 weight 0 for follower class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 generate Priority Frame 0xD depends on 0x0 weight 240 for urgentStart class
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream first session=0xffff8197f800 trans=0xffff81847c00 
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::Http2Stream 0xffff84133a40 trans=0xffff81847c00 atrans=0xffff81847c00
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream session=0xffff8197f800 stream=0xffff84133a40 serial=2 NextID=0xF (tentative)
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b000d progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff8197f800 mConnection=0xffff819fe800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff8197f800 sslsocketcontrol=0xffff84176f60
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff8197f800 version=304
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff8197f800 MAC Algortihm (aead==6) 6
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 will write from Http2Stream 0xffff84133a40 0x0 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133a40 ReadSegments reader=0xffff8197f818 count=32768 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnReadSegment 0xffff84133a40 count=324 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ParseHttpRequestHeaders 0xffff84133a40 avail=324 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Pushed Stream Lookup session=0xffff8197f800 key=https://codesandbox.io/[]/[http2.2]/public/sse-hooks/sse-hooks.f648b14c15c640a14a557113a991cb8d.js requestcontext=0xffff8478f510 cache=(nil) hit=(nil)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::TryToActivate 0xffff8197f800 stream=0xffff84133a40
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::IncrementCounter 0xffff8197f800 counting stream 0xffff84133a40 Currently 1 streams in session, high water mark is 1
+[Parent 3596: Socket Thread]: E/nsHttp Http2Session::RegisterStreamID session=0xffff8197f800 stream=0xffff84133a40 id=0xF concurrent=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133a40 Stream ID 0xF [session=0xffff8197f800] for URI /public/sse-hooks/sse-hooks.f648b14c15c640a14a557113a991cb8d.js
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133a40  depends on background group for trans 0xffff81847c00
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133a40 depends on stream 0x7
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream 0xffff84133a40 Generating 192 bytes of HEADERS for stream 0xF with priority weight 21 dep 0x7 frames 1 uri=/public/sse-hooks/sse-hooks.f648b14c15c640a14a557113a991cb8d.js
+[Parent 3596: Socket Thread]: I/nsHttp ParseHttpRequestHeaders 0xffff84133a40 used 324 of 324. requestheadersdone = 1 mOpenGenerated = 1
+[Parent 3596: Socket Thread]: I/nsHttp AdjustInitialwindow increased flow control window 0xffff84133a40 0xF 12451840
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame 0xffff84133a40 inline=205 stream=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff8197f800 sz=148 rv=0 actual=148
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame for inline BufferOutput session=0xffff8197f800 stream=0xffff84133a40 result 0 len=205
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff8197f800 sz=205 rv=0 actual=205
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0005 progress=205]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnTransportStatus 0xffff81847c00 SENDING_TO without request body
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b000a progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133a40 from 0 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133a40 trans readsegments rv 0 read=324
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800 stream=0xffff84133a40 countread=324
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 will write from Http2Stream 0xffff84133a40 0xF block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133a40 ReadSegments reader=0xffff8197f818 count=32768 state=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133a40 trans readsegments rv 0 read=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133a40 0xF: Sending request data complete, mUpstreamState=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133a40 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800 stream=0xffff84133a40 stream send complete
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 4 data len 18 flags 0 id 0x0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 0 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvSettings 0xffff8197f800 SETTINGS Control Frame with 3 entries ack=0
+[Parent 3596: Socket Thread]: I/nsHttp Settings ID 3, Value 256
+[Parent 3596: Socket Thread]: I/nsHttp Settings ID 4, Value 65536
+[Parent 3596: Socket Thread]: I/nsHttp Settings ID 5, Value 16777215
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 2 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::GenerateSettingsAck 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff8197f800 sz=9 rv=0 actual=9
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ProcessWaitingWebsockets 0xffff8197f800 nothing to do
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 8 data len 4 flags 0 id 0x0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvWindowUpdate 0xffff8197f800 len=2147418112 Stream 0x0.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvWindowUpdate 0xffff8197f800 session window 65535 increased by 2147418112 now 2147483647.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 2 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 buffering frame header read failure 80470007
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 could not identify a stream to write; suspending.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 4 data len 0 flags 1 id 0x0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvSettings 0xffff8197f800 SETTINGS Control Frame with 0 entries ack=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 2 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 buffering frame header read failure 80470007
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff81853c00 [.S......[tlsflags0x00000000]codesandbox.io:443] negotiated to 'h2'
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::Http2Session 0xffff81980800 serial=0x3
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::SendHello 0xffff81980800
+[Parent 3596: Socket Thread]: I/nsHttp Session Window increase at start of session 0xffff81980800 12517377
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 generate Priority Frame 0x3 depends on 0x0 weight 200 for leader class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 generate Priority Frame 0x5 depends on 0x0 weight 100 for other class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 generate Priority Frame 0x7 depends on 0x0 weight 0 for background class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 generate Priority Frame 0x9 depends on 0x7 weight 0 for speculative class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 generate Priority Frame 0xB depends on 0x3 weight 0 for follower class
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 generate Priority Frame 0xD depends on 0x0 weight 240 for urgentStart class
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::DontReuse 0xffff81980800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::Close 0xffff81980800 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::GenerateGoAway 0xffff81980800 code=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream first session=0xffff81980800 trans=0xffff81848000 
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream 0xffff81980800 atrans=0xffff81848000 trans=0xffff81848000 session unusable - resched.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::DontReuse 0xffff81980800
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81848000 status=804b000d progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff81980800 mConnection=0xffff819feba0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff81980800 sslsocketcontrol=0xffff819c5160
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff81980800 version=304
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ConfirmTLSProfile 0xffff81980800 MAC Algortihm (aead==6) 6
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff81980800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 could not identify a stream to write; suspending.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff81980800 sz=165 rv=0 actual=165
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 ResumeRecv After early flush in ReadSegments
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Activate [this=0xffff8184f400 trans=0xffff81848000 caps=61]
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::Http2Stream 0xffff84133d20 trans=0xffff81848000 atrans=0xffff81848000
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream session=0xffff8197f800 stream=0xffff84133d20 serial=2 NextID=0x11 (tentative)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 will write from Http2Stream 0xffff84133d20 0x0 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133d20 ReadSegments reader=0xffff8197f818 count=2048 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnReadSegment 0xffff84133d20 count=291 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ParseHttpRequestHeaders 0xffff84133d20 avail=291 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Pushed Stream Lookup session=0xffff8197f800 key=https://codesandbox.io/[]/[http2.2]/static/js/banner.be879265d.js requestcontext=0xffff8478f510 cache=(nil) hit=(nil)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::TryToActivate 0xffff8197f800 stream=0xffff84133d20
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::IncrementCounter 0xffff8197f800 counting stream 0xffff84133d20 Currently 2 streams in session, high water mark is 2
+[Parent 3596: Socket Thread]: E/nsHttp Http2Session::RegisterStreamID session=0xffff8197f800 stream=0xffff84133d20 id=0x11 concurrent=2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133d20 Stream ID 0x11 [session=0xffff8197f800] for URI /static/js/banner.be879265d.js
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133d20  depends on background group for trans 0xffff81848000
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133d20 depends on stream 0x7
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream 0xffff84133d20 Generating 47 bytes of HEADERS for stream 0x11 with priority weight 21 dep 0x7 frames 1 uri=/static/js/banner.be879265d.js
+[Parent 3596: Socket Thread]: I/nsHttp ParseHttpRequestHeaders 0xffff84133d20 used 291 of 291. requestheadersdone = 1 mOpenGenerated = 1
+[Parent 3596: Socket Thread]: I/nsHttp AdjustInitialwindow increased flow control window 0xffff84133d20 0x11 12451840
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame 0xffff84133d20 inline=60 stream=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame for inline BufferOutput session=0xffff8197f800 stream=0xffff84133d20 result 0 len=60
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff8197f800 sz=60 rv=0 actual=60
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81848000 status=804b0005 progress=60]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnTransportStatus 0xffff81848000 SENDING_TO without request body
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81848000 status=804b000a progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133d20 from 0 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133d20 trans readsegments rv 0 read=291
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800 stream=0xffff84133d20 countread=291
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff81980800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff81980800 could not identify a stream to write; suspending.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 will write from Http2Stream 0xffff84133d20 0x11 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133d20 ReadSegments reader=0xffff8197f818 count=32768 state=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133d20 trans readsegments rv 0 read=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133d20 0x11: Sending request data complete, mUpstreamState=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133d20 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800 stream=0xffff84133d20 stream send complete
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::DontReuse 0xffff81980800
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff81980800 InternalState 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::DontReuse 0xffff81980800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::~Http2Session 0xffff81980800 mDownstreamState=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 1 data len 424 flags 4 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvHeaders 0xffff8197f800 stream 0xF priorityLen=0 stream=0xffff84133a40 end_stream=0 end_headers=4 priority_group=0 paddingLength=0 padded=0
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=424]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResponseHeadersComplete 0xffff8197f800 for 0xF fin=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ConvertResponseHeaders 0xffff84133a40 response code 200
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 2 to 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=32768 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 7 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=721]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [HTTP/2 200]
+[Parent 3596: Socket Thread]: E/nsHttp Have status line [version=20 status=200 statusText=OK]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [date: Wed, 16 Jun 2021 14:18:06 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-type: application/javascript]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [last-modified: Wed, 14 Apr 2021 18:54:26 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [vary: Accept-Encoding]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [etag: W/"60773a62-2aeac"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expires: Thu, 31 Dec 2037 23:55:55 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cache-control: max-age=315360000]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [access-control-allow-origin: *]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [access-control-allow-methods: GET]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [via: 1.1 google]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-cache-status: HIT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [age: 5425341]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-request-id: 0ab6c8cde000001d5bc9109000000001]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [server: cloudflare]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-ray: 6604aa5c9ece1d5b-NRT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-encoding: br]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [X-Firefox-Spdy: h2]
+[Parent 3596: Socket Thread]: I/nsHttp http response [
+[Parent 3596: Socket Thread]: E/nsHttp   HTTP/2 200 OK
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:06 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: application/javascript
+[Parent 3596: Socket Thread]: E/nsHttp   last-modified: Wed, 14 Apr 2021 18:54:26 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   etag: W/"60773a62-2aeac"
+[Parent 3596: Socket Thread]: E/nsHttp   expires: Thu, 31 Dec 2037 23:55:55 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: max-age=315360000
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-origin: *
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-methods: GET
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: HIT
+[Parent 3596: Socket Thread]: E/nsHttp   age: 5425341
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cde000001d5bc9109000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa5c9ece1d5b-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: E/nsHttp     OriginalHeaders
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:06 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: application/javascript
+[Parent 3596: Socket Thread]: E/nsHttp   last-modified: Wed, 14 Apr 2021 18:54:26 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   etag: W/"60773a62-2aeac"
+[Parent 3596: Socket Thread]: E/nsHttp   expires: Thu, 31 Dec 2037 23:55:55 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: max-age=315360000
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-origin: *
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-methods: GET
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: HIT
+[Parent 3596: Socket Thread]: E/nsHttp   age: 5425341
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cde000001d5bc9109000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa5c9ece1d5b-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: I/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=0 read=0 mContentRead=0 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 8192 flags 0 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0xF Stream Ptr 0xffff84133a40 Fin=0 Len=8192
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0xF newbytes=8192 unacked=8192 localWindow=12574720
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=8192 localWindow=12574720
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=32768 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=1351]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=927]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=927 read=927 mContentRead=927 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=31841 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=2720]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=2296 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=30472 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=4089]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=3665 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=29103 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=5458]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=5034 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=27734 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=6827]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=6403 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=26365 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=8196]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=7772 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=24996 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=8616]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=420]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=420 read=420 mContentRead=8192 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=24576 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 8192 flags 0 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0xF Stream Ptr 0xffff84133a40 Fin=0 Len=8192
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0xF newbytes=8192 unacked=16384 localWindow=12566528
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=8192 localWindow=12566528
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=24576 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=9556]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=940]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=940 read=940 mContentRead=9132 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=23636 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=10925]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=10501 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=22267 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=12294]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=11870 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=20898 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=13663]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=13239 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=19529 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=15032]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=14608 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=18160 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=16401]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=15977 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=16791 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=16808]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=407]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=407 read=407 mContentRead=16384 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=16384 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 8192 flags 0 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0xF Stream Ptr 0xffff84133a40 Fin=0 Len=8192
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0xF newbytes=8192 unacked=24576 localWindow=12558336
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=8192 localWindow=12558336
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=16384 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=17761]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=953]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=953 read=953 mContentRead=17337 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=15431 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=19130]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=18706 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=14062 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=20499]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=20075 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=12693 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=21868]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=21444 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=11324 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=23237]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=22813 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=9955 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=24606]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=24182 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=8586 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=25000]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=394]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=394 read=394 mContentRead=24576 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=8192 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 7414 flags 0 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0xF Stream Ptr 0xffff84133a40 Fin=0 Len=7414
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0xF newbytes=7414 unacked=31990 localWindow=12550922
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=7414 localWindow=12550922
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=8192 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=25966]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=966]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=966 read=966 mContentRead=25542 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=7226 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=27335]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=26911 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=5857 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=28704]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=28280 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=4488 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=30073]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=29649 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=3119 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=31442]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=31018 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=1750 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=32414]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=972]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=972 read=972 mContentRead=31990 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=778 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 8192 flags 0 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0xF Stream Ptr 0xffff84133a40 Fin=0 Len=8192
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0xF newbytes=8192 unacked=40182 localWindow=12542730
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=8192 localWindow=12542730
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=778 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=33192]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=778]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=778 read=778 mContentRead=32768 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=31990 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=33774]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=582]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=582 read=582 mContentRead=33350 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=31408 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=35143]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=34719 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=30039 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=36512]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=36088 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=28670 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=37881]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=37457 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=27301 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=39250]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=38826 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=25932 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=40606]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1356]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1356 read=1356 mContentRead=40182 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=24576 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 2023 flags 0 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0xF Stream Ptr 0xffff84133a40 Fin=0 Len=2023
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0xF newbytes=2023 unacked=42205 localWindow=12540707
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=2023 localWindow=12540707
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=25354 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=40610]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=4]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=4 read=4 mContentRead=40186 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=25350 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=41979]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=1369]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=1369 read=1369 mContentRead=41555 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=23981 state=4 0xF
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81847c00 status=804b0006 progress=42629]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81847c00 count=650]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81847c00 count=650 read=650 mContentRead=42205 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=23331 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 0 flags 1 id 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0xF Stream Ptr 0xffff84133a40 Fin=1 Len=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=23331 state=4 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::SetNeedsCleanup 0xffff8197f800 - recorded downstream fin of stream 0xffff84133a40 0xF
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: I/nsHttp   SetRecvdFin id=0xf
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff8197f800 id=0xF concurrent=2 active=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments session=0xffff8197f800 stream=0xffff84133a40 0xF cleanup stream based on mNeedsCleanup.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CleanupStream 0xffff8197f800 0xffff84133a40 0xF 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CloseStream 0xffff8197f800 0xffff84133a40 0xf 0
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff8197f800 id=0xF concurrent=1 active=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::~Http2Stream 0xffff84133a40
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 1 data len 102 flags 4 id 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvHeaders 0xffff8197f800 stream 0x11 priorityLen=0 stream=0xffff84133d20 end_stream=0 end_headers=4 priority_group=0 paddingLength=0 padded=0
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81848000 status=804b0006 progress=102]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResponseHeadersComplete 0xffff8197f800 for 0x11 fin=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ConvertResponseHeaders 0xffff84133d20 response code 200
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 2 to 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133d20 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133d20 count=32768 state=4 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 7 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81848000 count=718]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [HTTP/2 200]
+[Parent 3596: Socket Thread]: E/nsHttp Have status line [version=20 status=200 statusText=OK]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [date: Wed, 16 Jun 2021 14:18:06 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-type: application/javascript]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [last-modified: Fri, 11 Jun 2021 09:36:09 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [vary: Accept-Encoding]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [etag: W/"60c32e89-f3a"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expires: Thu, 31 Dec 2037 23:55:55 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cache-control: max-age=315360000]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [access-control-allow-origin: *]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [access-control-allow-methods: GET]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [via: 1.1 google]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-cache-status: HIT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [age: 328022]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-request-id: 0ab6c8cdf400001d5b86170000000001]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [server: cloudflare]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-ray: 6604aa5cbf271d5b-NRT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-encoding: br]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [X-Firefox-Spdy: h2]
+[Parent 3596: Socket Thread]: I/nsHttp http response [
+[Parent 3596: Socket Thread]: E/nsHttp   HTTP/2 200 OK
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:06 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: application/javascript
+[Parent 3596: Socket Thread]: E/nsHttp   last-modified: Fri, 11 Jun 2021 09:36:09 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   etag: W/"60c32e89-f3a"
+[Parent 3596: Socket Thread]: E/nsHttp   expires: Thu, 31 Dec 2037 23:55:55 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: max-age=315360000
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-origin: *
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-methods: GET
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: HIT
+[Parent 3596: Socket Thread]: E/nsHttp   age: 328022
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cdf400001d5b86170000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa5cbf271d5b-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: E/nsHttp     OriginalHeaders
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:06 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: application/javascript
+[Parent 3596: Socket Thread]: E/nsHttp   last-modified: Fri, 11 Jun 2021 09:36:09 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   etag: W/"60c32e89-f3a"
+[Parent 3596: Socket Thread]: E/nsHttp   expires: Thu, 31 Dec 2037 23:55:55 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: max-age=315360000
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-origin: *
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-methods: GET
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: HIT
+[Parent 3596: Socket Thread]: E/nsHttp   age: 328022
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cdf400001d5b86170000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa5cbf271d5b-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: I/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81848000 count=0 read=0 mContentRead=0 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 1599 flags 0 id 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0x11 Stream Ptr 0xffff84133d20 Fin=0 Len=1599
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0x11 newbytes=1599 unacked=1599 localWindow=12581313
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=1599 localWindow=12539108
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133d20 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133d20 count=32768 state=4 0x11
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81848000 status=804b0006 progress=1351]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81848000 count=1249]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81848000 count=1249 read=1249 mContentRead=1249 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133d20 count=31519 state=4 0x11
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81848000 status=804b0006 progress=1701]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81848000 count=350]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81848000 count=350 read=350 mContentRead=1599 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133d20 count=31169 state=4 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 0 flags 1 id 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0x11 Stream Ptr 0xffff84133d20 Fin=1 Len=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133d20 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133d20 count=31169 state=4 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::SetNeedsCleanup 0xffff8197f800 - recorded downstream fin of stream 0xffff84133d20 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: I/nsHttp   SetRecvdFin id=0x11
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff8197f800 id=0x11 concurrent=1 active=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments session=0xffff8197f800 stream=0xffff84133d20 0x11 cleanup stream based on mNeedsCleanup.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CleanupStream 0xffff8197f800 0xffff84133d20 0x11 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CloseStream 0xffff8197f800 0xffff84133d20 0x11 0
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff8197f800 id=0x11 concurrent=0 active=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::~Http2Stream 0xffff84133d20
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 buffering frame header read failure 80470007
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadTimeoutTick 0xffff8197f800 delta since last read 0s
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadTimeoutTick 0xffff82846800 delta since last read 0s
+[Child 3629: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff87d21830]
+[Child 3629: Main Thread]: E/nsHttp host=codesandbox.io port=-1
+[Child 3629: Main Thread]: E/nsHttp uri=https://codesandbox.io/api/v1/sandboxes/ypvfr/phishing
+[Parent 3596: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff81a4e000]
+[Parent 3596: Main Thread]: E/nsHttp host=codesandbox.io port=-1
+[Parent 3596: Main Thread]: E/nsHttp uri=https://codesandbox.io/api/v1/sandboxes/ypvfr/phishing
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel::Init [this=0xffff81a4e000]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel 0xffff81a4e000 created nsHttpTransaction 0xffff81852010
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction::Init [this=0xffff81852000 caps=31]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction 0xffff81852000 SetRequestContext 0xffff8478f510
+[Parent 3596: Main Thread]: E/nsHttp http request [
+[Parent 3596: Main Thread]: E/nsHttp   GET /api/v1/sandboxes/ypvfr/phishing HTTP/1.1
+[Parent 3596: Main Thread]: E/nsHttp   Host: codesandbox.io
+[Parent 3596: Main Thread]: E/nsHttp   User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:78.0) Gecko/20100101 Firefox/78.0
+[Parent 3596: Main Thread]: E/nsHttp   Accept: */*
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Language: en-US,en;q=0.5
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Encoding: gzip, deflate, br
+[Parent 3596: Main Thread]: E/nsHttp   Referer: https://ypvfr.csb.app/
+[Parent 3596: Main Thread]: E/nsHttp   Origin: https://ypvfr.csb.app
+[Parent 3596: Main Thread]: E/nsHttp   Connection: keep-alive
+[Parent 3596: Main Thread]: E/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff8184f400 caps=0x61 .S......[tlsflags0x00000000]codesandbox.io:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Activate [this=0xffff8184f400 trans=0xffff81852000 caps=31]
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::Http2Stream 0xffff84133a40 trans=0xffff81852000 atrans=0xffff81852000
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream session=0xffff8197f800 stream=0xffff84133a40 serial=2 NextID=0x13 (tentative)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 will write from Http2Stream 0xffff84133a40 0x0 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133a40 ReadSegments reader=0xffff8197f818 count=2048 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnReadSegment 0xffff84133a40 count=324 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ParseHttpRequestHeaders 0xffff84133a40 avail=324 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Pushed Stream Lookup session=0xffff8197f800 key=https://codesandbox.io/[]/[http2.2]/api/v1/sandboxes/ypvfr/phishing requestcontext=0xffff8478f510 cache=(nil) hit=(nil)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::TryToActivate 0xffff8197f800 stream=0xffff84133a40
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::IncrementCounter 0xffff8197f800 counting stream 0xffff84133a40 Currently 1 streams in session, high water mark is 2
+[Parent 3596: Socket Thread]: E/nsHttp Http2Session::RegisterStreamID session=0xffff8197f800 stream=0xffff84133a40 id=0x13 concurrent=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133a40 Stream ID 0x13 [session=0xffff8197f800] for URI /api/v1/sandboxes/ypvfr/phishing
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133a40  depends on background group for trans 0xffff81852000
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133a40 depends on stream 0x7
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream 0xffff84133a40 Generating 73 bytes of HEADERS for stream 0x13 with priority weight 21 dep 0x7 frames 1 uri=/api/v1/sandboxes/ypvfr/phishing
+[Parent 3596: Socket Thread]: I/nsHttp ParseHttpRequestHeaders 0xffff84133a40 used 324 of 324. requestheadersdone = 1 mOpenGenerated = 1
+[Parent 3596: Socket Thread]: I/nsHttp AdjustInitialwindow increased flow control window 0xffff84133a40 0x13 12451840
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame 0xffff84133a40 inline=86 stream=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame for inline BufferOutput session=0xffff8197f800 stream=0xffff84133a40 result 0 len=86
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff8197f800 sz=86 rv=0 actual=86
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81852000 status=804b0005 progress=86]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnTransportStatus 0xffff81852000 SENDING_TO without request body
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81852000 status=804b000a progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133a40 from 0 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133a40 trans readsegments rv 0 read=324
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800 stream=0xffff84133a40 countread=324
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff8197f800 will write from Http2Stream 0xffff84133a40 0x13 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133a40 ReadSegments reader=0xffff8197f818 count=32768 state=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133a40 trans readsegments rv 0 read=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133a40 0x13: Sending request data complete, mUpstreamState=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133a40 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff8197f800 stream=0xffff84133a40 stream send complete
+[Child 3629: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff86608830]
+[Child 3629: Main Thread]: E/nsHttp host=ypvfr.csb.app port=-1
+[Child 3629: Main Thread]: E/nsHttp uri=https://ypvfr.csb.app/favicon.ico
+[Parent 3596: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff819a6000]
+[Parent 3596: Main Thread]: E/nsHttp host=ypvfr.csb.app port=-1
+[Parent 3596: Main Thread]: E/nsHttp uri=https://ypvfr.csb.app/favicon.ico
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel::Init [this=0xffff819a6000]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpChannel 0xffff819a6000 created nsHttpTransaction 0xffff83af4010
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction::Init [this=0xffff83af4000 caps=21]
+[Parent 3596: Main Thread]: E/nsHttp nsHttpTransaction 0xffff83af4000 SetRequestContext 0xffff8478f510
+[Parent 3596: Main Thread]: E/nsHttp http request [
+[Parent 3596: Main Thread]: E/nsHttp   GET /favicon.ico HTTP/1.1
+[Parent 3596: Main Thread]: E/nsHttp   Host: ypvfr.csb.app
+[Parent 3596: Main Thread]: E/nsHttp   User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:78.0) Gecko/20100101 Firefox/78.0
+[Parent 3596: Main Thread]: E/nsHttp   Accept: image/webp,*/*
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Language: en-US,en;q=0.5
+[Parent 3596: Main Thread]: E/nsHttp   Accept-Encoding: gzip, deflate, br
+[Parent 3596: Main Thread]: E/nsHttp   Connection: keep-alive
+[Parent 3596: Main Thread]: E/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff83af9000 caps=0x201021 .S......[tlsflags0x00000000]ypvfr.csb.app:443
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpConnection::Activate [this=0xffff83af9000 trans=0xffff83af4000 caps=21]
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::Http2Stream 0xffff84133e90 trans=0xffff83af4000 atrans=0xffff83af4000
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::AddStream session=0xffff82846800 stream=0xffff84133e90 serial=1 NextID=0x11 (tentative)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 will write from Http2Stream 0xffff84133e90 0x0 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133e90 ReadSegments reader=0xffff82846818 count=2048 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnReadSegment 0xffff84133e90 count=250 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ParseHttpRequestHeaders 0xffff84133e90 avail=250 state=0
+[Parent 3596: Socket Thread]: I/nsHttp Pushed Stream Lookup session=0xffff82846800 key=https://ypvfr.csb.app/[]/[http2.1]/favicon.ico requestcontext=0xffff8478f510 cache=(nil) hit=(nil)
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::TryToActivate 0xffff82846800 stream=0xffff84133e90
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::IncrementCounter 0xffff82846800 counting stream 0xffff84133e90 Currently 1 streams in session, high water mark is 1
+[Parent 3596: Socket Thread]: E/nsHttp Http2Session::RegisterStreamID session=0xffff82846800 stream=0xffff84133e90 id=0x11 concurrent=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133e90 Stream ID 0x11 [session=0xffff82846800] for URI /favicon.ico
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133e90  depends on background group for trans 0xffff83af4000
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream::UpdatePriorityDependency 0xffff84133e90 depends on stream 0x7
+[Parent 3596: Socket Thread]: E/nsHttp Http2Stream 0xffff84133e90 Generating 46 bytes of HEADERS for stream 0x11 with priority weight 21 dep 0x7 frames 1 uri=/favicon.ico
+[Parent 3596: Socket Thread]: I/nsHttp ParseHttpRequestHeaders 0xffff84133e90 used 250 of 250. requestheadersdone = 1 mOpenGenerated = 1
+[Parent 3596: Socket Thread]: I/nsHttp AdjustInitialwindow increased flow control window 0xffff84133e90 0x11 12451840
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame 0xffff84133e90 inline=59 stream=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::TransmitFrame for inline BufferOutput session=0xffff82846800 stream=0xffff84133e90 result 0 len=59
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff82846800 sz=59 rv=0 actual=59
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af4000 status=804b0005 progress=59]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnTransportStatus 0xffff83af4000 SENDING_TO without request body
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af4000 status=804b000a progress=0]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133e90 from 0 to 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133e90 trans readsegments rv 0 read=250
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800 stream=0xffff84133e90 countread=250
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 will write from Http2Stream 0xffff84133e90 0x11 block-input=0 block-output=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream 0xffff84133e90 ReadSegments reader=0xffff82846818 count=32768 state=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133e90 trans readsegments rv 0 read=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ReadSegments 0xffff84133e90 0x11: Sending request data complete, mUpstreamState=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ChangeState() 0xffff84133e90 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ReadSegments 0xffff82846800 stream=0xffff84133e90 stream send complete
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 1 data len 257 flags 4 id 0x13
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvHeaders 0xffff8197f800 stream 0x13 priorityLen=0 stream=0xffff84133a40 end_stream=0 end_headers=4 priority_group=0 paddingLength=0 padded=0
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81852000 status=804b0006 progress=257]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResponseHeadersComplete 0xffff8197f800 for 0x13 fin=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ConvertResponseHeaders 0xffff84133a40 response code 200
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 2 to 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=32768 state=4 0x13
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 7 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81852000 count=770]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [HTTP/2 200]
+[Parent 3596: Socket Thread]: E/nsHttp Have status line [version=20 status=200 statusText=OK]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [date: Wed, 16 Jun 2021 14:18:06 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-type: application/json; charset=utf-8]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-length: 33]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [access-control-allow-credentials: true]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [access-control-allow-origin: https://ypvfr.csb.app]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cache-control: private, max-age=0, no-cache, no-store]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [vary: origin]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [x-request-id: FokVx2K2JwudnTAK_AJE]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [set-cookie: signedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; HttpOnly]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [via: 1.1 google]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-cache-status: DYNAMIC]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-request-id: 0ab6c8cf8f00001d5b9cb1d000000001]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [server: cloudflare]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-ray: 6604aa5f4f0b1d5b-NRT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [X-Firefox-Spdy: h2]
+[Parent 3596: Socket Thread]: I/nsHttp http response [
+[Parent 3596: Socket Thread]: E/nsHttp   HTTP/2 200 OK
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:06 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: application/json; charset=utf-8
+[Parent 3596: Socket Thread]: E/nsHttp   content-length: 33
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-credentials: true
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-origin: https://ypvfr.csb.app
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: private, max-age=0, no-cache, no-store
+[Parent 3596: Socket Thread]: E/nsHttp   vary: origin
+[Parent 3596: Socket Thread]: E/nsHttp   x-request-id: FokVx2K2JwudnTAK_AJE
+[Parent 3596: Socket Thread]: E/nsHttp   set-cookie: signedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; HttpOnly
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: DYNAMIC
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cf8f00001d5b9cb1d000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa5f4f0b1d5b-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: E/nsHttp     OriginalHeaders
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:06 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: application/json; charset=utf-8
+[Parent 3596: Socket Thread]: E/nsHttp   content-length: 33
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-credentials: true
+[Parent 3596: Socket Thread]: E/nsHttp   access-control-allow-origin: https://ypvfr.csb.app
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: private, max-age=0, no-cache, no-store
+[Parent 3596: Socket Thread]: E/nsHttp   vary: origin
+[Parent 3596: Socket Thread]: E/nsHttp   x-request-id: FokVx2K2JwudnTAK_AJE
+[Parent 3596: Socket Thread]: E/nsHttp   set-cookie: signedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; HttpOnly
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: DYNAMIC
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8cf8f00001d5b9cb1d000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa5f4f0b1d5b-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: I/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81852000 count=0 read=0 mContentRead=0 mContentLength=33]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 33 flags 0 id 0x13
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0x13 Stream Ptr 0xffff84133a40 Fin=0 Len=33
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff8197f800 id=0x13 newbytes=33 unacked=33 localWindow=12582879
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff8197f800 newbytes=33 localWindow=12539075
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133a40 count=32768 state=4 0x13
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff81852000 status=804b0006 progress=290]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff81852000 count=33]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff81852000 count=33 read=33 mContentRead=33 mContentLength=33]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff8197f800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff8197f800::2] Frame Header Read type 0 data len 0 flags 1 id 0x13
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff8197f800 Stream ID 0x13 Stream Ptr 0xffff84133a40 Fin=1 Len=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133a40 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff8197f800 from 4 to 1
+[Parent 3596: Socket Thread]: I/nsHttp   SetRecvdFin id=0x13
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff8197f800 id=0x13 concurrent=1 active=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments session=0xffff8197f800 id 0x13 needscleanup=(nil). cleanup stream based on stream->writeSegments returning code 80470002
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CleanupStream 0xffff8197f800 by ID 0x13 to stream 0xffff84133a40
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CleanupStream 0xffff8197f800 0xffff84133a40 0x13 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CloseStream 0xffff8197f800 0xffff84133a40 0x13 0
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff8197f800 id=0x13 concurrent=0 active=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::~Http2Stream 0xffff84133a40
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 1 data len 174 flags 4 id 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 2
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::RecvHeaders 0xffff82846800 stream 0x11 priorityLen=0 stream=0xffff84133e90 end_stream=0 end_headers=4 priority_group=0 paddingLength=0 padded=0
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af4000 status=804b0006 progress=174]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResponseHeadersComplete 0xffff82846800 for 0x11 fin=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::ConvertResponseHeaders 0xffff84133e90 response code 200
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 2 to 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 7
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133e90 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133e90 count=32768 state=4 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 7 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff83af4000 count=634]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [HTTP/2 200]
+[Parent 3596: Socket Thread]: E/nsHttp Have status line [version=20 status=200 statusText=OK]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [date: Wed, 16 Jun 2021 14:18:07 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-type: image/x-icon]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [last-modified: Tue, 15 Jun 2021 15:33:57 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [etag: W/"60c8c865-3aee"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [via: 1.1 google]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-cache-status: MISS]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expires: Wed, 16 Jun 2021 18:18:07 GMT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cache-control: public, max-age=14400]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-request-id: 0ab6c8d08b00001fa52325e000000001]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [vary: Accept-Encoding]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [server: cloudflare]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [cf-ray: 6604aa60dbd41fa5-NRT]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [content-encoding: br]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ParseLine [X-Firefox-Spdy: h2]
+[Parent 3596: Socket Thread]: I/nsHttp http response [
+[Parent 3596: Socket Thread]: E/nsHttp   HTTP/2 200 OK
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:07 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: image/x-icon
+[Parent 3596: Socket Thread]: E/nsHttp   last-modified: Tue, 15 Jun 2021 15:33:57 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   etag: W/"60c8c865-3aee"
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: MISS
+[Parent 3596: Socket Thread]: E/nsHttp   expires: Wed, 16 Jun 2021 18:18:07 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: public, max-age=14400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8d08b00001fa52325e000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa60dbd41fa5-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: E/nsHttp     OriginalHeaders
+[Parent 3596: Socket Thread]: E/nsHttp   date: Wed, 16 Jun 2021 14:18:07 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   content-type: image/x-icon
+[Parent 3596: Socket Thread]: E/nsHttp   last-modified: Tue, 15 Jun 2021 15:33:57 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   etag: W/"60c8c865-3aee"
+[Parent 3596: Socket Thread]: E/nsHttp   via: 1.1 google
+[Parent 3596: Socket Thread]: E/nsHttp   alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400, h3=":443"; ma=86400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-cache-status: MISS
+[Parent 3596: Socket Thread]: E/nsHttp   expires: Wed, 16 Jun 2021 18:18:07 GMT
+[Parent 3596: Socket Thread]: E/nsHttp   cache-control: public, max-age=14400
+[Parent 3596: Socket Thread]: E/nsHttp   cf-request-id: 0ab6c8d08b00001fa52325e000000001
+[Parent 3596: Socket Thread]: E/nsHttp   expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+[Parent 3596: Socket Thread]: E/nsHttp   vary: Accept-Encoding
+[Parent 3596: Socket Thread]: E/nsHttp   server: cloudflare
+[Parent 3596: Socket Thread]: E/nsHttp   cf-ray: 6604aa60dbd41fa5-NRT
+[Parent 3596: Socket Thread]: E/nsHttp   content-encoding: br
+[Parent 3596: Socket Thread]: E/nsHttp   X-Firefox-Spdy: h2
+[Parent 3596: Socket Thread]: I/nsHttp ]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff83af4000 count=0 read=0 mContentRead=0 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 0 data len 1994 flags 0 id 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff82846800 Stream ID 0x11 Stream Ptr 0xffff84133e90 Fin=0 Len=1994
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalStreamWindow this=0xffff82846800 id=0x11 newbytes=1994 unacked=1994 localWindow=12580918
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::UpdateLocalSessionWindow this=0xffff82846800 newbytes=1994 localWindow=12580367
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133e90 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133e90 count=32768 state=4 0x11
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af4000 status=804b0006 progress=1351]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff83af4000 count=1177]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff83af4000 count=1177 read=1177 mContentRead=1177 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133e90 count=31591 state=4 0x11
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff83af4000 status=804b0006 progress=2168]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 4 to 1
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::ProcessData [this=0xffff83af4000 count=817]
+[Parent 3596: Socket Thread]: E/nsHttp nsHttpTransaction::HandleContent [this=0xffff83af4000 count=817 read=817 mContentRead=1994 mContentLength=-1]
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133e90 count=30774 state=4 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments[0xffff82846800::1] Frame Header Read type 0 data len 0 flags 1 id 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 1 to 4
+[Parent 3596: Socket Thread]: I/nsHttp Start Processing Data Frame. Session=0xffff82846800 Stream ID 0x11 Stream Ptr 0xffff84133e90 Fin=1 Len=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::WriteSegments 0xffff84133e90 count=32768 state=4
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::OnWriteSegment 0xffff84133e90 count=30774 state=4 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::SetNeedsCleanup 0xffff82846800 - recorded downstream fin of stream 0xffff84133e90 0x11
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ResetDownstreamState() 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::ChangeDownstreamState() 0xffff82846800 from 4 to 1
+[Parent 3596: Socket Thread]: I/nsHttp   SetRecvdFin id=0x11
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff82846800 id=0x11 concurrent=1 active=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments session=0xffff82846800 stream=0xffff84133e90 0x11 cleanup stream based on mNeedsCleanup.
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CleanupStream 0xffff82846800 0xffff84133e90 0x11 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::CloseStream 0xffff82846800 0xffff84133e90 0x11 0
+[Parent 3596: Socket Thread]: I/nsHttp MaybeDecrementConcurrent 0xffff82846800 id=0x11 concurrent=0 active=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Stream::~Http2Stream 0xffff84133e90
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::WriteSegments 0xffff82846800 InternalState 1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session 0xffff82846800 buffering frame header read failure 80470007
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::DontReuse 0xffff8197f800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::Close 0xffff8197f800 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::GenerateGoAway 0xffff8197f800 code=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff8197f800 sz=17 rv=0 actual=17
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::~Http2Session 0xffff8197f800 mDownstreamState=1
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::DontReuse 0xffff82846800
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::Close 0xffff82846800 0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::GenerateGoAway 0xffff82846800 code=0
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::FlushOutputQueue 0xffff82846800 sz=17 rv=0 actual=17
+[Parent 3596: Socket Thread]: I/nsHttp Http2Session::~Http2Session 0xffff82846800 mDownstreamState=1

@@ -1,0 +1,589 @@
+[(null) 4009: Main Thread]: D/nsSocketTransport STS dispatch [0xffff9a6c02e0]
+[(null) 4009: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[(null) 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 4009: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[(null) 4009: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 4009: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff9a6d61f0]
+[(null) 4009: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 4009: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[(null) 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 4009: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 4009: Main Thread]: D/nsSocketTransport nsSocketTransportService::Observe topic=profile-initial-state
+[(null) 4009: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff93bde850
+[(null) 4009: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff93bde878
+[(null) 4009: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff93bde800].
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::Init
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff93bde800 child=0
+[(null) 4009: Main Thread]: V/nsHttp Creating nsHttpConnectionMgr @0xffff93bd1920
+[(null) 4009: Main Thread]: V/nsHttp nsHttpConnectionMgr::Init
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff93bde800 child=0
+[(null) 4009: Main Thread]: D/nsSocketTransport EventTokenBucket::SetRate 0xffff92126340 80 10
+[(null) 4009: Main Thread]: D/nsSocketTransport STS dispatch [0xffff92124080]
+[(null) 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[(null) 4009: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[(null) 4009: Main Thread]: V/nsHttp ParentChannelListener::ParentChannelListener [this=0xffff93b30ba0, next=0xffff921234b0]
+[(null) 4009: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffffa41637e0 event="document-on-opening-request"]
+[(null) 4009: Socket Thread]: D/nsSocketTransport     ...returned after 1701 milliseconds
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 4009: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff92114e20]
+[(null) 4009: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 4009: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 4009: Main Thread]: V/nsHttp ParentChannelListener::OnStartRequest [this=0xffff93b30ba0]
+[(null) 4009: Main Thread]: V/nsHttp ParentChannelListener::OnStopRequest: [this=0xffff93b30ba0 status=2153578529]
+[(null) 4009: Main Thread]: V/nsHttp ParentChannelListener::~ParentChannelListener 0xffff93b30ba0
+[Parent 4009: Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0; loadContext: 0, 0. [channel=0xffff91dd36b8]
+[Parent 4009: Main Thread]: D/nsHostResolver nsHostResolver::Init this=0xffff91db5ea0
+[Parent 4009: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[localhost]
+[Parent 4009: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[local]
+[Parent 4009: Main Thread]: D/nsHostResolver TRRService::Init mCaptiveState=0 mCaptiveIsPassed=0
+[Parent 4009: Main Thread]: D/nsHostResolver TRRService::GetParentalControlEnabledInternal=0
+[Parent 4009: Main Thread]: D/nsHostResolver Initialized TRRService
+[Child 4042: Main Thread]: D/nsSocketTransport STS dispatch [0xffffae0bc880]
+[Child 4042: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 4042: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Child 4042: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 4042: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Child 4042: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 4042: Socket Thread]: D/nsSocketTransport STS dispatch [0xffffae0f4700]
+[Child 4042: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Child 4042: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[Child 4042: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 4042: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 4042: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Child 4042: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffffa992b850
+[Child 4042: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffffa992b878
+[Child 4042: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffffa992b800].
+[Child 4042: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[Child 4042: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[Child 4042: Main Thread]: D/nsHttp nsHttpHandler::Init
+[Child 4042: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[Child 4042: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[Child 4042: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffffa992b800 child=1
+[Child 4042: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffffa992b800 child=1
+[Parent 4009: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="profile-change-net-teardown"]
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff93bde850
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff93bde878
+[Parent 4009: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 4009: Main Thread]: D/nsSocketTransport STS dispatch [0xffff90fc0980]
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 4009: Socket Thread]: D/nsSocketTransport     ...returned after 11334 milliseconds
+[Parent 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Parent 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Parent 4009: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff91c3a820]
+[Parent 4009: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 4009: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdown
+[Parent 4009: Socket Thread]: D/nsSocketTransport EventTokenBucket::Stop 0xffff92126340 armed=0
+[Parent 4009: Socket Thread]: D/nsSocketTransport EventTokenBucket::dtor 0xffff92126340 events=0
+[Parent 4009: Socket Thread]: V/nsHttp nsHttpConnectionMgr::AbortAndCloseAllConnections
+[Parent 4009: Socket Thread]: V/nsHttp nsHttpConnectionMgr::StopPruneDeadConnectionsTimer
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Main Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdownConfirm
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 4042: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Child 4042: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 4042: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Child 4042: Socket Thread]: D/nsSocketTransport     ...returned after 10162 milliseconds
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 4042: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 4042: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 4042: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 4042: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4009: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4009: Main Thread]: D/nsSocketTransport nsSocketTransportService::ShutdownThread
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS shutting down thread
+[Parent 4009: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4009: Socket Thread]: D/nsSocketTransport STS thread exit
+[Parent 4009: Main Thread]: D/nsHostResolver Shutting down host resolver.
+[Parent 4009: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="xpcom-shutdown"]
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff93bde850
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff93bde878
+[Parent 4009: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 4009: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+[Parent 4009: Main Thread]: D/nsHostResolver TRR::Observe() topic=xpcom-shutdown-threads
+[Parent 4009: Main Thread]: D/nsHttp Deleting nsHttpHandler [this=0xffff93bde800]
+[Parent 4009: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 4009: Main Thread]: V/nsHttp Destroying nsHttpConnectionMgr @0xffff93bd1920
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff93bde878
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff93bde878
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff93bde850
+[Parent 4009: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff93bde850

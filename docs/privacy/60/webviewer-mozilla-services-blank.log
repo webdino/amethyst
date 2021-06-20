@@ -1,0 +1,62 @@
+[4286:Main Thread]: D/nsHostResolver nsHostResolver::Init this=0xffff96258940
+[4286:Main Thread]: D/nsHostResolver Initialized TRRService
+[4286:Main Thread]: D/nsSocketTransport STS dispatch [0xffff8ed81a40]
+[4286:Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[4286:Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[4286:Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[4286:Socket Thread]: D/nsSocketTransport STS poll iter
+[4286:Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[4286:Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[4286:Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[4286:Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[4286:Socket Thread]: D/nsSocketTransport PollableEvent::Signal PR_Read 1
+[4286:Socket Thread]: D/nsSocketTransport STS dispatch [0xffff8ed81d40]
+[4286:Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[4286:Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[4286:Socket Thread]: D/nsSocketTransport STS poll iter
+[4286:Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[4286:Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[4286:Main Thread]: D/nsHostResolver Shutting down host resolver.
+[4286:Main Thread]: D/nsHostResolver nsHostResolver::Init this=0xffff96258940
+[4286:Main Thread]: D/nsHostResolver Calling 'res_ninit'.
+[4286:Main Thread]: D/nsHostResolver Exiting TRRService
+[4286:Main Thread]: D/nsHostResolver Initialized TRRService
+[4286:Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff86da9c00].
+[4286:Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.13-cip1-yocto-standard
+[4286:Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[4286:Main Thread]: D/nsHttp nsHttpHandler::Init
+[4286:Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[4286:Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[4286:Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff86da9c00 child=0
+[4286:Main Thread]: V/nsHttp Creating nsHttpConnectionMgr @0xffff86dbb1a0
+[4286:Main Thread]: V/nsHttp nsHttpConnectionMgr::Init
+[4286:Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff86da9c00 child=0
+[4286:Main Thread]: D/nsSocketTransport EventTokenBucket::SetRate 0xffff86da4700 80 10
+[4286:Main Thread]: D/nsSocketTransport STS dispatch [0xffff86dcfcc0]
+[4286:Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[4286:Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[4286:Socket Thread]: D/nsSocketTransport     ...returned after 3481 milliseconds
+[4286:Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[4286:Socket Thread]: D/nsSocketTransport PollableEvent::Signal PR_Read 1
+[4286:Socket Thread]: D/nsSocketTransport STS dispatch [0xffff86dcfd40]
+[4286:Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[4286:Socket Thread]: D/nsSocketTransport STS poll iter
+[4286:Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[4286:Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7ee93438]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7ee935b8]
+Attempting load of libEGL.so
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7c71b5b8]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7bde2708]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7c71b8b8]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7bde2858]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7c7e8738]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7bde29a8]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7c7e7238]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7bde2af8]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7c7e76b8]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7bde2c48]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7c7e79b8]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7bde2d98]
+[4286:Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0, 0; loadContext: 0 0, 0. [channel=0xffff7c776238]
+[4286:Main Thread]: D/nsHttp nsHttpHandler::BuildUserAgent

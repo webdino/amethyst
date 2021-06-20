@@ -1,0 +1,886 @@
+[(null) 593: Main Thread]: D/nsSocketTransport STS dispatch [0xffff82dc05e0]
+[(null) 593: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[(null) 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 593: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[(null) 593: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff82dd60a0]
+[(null) 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 593: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[(null) 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 593: Main Thread]: D/nsSocketTransport nsSocketTransportService::Observe topic=profile-initial-state
+[(null) 593: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff7c2b8850
+[(null) 593: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff7c2b8878
+[(null) 593: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff7c2b8800].
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::Init
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff7c2b8800 child=0
+[(null) 593: Main Thread]: V/nsHttp Creating nsHttpConnectionMgr @0xffff7c2abe20
+[(null) 593: Main Thread]: V/nsHttp nsHttpConnectionMgr::Init
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff7c2b8800 child=0
+[(null) 593: Main Thread]: D/nsSocketTransport EventTokenBucket::SetRate 0xffff7b010580 80 10
+[(null) 593: Main Thread]: D/nsSocketTransport STS dispatch [0xffff7b009200]
+[(null) 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[(null) 593: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[(null) 593: Socket Thread]: D/nsSocketTransport     ...returned after 1681 milliseconds
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff7c2edf40]
+[(null) 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 593: Main Thread]: V/nsHttp ParentChannelListener::ParentChannelListener [this=0xffff7c210190, next=0xffff7b011f30]
+[(null) 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 593: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffff8c863300 event="document-on-opening-request"]
+[(null) 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 593: Main Thread]: V/nsHttp ParentChannelListener::OnStartRequest [this=0xffff7c210190]
+[(null) 593: Main Thread]: V/nsHttp ParentChannelListener::OnStopRequest: [this=0xffff7c210190 status=2153578529]
+[(null) 593: Main Thread]: V/nsHttp ParentChannelListener::~ParentChannelListener 0xffff7c210190
+[Parent 593: Main Thread]: V/nsHttp ParentChannelListener::ParentChannelListener [this=0xffff7c210cf0, next=0xffff7acba3d0]
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffff7d710cc0 event="document-on-opening-request"]
+[Parent 593: Main Thread]: V/nsHttp ParentChannelListener::OnStartRequest [this=0xffff7c210cf0]
+[Parent 593: Main Thread]: V/nsHttp ParentChannelListener::OnDataAvailable [this=0xffff7c210cf0]
+[Parent 593: Main Thread]: V/nsHttp ParentChannelListener::OnStopRequest: [this=0xffff7c210cf0 status=0]
+[Child 625: Main Thread]: D/nsSocketTransport STS dispatch [0xffff875bc640]
+[Child 625: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 625: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Child 625: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 625: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Child 625: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 625: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff875c1790]
+[Child 625: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Child 625: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[Child 625: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 625: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 625: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: Main Thread]: V/nsHttp ParentChannelListener::~ParentChannelListener 0xffff7c210cf0
+[Child 625: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff82f2b850
+[Child 625: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff82f2b878
+[Child 625: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff82f2b800].
+[Child 625: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[Child 625: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[Child 625: Main Thread]: D/nsHttp nsHttpHandler::Init
+[Child 625: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[Child 625: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[Child 625: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff82f2b800 child=1
+[Child 625: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff82f2b800 child=1
+[Parent 593: Main Thread]: D/nsHostResolver nsHostResolver::Init this=0xffff794f7500
+[Parent 593: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[localhost]
+[Parent 593: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[local]
+[Parent 593: Main Thread]: D/nsHostResolver TRRService::Init mCaptiveState=0 mCaptiveIsPassed=0
+[Parent 593: Main Thread]: D/nsHostResolver TRRService::GetParentalControlEnabledInternal=0
+[Parent 593: Main Thread]: D/nsHostResolver Initialized TRRService
+JavaScript error: chrome://browser/content/preferences/main.js, line 935: TypeError: win.ZoomUI is undefined
+[Parent 593: Main Thread]: D/nsHostResolver Resolving host [support.mozilla.org]<> type 0. [this=0xffff794f7500]
+[Parent 593: Main Thread]: D/nsHostResolver   No usable record in cache for host [support.mozilla.org] type 0.
+[Parent 593: Main Thread]: D/nsHostResolver NameLookup host:support.mozilla.org af:0
+[Parent 593: Main Thread]: D/nsHostResolver NameLookup: support.mozilla.org effectiveTRRmode: 1 flags: 18
+[Parent 593: DNS Resolver #1]: D/nsHostResolver DNS lookup thread - starting execution.
+[Parent 593: Main Thread]: D/nsHostResolver   DNS thread counters: total=1 any-live=0 idle=0 pending=1
+[Parent 593: Main Thread]: D/nsHostResolver   DNS lookup for host [support.mozilla.org] blocking pending 'getaddrinfo' or trr query: callback [0xffff794f0240]
+[Parent 593: DNS Resolver #1]: E/nsHostResolver DNS lookup thread - Calling getaddrinfo for host [support.mozilla.org].
+[Parent 593: Main Thread]: D/nsHostResolver Resolving host [wiki.mozilla.org]<> type 0. [this=0xffff794f7500]
+[Parent 593: Main Thread]: D/nsHostResolver   No usable record in cache for host [wiki.mozilla.org] type 0.
+[Parent 593: Main Thread]: D/nsHostResolver NameLookup host:wiki.mozilla.org af:0
+[Parent 593: Main Thread]: D/nsHostResolver NameLookup: wiki.mozilla.org effectiveTRRmode: 1 flags: 18
+[Parent 593: DNS Resolver #2]: D/nsHostResolver DNS lookup thread - starting execution.
+[Parent 593: Main Thread]: D/nsHostResolver   DNS thread counters: total=2 any-live=1 idle=0 pending=1
+[Parent 593: Main Thread]: D/nsHostResolver   DNS lookup for host [wiki.mozilla.org] blocking pending 'getaddrinfo' or trr query: callback [0xffff7e21adf0]
+[Parent 593: DNS Resolver #2]: E/nsHostResolver DNS lookup thread - Calling getaddrinfo for host [wiki.mozilla.org].
+[Parent 593: DNS Resolver #2]: E/nsHostResolver DNS lookup thread - lookup completed for host [wiki.mozilla.org]: success.
+[Parent 593: DNS Resolver #1]: E/nsHostResolver DNS lookup thread - lookup completed for host [support.mozilla.org]: success.
+[Parent 593: DNS Resolver #2]: D/nsHostResolver nsHostResolver::CompleteLookup wiki.mozilla.org 0xffff75ca8fa0 0 trr=0 stillResolving=0
+[Parent 593: DNS Resolver #2]: D/nsHostResolver nsHostResolver record 0xffff75d7aa40 new gencnt
+[Parent 593: DNS Resolver #2]: D/nsHostResolver Caching host [wiki.mozilla.org] record for 60 seconds (grace 60).
+[Parent 593: DNS Resolver #2]: D/nsHostResolver CompleteLookup: wiki.mozilla.org has 52.37.70.70
+[Parent 593: DNS Resolver #2]: D/nsHostResolver CompleteLookup: wiki.mozilla.org has 34.209.101.174
+[Parent 593: DNS Resolver #2]: D/nsHostResolver CompleteLookup: wiki.mozilla.org has 44.231.199.58
+[Parent 593: DNS Resolver #2]: D/nsHostResolver nsHostResolver record 0xffff75d7aa40 calling back dns users
+[Parent 593: DNS Resolver #1]: D/nsHostResolver nsHostResolver::CompleteLookup support.mozilla.org 0xffff75d032e0 0 trr=0 stillResolving=0
+[Parent 593: DNS Resolver #1]: D/nsHostResolver nsHostResolver record 0xffff75d7a760 new gencnt
+[Parent 593: DNS Resolver #1]: D/nsHostResolver Caching host [support.mozilla.org] record for 60 seconds (grace 60).
+[Parent 593: DNS Resolver #1]: D/nsHostResolver CompleteLookup: support.mozilla.org has 54.218.9.103
+[Parent 593: DNS Resolver #1]: D/nsHostResolver CompleteLookup: support.mozilla.org has 44.227.102.134
+[Parent 593: DNS Resolver #1]: D/nsHostResolver nsHostResolver record 0xffff75d7a760 calling back dns users
+JavaScript error: chrome://browser/content/preferences/search.js, line 58: TypeError: Services.wm.getMostRecentWindow(...) is null
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::NewProxiedChannel [proxyInfo=(nil)]
+[Parent 593: Main Thread]: V/nsHttp Creating HttpBaseChannel @0xffff7426e000
+[Parent 593: Main Thread]: D/nsHttp Creating nsHttpChannel [this=0xffff7426e000]
+[Parent 593: Main Thread]: E/nsHttp HttpBaseChannel::Init [this=0xffff7426e000]
+[Parent 593: Main Thread]: E/nsHttp host=content-signature-2.cdn.mozilla.net port=-1
+[Parent 593: Main Thread]: E/nsHttp uri=https://content-signature-2.cdn.mozilla.net/chains/remote-settings.content-signature.mozilla.org-2021-07-21-15-12-54.chain
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::BuildUserAgent
+[Parent 593: Main Thread]: E/nsHttp nsHttpChannel::Init [this=0xffff7426e000]
+[Parent 593: Main Thread]: V/nsHttp HttpBaseChannel::SetReferrerInfoInternal [this=0xffff7426e000 aClone(0) aCompute(1)]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::AsyncOpen [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0; loadContext: 0, 0. [channel=0xffff7426e040]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel 0xffff7426e000 not eligible for tail-blocking
+[Parent 593: Main Thread]: V/nsHttp HttpBaseChannel::EnsureRequestContextID this=0xffff7426e000 id=2510000003c
+[Parent 593: Main Thread]: V/nsHttp HttpBaseChannel::AddAsNonTailRequest this=0xffff7426e000, rc=0xffff75bda270, already added=0
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffff7426e040 event="http-on-opening-request"]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ResolveProxy [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::OnProxyAvailable [this=0xffff7426e000 pi=(nil) status=0 mStatus=0]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::BeginConnect [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp host=content-signature-2.cdn.mozilla.net port=-1
+[Parent 593: Main Thread]: D/nsHttp uri=https://content-signature-2.cdn.mozilla.net/chains/remote-settings.content-signature.mozilla.org-2021-07-21-15-12-54.chain
+[Parent 593: Main Thread]: V/nsHttp Init nsHttpConnectionInfo @0xffff74273120
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 https:content-signature-2.cdn.mozilla.net:443:.:
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::GetAltServiceMapping 0xffff7c2f5820 key=https:content-signature-2.cdn.mozilla.net:443:.: existing=(nil) validated=0 ttl=0
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel 0xffff7426e000 Using default connection info
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannelAuthProvider::AddAuthorizationHeaders? [this=0xffff742e1890 channel=0xffff7426e5d8]
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::GetAuthEntryForPath 0xffff7c2b8850 [path=/chains/]
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::LookupAuthNode 0xffff7c2b8850 key=':https://content-signature-2.cdn.mozilla.net:-1' found node=(nil)
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::MaybeStartDNSPrefetch [this=0xffff7426e000, strategy=1] prefetching
+[Parent 593: Main Thread]: D/nsHostResolver Resolving host [content-signature-2.cdn.mozilla.net]<> type 0. [this=0xffff794f7500]
+[Parent 593: Main Thread]: D/nsHostResolver   No usable record in cache for host [content-signature-2.cdn.mozilla.net] type 0.
+[Parent 593: Main Thread]: D/nsHostResolver NameLookup host:content-signature-2.cdn.mozilla.net af:0
+[Parent 593: Main Thread]: D/nsHostResolver NameLookup: content-signature-2.cdn.mozilla.net effectiveTRRmode: 1 flags: 10
+[Parent 593: Main Thread]: D/nsHostResolver   DNS thread counters: total=2 any-live=0 idle=2 pending=1
+[Parent 593: Main Thread]: D/nsHostResolver   DNS lookup for host [content-signature-2.cdn.mozilla.net] blocking pending 'getaddrinfo' or trr query: callback [0xffff742ae240]
+[Parent 593: DNS Resolver #2]: E/nsHostResolver DNS lookup thread - Calling getaddrinfo for host [content-signature-2.cdn.mozilla.net].
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ContinueBeginConnectWithResult [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::PrepareToConnect [this=0xffff7426e000]
+[Parent 593: Main Thread]: V/nsHttp HttpBaseChannel::SetRequestHeader [this=0xffff7426e000 header="Cookie" value="" merge=0]
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffff7426e040 event="http-on-modify-request"]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ContinueOnBeforeConnect [this=0xffff7426e000 aShouldUpgrade=0 rv=0]
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffff7426e040 event="http-on-before-connect"]
+[Parent 593: DNS Resolver #2]: E/nsHostResolver DNS lookup thread - lookup completed for host [content-signature-2.cdn.mozilla.net]: success.
+[Parent 593: DNS Resolver #2]: D/nsHostResolver nsHostResolver::CompleteLookup content-signature-2.cdn.mozilla.net 0xffff742d5400 0 trr=0 stillResolving=0
+[Parent 593: DNS Resolver #2]: D/nsHostResolver nsHostResolver record 0xffff7420e480 new gencnt
+[Parent 593: DNS Resolver #2]: D/nsHostResolver Caching host [content-signature-2.cdn.mozilla.net] record for 60 seconds (grace 60).
+[Parent 593: DNS Resolver #2]: D/nsHostResolver CompleteLookup: content-signature-2.cdn.mozilla.net has 13.33.5.114
+[Parent 593: DNS Resolver #2]: D/nsHostResolver CompleteLookup: content-signature-2.cdn.mozilla.net has 13.33.5.12
+[Parent 593: DNS Resolver #2]: D/nsHostResolver CompleteLookup: content-signature-2.cdn.mozilla.net has 13.33.5.124
+[Parent 593: DNS Resolver #2]: D/nsHostResolver CompleteLookup: content-signature-2.cdn.mozilla.net has 13.33.5.53
+[Parent 593: DNS Resolver #2]: D/nsHostResolver nsHostResolver record 0xffff7420e480 calling back dns users
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::Connect [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel 0xffff7426e000 tracking resource=0, cos=0
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel 0xffff7426e000 not eligible for tail-blocking
+[Parent 593: Main Thread]: V/nsHttp HttpBaseChannel::AddAsNonTailRequest this=0xffff7426e000, rc=0xffff75bda270, already added=1
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ConnectOnTailUnblock [this=0xffff7426e000]
+[Parent 593: Main Thread]: V/nsHttp Init nsHttpConnectionInfo @0xffff742732e0
+[Parent 593: Main Thread]: V/nsHttp nsHttpConnectionMgr::SpeculativeConnect [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+[Parent 593: Main Thread]: D/nsSocketTransport STS dispatch [0xffff742d88c0]
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::OpenCacheEntry [this=0xffff7426e000]
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 7792 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742acc40]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgSpeculativeConnect [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+[Parent 593: Socket Thread]: V/nsHttp Init nsHttpConnectionInfo @0xffff742734a0
+[Parent 593: Socket Thread]: V/nsHttp Init nsHttpConnectionInfo @0xffff74273ac0
+[Parent 593: Socket Thread]: V/nsHttp nsConnectionEntry::nsConnectionEntry this=0xffff75bda740 key=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: D/nsHttp Destroying nsHttpConnectionInfo @0xffff742734a0
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection(.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443) no matching conn
+[Parent 593: Socket Thread]: V/nsHttp GetH2orH3ActiveConn() request for ent 0xffff75bda740 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 did not find an active connection
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::AtActiveConnectionLimit [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 caps=401,totalCount=0, maxPersistConns=6]
+[Parent 593: Socket Thread]: V/nsHttp AtActiveConnectionLimit result: false
+[Parent 593: Socket Thread]: V/nsHttp Creating nsHalfOpenSocket [this=0xffff742734a0 trans=0xffff75c3eec0 ent=content-signature-2.cdn.mozilla.net key=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::SetupStreams [this=0xffff742734a0 ent=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443] setup routed transport to origin content-signature-2.cdn.mozilla.net:443 via :443
+[Parent 593: Socket Thread]: D/nsSocketTransport creating nsSocketTransport @0xffff7409cc00
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::Init [this=0xffff7409cc00 host=content-signature-2.cdn.mozilla.net:443 origin=content-signature-2.cdn.mozilla.net:443 proxy=:0]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::SetConnectionFlags 0xffff7409cc00 flags=32
+[Parent 593: Socket Thread]: D/nsSocketTransport Reset callbacks for secinfo=(nil) callbacks=0xffff742acca0
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OpenOutputStream [this=0xffff7409cc00 flags=2]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::PostEvent [this=0xffff7409cc00 type=0 status=0 param=(nil)]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742acd00]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::Connect 0xffff7426e000 AwaitingCacheCallbacks forces async
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ContinueBeginConnectWithResult result [this=0xffff7426e000 rv=0 mCanceled=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OpenInputStream [this=0xffff7409cc00 flags=2]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::PostEvent [this=0xffff7409cc00 type=0 status=0 param=(nil)]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742ace80]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::AsyncWait [this=0xffff7409ceb0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ActivateTimeoutTick() this=0xffff7c2abe20 mTimeoutTick=(nil)
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::SetupPrimaryStream [this=0xffff742734a0 ent=content-signature-2.cdn.mozilla.net rv=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742acb80]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OnSocketEvent [this=0xffff7409cc00 type=0 status=0 param=(nil)]
+[Parent 593: Socket Thread]: D/nsSocketTransport   MSG_ENSURE_CONNECT
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::ResolveHost [this=0xffff7409cc00 content-signature-2.cdn.mozilla.net:443] mProxyTransparentResolvesHost=0
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::SendStatus [this=0xffff7409cc00 status=804b0003]
+[Parent 593: Socket Thread]: D/nsHostResolver Resolving host [content-signature-2.cdn.mozilla.net]<> type 0. [this=0xffff794f7500]
+[Parent 593: Socket Thread]: D/nsHostResolver   Using cached record for host [content-signature-2.cdn.mozilla.net].
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742acc40]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport   advancing to STATE_RESOLVING
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OnSocketEvent [this=0xffff7409cc00 type=0 status=0 param=(nil)]
+[Parent 593: Socket Thread]: D/nsSocketTransport   MSG_ENSURE_CONNECT
+[Parent 593: Socket Thread]: D/nsSocketTransport   ignoring redundant event
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 1 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742acb80]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OnLookupComplete: this=0xffff7409cc00 status 0.
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::PostEvent [this=0xffff7409cc00 type=1 status=0 param=(nil)]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742acd00]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742ac4c0]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OnSocketEvent [this=0xffff7409cc00 type=1 status=0 param=(nil)]
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::SendStatus [this=0xffff7409cc00 status=804b000b]
+[Parent 593: Socket Thread]: D/nsSocketTransport   MSG_DNS_LOOKUP_COMPLETE
+[Parent 593: Socket Thread]: D/nsHostResolver Checking blacklist for host [content-signature-2.cdn.mozilla.net], host record [0xffff7420e480].
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::InitiateSocket [this=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::BuildSocket [this=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport   pushing io layer [0:ssl]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::OnLookupComplete [this=0xffff7426e000] prefetch complete: success status[0x0]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::OnCacheEntryAvailable [this=0xffff7426e000 entry=0xffff7426fa60 new=1 appcache=(nil) status=0 mAppCache=(nil) mAppCacheForWrite=(nil)]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::TriggerNetwork [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp   triggering network
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::DoConnect [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::DoConnectActual [this=0xffff7426e000, aTransWithStickyConn=(nil)]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::SetupTransaction [this=0xffff7426e000, cos=0, prio=0]
+[Parent 593: Main Thread]: V/nsHttp Creating nsHttpTransaction @0xffff7409b000
+[Parent 593: Main Thread]: E/nsHttp nsHttpChannel 0xffff7426e000 created nsHttpTransaction 0xffff7409b010
+[Parent 593: Main Thread]: E/nsHttp nsHttpTransaction::Init [this=0xffff7409b000 caps=21]
+[Parent 593: Main Thread]: V/nsHttp   window-id = 0
+[Parent 593: Main Thread]: E/nsHttp nsHttpTransaction 0xffff7409b000 SetRequestContext 0xffff75bda270
+[Parent 593: Socket Thread]: D/nsSocketTransport   [secinfo=0xffff75d09ac0 callbacks=0xffff742acca0]
+[Parent 593: Main Thread]: E/nsHttp http request [
+[Parent 593: Main Thread]: E/nsHttp   GET /chains/remote-settings.content-signature.mozilla.org-2021-07-21-15-12-54.chain HTTP/1.1
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransportService::AttachSocket [handler=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransportService::AddToIdleList [handler=0xffff7409cc00]
+[Parent 593: Main Thread]: E/nsHttp   Host: content-signature-2.cdn.mozilla.net
+[Parent 593: Socket Thread]: D/nsSocketTransport   active=0 idle=1
+[Parent 593: Main Thread]: E/nsHttp   User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:78.0) Gecko/20100101 Firefox/78.0
+[Parent 593: Main Thread]: E/nsHttp   Accept: */*
+[Parent 593: Socket Thread]: D/nsSocketTransport   advancing to STATE_CONNECTING
+[Parent 593: Main Thread]: E/nsHttp   Accept-Language: en-US,en;q=0.5
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::SendStatus [this=0xffff7409cc00 status=804b0007]
+[Parent 593: Main Thread]: E/nsHttp   Accept-Encoding: gzip, deflate, br
+[Parent 593: Main Thread]: E/nsHttp   Connection: keep-alive
+[Parent 593: Socket Thread]: D/nsHostResolver Checking blacklist for host [content-signature-2.cdn.mozilla.net], host record [0xffff7420e480].
+[Parent 593: Socket Thread]: D/nsHostResolver Checking blacklist for host [content-signature-2.cdn.mozilla.net], host record [0xffff7420e480].
+[Parent 593: Socket Thread]: D/nsHostResolver Checking blacklist for host [content-signature-2.cdn.mozilla.net], host record [0xffff7420e480].
+[Parent 593: Socket Thread]: D/nsHostResolver Checking blacklist for host [content-signature-2.cdn.mozilla.net], host record [0xffff7420e480].
+[Parent 593: Main Thread]: E/nsHttp ]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::nsHalfOpenSocket::OnTransportStatus STATUS_CONNECTING_TO Established New Coalescing Key # 0 for host content-signature-2.cdn.mozilla.net [13.33.5.114~.:443/[]viaDNS]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::nsHalfOpenSocket::OnTransportStatus STATUS_CONNECTING_TO Established New Coalescing Key # 1 for host content-signature-2.cdn.mozilla.net [13.33.5.12~.:443/[]viaDNS]
+[Parent 593: Main Thread]: V/nsHttp nsHttpConnectionMgr::AddTransaction [trans=0xffff7409b010 0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::nsHalfOpenSocket::OnTransportStatus STATUS_CONNECTING_TO Established New Coalescing Key # 2 for host content-signature-2.cdn.mozilla.net [13.33.5.124~.:443/[]viaDNS]
+[Parent 593: Main Thread]: D/nsSocketTransport STS dispatch [0xffff742ee080]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::nsHalfOpenSocket::OnTransportStatus STATUS_CONNECTING_TO Established New Coalescing Key # 3 for host content-signature-2.cdn.mozilla.net [13.33.5.53~.:443/[]viaDNS]
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection(.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443) no matching conn
+[Parent 593: Socket Thread]: V/nsHttp GetH2orH3ActiveConn() request for ent 0xffff75bda740 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 did not find an active connection
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::SetupBackupTimer() [this=0xffff742734a0], did not arm
+[Parent 593: Socket Thread]: D/nsSocketTransport   trying address: 13.33.5.114
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   idle [0] { handler=0xffff7409cc00 condition=0 pollflags=6 }
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransportService::AddToPollList [handler=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::EnsureTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: D/nsSocketTransport   engaging
+[Parent 593: Socket Thread]: D/nsSocketTransport   active=1 idle=1
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransportService::RemoveFromIdleList [handler=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport   active=1 idle=0
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=1 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::TimeoutIn socket=0xffff7409cc00, timeout=65535s
+[Parent 593: Socket Thread]: D/nsSocketTransport   not engaged
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742ac4c0]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgNewTransaction [trans=0xffff7409b000]
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection(.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443) no matching conn
+[Parent 593: Socket Thread]: V/nsHttp GetH2orH3ActiveConn() request for ent 0xffff75bda740 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 did not find an active connection
+[Parent 593: Socket Thread]: V/nsHttp Init nsHttpConnectionInfo @0xffff74273660
+[Parent 593: Socket Thread]: D/nsHttp Destroying nsHttpConnectionInfo @0xffff74273660
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::TryDispatchTransaction without conn [trans=0xffff7409b000 halfOpen=(nil) conn=(nil) ci=0xffff74273ac0 ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 caps=21 tunnelprovider=(nil) onlyreused=0 active=0 idle=0]
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection(.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443) no matching conn
+[Parent 593: Socket Thread]: V/nsHttp GetH2orH3ActiveConn() request for ent 0xffff75bda740 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 did not find an active connection
+[Parent 593: Socket Thread]: D/nsSocketTransport EventTokenBucket::SubmitEvent 0xffff7b010580
+[Parent 593: Socket Thread]: D/nsSocketTransport EventTokenBucket::UpdateCredits 0xffff7b010580 to 125000 (12500 each.. 10.00)
+[Parent 593: Socket Thread]: D/nsSocketTransport    dispatched synchronously
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::TryDispatchTransactionOnIdleConn, ent=0xffff75bda740, trans=0xffff7409b000, urgent=0
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::MakeNewConnection 0xffff7c2abe20 ent=0xffff75bda740 trans=0xffff7409b000
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::SetConnectionFlags 0xffff7409cc00 flags=0
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::SetupBackupTimer() [this=0xffff742734a0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::MakeNewConnection [ci = .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+Found a speculative or a free-to-use half open connection
+[Parent 593: Socket Thread]: V/nsHttp    dispatched step 4 (async new conn) trans=0xffff7409b000
+[Parent 593: Socket Thread]: V/nsHttp   adding transaction to pending queue [trans=0xffff7409b000 pending-count=1]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::nsConnectionEntry::InsertTransaction trans=0xffff7409b000, windowId=0
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   active [0] { handler=0xffff7409cc00 condition=0 pollflags=6 }
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::EnsureTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: D/nsSocketTransport   engaging
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=1 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::TimeoutIn socket=0xffff7409cc00, timeout=65535s
+[Parent 593: Socket Thread]: D/nsSocketTransport   not engaged
+[Parent 593: Socket Thread]: D/nsSocketTransport poll timeout: none
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 9 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::DisengageTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::OnSocketReady [this=0xffff7409cc00 outFlags=2]
+[Parent 593: Socket Thread]: D/nsSocketTransport   advancing to STATE_TRANSFERRING
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::SendStatus [this=0xffff7409cc00 status=804b0004]
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::CancelBackupTimer()
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   active [0] { handler=0xffff7409cc00 condition=0 pollflags=7 }
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::EnsureTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: D/nsSocketTransport   engaging
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=1 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::TimeoutIn socket=0xffff7409cc00, timeout=65535s
+[Parent 593: Socket Thread]: D/nsSocketTransport   not engaged
+[Parent 593: Socket Thread]: D/nsSocketTransport poll timeout: none
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::DisengageTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::OnSocketReady [this=0xffff7409cc00 outFlags=3]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::OnSocketReady [this=0xffff7409ceb0 cond=0]
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::OnOutputStreamReady [this=0xffff742734a0 ent=content-signature-2.cdn.mozilla.net primary]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ConditionallyStopTimeoutTick armed=1 active=0
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ConditionallyStopTimeoutTick stop==true
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::CancelBackupTimer()
+[Parent 593: Socket Thread]: V/nsHttp Creating HttpConnectionBase @0xffff74099000
+[Parent 593: Socket Thread]: V/nsHttp Creating nsHttpConnection @0xffff74099000
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::SetupConn Created new nshttpconnection 0xffff74099000 
+[Parent 593: Socket Thread]: E/nsHttp nsHttpConnection::Init this=0xffff74099000 sockettransport=0xffff7409cc18
+[Parent 593: Socket Thread]: D/nsSocketTransport Reset callbacks for secinfo=0xffff75d09ac0 callbacks=0xffff742ac4c0
+[Parent 593: Socket Thread]: V/nsHttp nsConnectionEntry::RecordIPFamilyPreference 0xffff75bda740, af=2
+[Parent 593: Socket Thread]: V/nsHttp   0xffff75bda740 prefer ipv4=1, ipv6=0
+[Parent 593: Socket Thread]: V/nsHttp nsHalfOpenSocket::SetupConn no transaction match returning conn 0xffff74099000 to pool
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgReclaimConnection [ent=0xffff75bda740 conn=0xffff74099000]
+[Parent 593: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff74099000 caps=0x401 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::InitSSLParams [this=0xffff74099000] connectingToProxy=0
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::GetSecurityInfo trans=(nil) tlsfilter=(nil) socket=0xffff7409cc18
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::SetupSSL Allow SPDY NPN selection
+[Parent 593: Socket Thread]: I/nsHttp Http2Session::ALPNCallback sslsocketcontrol=0xffff75d09be0
+[Parent 593: Socket Thread]: I/nsHttp Http2Session::ALPNCallback version=304
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::SetupNPNList 0xffff74099000 0
+[Parent 593: Socket Thread]: V/nsHttp InitSSLParams Setting up SPDY Negotiation OK
+[Parent 593: Socket Thread]: V/nsHttp   adding connection to idle list
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::BeginIdleMonitoring [this=0xffff74099000]
+[Parent 593: Socket Thread]: V/nsHttp Entering Idle Monitoring Mode [this=0xffff74099000]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::AsyncWait [this=0xffff7409ce78]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::TTL: 0xffff74099000 content-signature-2.cdn.mozilla.net idle 8 timeout 5000
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::PruneDeadConnectionsAfter
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgProcessPendingQ [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ProcessPendingQForEntry [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 ent=0xffff75bda740 active=0 idle=1 urgent-start-queue=0 queued=1]
+[Parent 593: Socket Thread]: V/nsHttp urgent queue [
+[Parent 593: Socket Thread]: V/nsHttp ] window id = 0 queue [
+[Parent 593: Socket Thread]: V/nsHttp   0xffff7409b000
+[Parent 593: Socket Thread]: V/nsHttp ] active urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] active regular conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle regular conns [
+[Parent 593: Socket Thread]: V/nsHttp   0xffff74099000
+[Parent 593: Socket Thread]: V/nsHttp ]
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection(.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443) no matching conn
+[Parent 593: Socket Thread]: V/nsHttp GetH2orH3ActiveConn() request for ent 0xffff75bda740 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 did not find an active connection
+[Parent 593: Socket Thread]: V/nsHttp nsConnectionEntry::AppendPendingQForFocusedWindow [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443], pendingQ count=1 window.count=0 for focused window (id=0)
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::DispatchPendingQ [trans=0xffff7409b000, halfOpen=0xffff7426fbc0, activeConn=(nil)]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::DispatchPendingQ [trans=0xffff7409b000, halfOpen=0xffff742734a0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::TryDispatchTransaction without conn [trans=0xffff7409b000 halfOpen=0xffff7426fbc0 conn=(nil) ci=0xffff74273ac0 ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 caps=21 tunnelprovider=(nil) onlyreused=1 active=0 idle=1]
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp FindCoalescableConnection(.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443) no matching conn
+[Parent 593: Socket Thread]: V/nsHttp GetH2orH3ActiveConn() request for ent 0xffff75bda740 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 did not find an active connection
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::TryDispatchTransactionOnIdleConn, ent=0xffff75bda740, trans=0xffff7409b000, urgent=0
+[Parent 593: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff74099000 caps=0x401 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp    reusing connection: [conn=0xffff74099000]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::EndIdleMonitoring [this=0xffff74099000]
+[Parent 593: Socket Thread]: V/nsHttp Leaving Idle Monitoring Mode [this=0xffff74099000]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::AsyncWait [this=0xffff7409ce78]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::StopPruneDeadConnectionsTimer
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ActivateTimeoutTick() this=0xffff7c2abe20 mTimeoutTick=0xffff7426f8a0
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::DispatchTransaction [ent-ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 0xffff75bda740 trans=0xffff7409b000 caps=21 conn=0xffff74099000 priority=0 isHttp2=0 isHttp3=0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::DispatchAbstractTransaction [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 trans=0xffff7409b000 caps=21 conn=0xffff74099000]
+[Parent 593: Socket Thread]: E/nsHttp nsHttpConnection::Activate [this=0xffff74099000 trans=0xffff7409b000 caps=21]
+[Parent 593: Socket Thread]: E/nsHttp nsHttpConnection::SetupSSL 0xffff74099000 caps=0x21 .S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::StartShortLivedTCPKeepalives[0xffff74099000] idle time[10s].
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::SetKeepaliveVals [0xffff7409cc00] keepalive disabled, idle time[10s] retry interval[1s] packet count[4]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::SetKeepaliveEnabled [0xffff7409cc00] enabled, idle time[10s] retry interval[1s] packet count[4]: globally enabled.
+[Parent 593: Socket Thread]: V/nsHttp HttpTrafficAnalyzer::IncrementHttpTransaction [Y0_N1Sys] [this=0xffff7c2b8b49]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::AddActiveTransaction    t=0xffff7409b000 tabid=0(1) thr=0
+[Parent 593: Socket Thread]: V/nsHttp Active transactions +[1,0,0,0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::TouchThrottlingTimeWindow
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::OnSocketWritable [this=0xffff74099000] host=content-signature-2.cdn.mozilla.net
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::GetSecurityInfo trans=0xffff7409b000 tlsfilter=(nil) socket=0xffff7409cc18
+[Parent 593: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff7409b000 status=804b000c progress=0]
+[Parent 593: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff74099000 - early selected alpn not available, we will try one more time.
+[Parent 593: Socket Thread]: E/nsHttp nsHttpConnection::EnsureNPNComplete 0xffff74099000 - early selected alpn not available
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::OnSocketWritable 0xffff74099000 ReadSegments returned [rv=0 read=0 sock-cond=80470007 again=1]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::AsyncWait [this=0xffff7409ceb0]
+[Parent 593: Socket Thread]: V/nsHttp    dispatched step 2 (idle) trans=0xffff7409b000
+[Parent 593: Socket Thread]: V/nsHttp   dispatching pending transaction...
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ReleaseClaimedSockets [trans=0xffff7409b000 halfOpen=0xffff742734a0]
+[Parent 593: Socket Thread]: V/nsHttp Destroying nsHalfOpenSocket [this=0xffff742734a0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ProcessPendingQ [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+[Parent 593: Socket Thread]: V/nsHttp Init nsHttpConnectionInfo @0xffff74273660
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742ee540]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsHttp Destroying nsHttpConnectionInfo @0xffff742732e0
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::OnSocketReady [this=0xffff7409ce78 cond=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742acd90]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgProcessPendingQ [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ProcessPendingQForEntry [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 ent=0xffff75bda740 active=1 idle=0 urgent-start-queue=0 queued=0]
+[Parent 593: Socket Thread]: V/nsHttp urgent queue [
+[Parent 593: Socket Thread]: V/nsHttp ] window id = 0 queue [
+[Parent 593: Socket Thread]: V/nsHttp ] active urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] active regular conns [
+[Parent 593: Socket Thread]: V/nsHttp   0xffff74099000
+[Parent 593: Socket Thread]: V/nsHttp ] idle urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle regular conns [
+[Parent 593: Socket Thread]: V/nsHttp ]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ProcessPendingQForEntry [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 ent=0xffff75bda740 active=1 idle=0 urgent-start-queue=0 queued=0]
+[Parent 593: Socket Thread]: V/nsHttp urgent queue [
+[Parent 593: Socket Thread]: V/nsHttp ] window id = 0 queue [
+[Parent 593: Socket Thread]: V/nsHttp ] active urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] active regular conns [
+[Parent 593: Socket Thread]: V/nsHttp   0xffff74099000
+[Parent 593: Socket Thread]: V/nsHttp ] idle urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle regular conns [
+[Parent 593: Socket Thread]: V/nsHttp ]
+[Parent 593: Socket Thread]: D/nsHttp Destroying nsHttpConnectionInfo @0xffff74273660
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   active [0] { handler=0xffff7409cc00 condition=0 pollflags=6 }
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::EnsureTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: D/nsSocketTransport   engaging
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=1 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::TimeoutIn socket=0xffff7409cc00, timeout=65535s
+[Parent 593: Socket Thread]: D/nsSocketTransport   not engaged
+[Parent 593: Socket Thread]: D/nsSocketTransport poll timeout: none
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 8 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::DisengageTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::OnSocketReady [this=0xffff7409cc00 outFlags=2]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::OnSocketReady [this=0xffff7409ceb0 cond=0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::OnSocketWritable [this=0xffff74099000] host=content-signature-2.cdn.mozilla.net
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::GetSecurityInfo trans=0xffff7409b000 tlsfilter=(nil) socket=0xffff7409cc18
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::OnSocketWritable 0xffff74099000 ReadSegments returned [rv=0 read=0 sock-cond=80470007 again=1]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::AsyncWait [this=0xffff7409ceb0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   active [0] { handler=0xffff7409cc00 condition=0 pollflags=6 }
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::EnsureTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: D/nsSocketTransport   engaging
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=1 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::TimeoutIn socket=0xffff7409cc00, timeout=65535s
+[Parent 593: Socket Thread]: D/nsSocketTransport   not engaged
+[Parent 593: Socket Thread]: D/nsSocketTransport poll timeout: none
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: SSL Cert #1]: D/nsSocketTransport STS dispatch [0xffff7aa95888]
+[Parent 593: SSL Cert #1]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: SSL Cert #1]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 112 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::TimeoutIn socket=0xffff7409cc00, timeout=65535s
+[Parent 593: Socket Thread]: D/nsSocketTransport   not engaged
+[Parent 593: SSL Cert #1]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff74d89af0]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   active [0] { handler=0xffff7409cc00 condition=0 pollflags=6 }
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::EnsureTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: D/nsSocketTransport   engaging
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=1 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::TimeoutIn socket=0xffff7409cc00, timeout=65535s
+[Parent 593: Socket Thread]: D/nsSocketTransport   not engaged
+[Parent 593: Socket Thread]: D/nsSocketTransport poll timeout: none
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport SocketContext::DisengageTimeout socket=0xffff7409cc00
+[Parent 593: Socket Thread]: E/nsSocketTransport nsSocketTransport::OnSocketReady [this=0xffff7409cc00 outFlags=6]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::OnSocketReady [this=0xffff7409ceb0 cond=0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::OnSocketWritable [this=0xffff74099000] host=content-signature-2.cdn.mozilla.net
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::GetSecurityInfo trans=0xffff7409b000 tlsfilter=(nil) socket=0xffff7409cc18
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::EnsureNPNComplete [this=0xffff74099000] setting complete to true
+[Parent 593: Socket Thread]: E/nsHttp nsHttpTransaction::OnSocketStatus [this=0xffff7409b000 status=804b000d progress=0]
+[Parent 593: Socket Thread]: V/nsHttp   writing transaction request stream
+[Parent 593: Socket Thread]: V/nsHttp nsHttpTransaction::ReadSegments 0xffff7409b000
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::GetSecurityInfo trans=0xffff7409b000 tlsfilter=(nil) socket=0xffff7409cc18
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::OnReadSegment [this=0xffff74099000]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::Write [this=0xffff7409ceb0 count=328]
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Write [count=328]
+[Parent 593: Socket Thread]: D/nsSocketTransport   PR_Write returned [n=-1]
+[Parent 593: Socket Thread]: D/nsSocketTransport ErrorAccordingToNSPR [in=-8061 out=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OnMsgOutputClosed [this=0xffff7409cc00 reason=805a1f7d]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::OnSocketWritable 0xffff74099000 ReadSegments returned [rv=0 read=0 sock-cond=805a1f7d again=1]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::CloseTransaction[this=0xffff74099000 trans=0xffff7409b000 reason=805a1f7d]
+[Parent 593: Socket Thread]: V/nsHttp   closing associated mTransaction
+[Parent 593: Socket Thread]: V/nsHttp nsHttpTransaction::Close [this=0xffff7409b000 reason=805a1f7d]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::RemoveActiveTransaction t=0xffff7409b000 tabid=0(1) thr=0
+[Parent 593: Socket Thread]: V/nsHttp Active transactions -[0,0,0,0]
+[Parent 593: Socket Thread]: V/nsHttp HttpTrafficAnalyzer::AccumulateHttpTransferredSize [Y0_N1Sys] rb=0 sb=0 [this=0xffff7c2b8b49]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ReclaimConnection [conn=0xffff74099000]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff7426f860]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: V/nsHttp nsHttpTransaction::RemoveDispatchedAsBlocking this=0xffff7409b000 not blocking
+[Parent 593: Socket Thread]: V/nsHttp nsHttpTransaction 0xffff7409b000 request context set to null in ReleaseBlockingTransaction() - was 0xffff75bda270
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::Close [this=0xffff74099000 reason=805a1f7d]
+[Parent 593: Socket Thread]: V/nsHttp HttpTrafficAnalyzer::IncrementHttpConnection size=1 [this=0xffff7c2b8b49]
+[Parent 593: Socket Thread]: V/nsHttp HttpTrafficAnalyzer::IncrementHttpConnection [Y0_N1Sys] [this=0xffff7c2b8b49]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::Read [this=0xffff7409ce78 count=4000]
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Read [count=4000]
+[Parent 593: Socket Thread]: D/nsSocketTransport   PR_Read returned [n=-1]
+[Parent 593: Socket Thread]: D/nsSocketTransport ErrorAccordingToNSPR [in=-8061 out=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OnMsgInputClosed [this=0xffff7409cc00 reason=805a1f7d]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::Close drained 0 bytes
+[Parent 593: Socket Thread]: D/nsSocketTransport Reset callbacks for secinfo=0xffff75d09ac0 callbacks=0xffff74d89b80
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::Close 0xffff7409cc00 reason=805a1f7d
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::CloseWithStatus [this=0xffff7409ce78 reason=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::CloseWithStatus [this=0xffff7409ceb0 reason=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::AsyncWait [this=0xffff7409ceb0]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransportService::DetachSocket [handler=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::OnSocketDetached [this=0xffff7409cc00 cond=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::RecoverFromError [this=0xffff7409cc00 state=4 cond=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::RecoverFromError do not retry because mDoNotRetryToConnect is set [this=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::OnSocketReady [this=0xffff7409ce78 cond=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::OnSocketReady [this=0xffff7409ceb0 cond=805a1f7d]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport: calling PR_Close [this=0xffff7409cc00]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransportService::RemoveFromPollList [handler=(nil)]
+[Parent 593: Socket Thread]: D/nsSocketTransport   index=0 mActiveCount=1
+[Parent 593: Socket Thread]: D/nsSocketTransport   active=0 idle=0
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff742ac4c0]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgReclaimConnection [ent=0xffff75bda740 conn=0xffff74099000]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ConditionallyStopTimeoutTick armed=1 active=0
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ConditionallyStopTimeoutTick stop==true
+[Parent 593: Socket Thread]: V/nsHttp   connection cannot be reused; closing connection
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::Close [this=0xffff74099000 reason=80004004]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::Read [this=0xffff7409ce78 count=4000]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection::Close drained 0 bytes
+[Parent 593: Socket Thread]: D/nsSocketTransport Reset callbacks for secinfo=0xffff75d09ac0 callbacks=0xffff742ac7c0
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketTransport::Close 0xffff7409cc00 reason=80004004
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::CloseWithStatus [this=0xffff7409ce78 reason=80004004]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::CloseWithStatus [this=0xffff7409ceb0 reason=80004004]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::AsyncWait [this=0xffff7409ceb0]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgProcessPendingQ [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ProcessPendingQForEntry [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 ent=0xffff75bda740 active=0 idle=0 urgent-start-queue=0 queued=0]
+[Parent 593: Socket Thread]: V/nsHttp urgent queue [
+[Parent 593: Socket Thread]: V/nsHttp ] window id = 0 queue [
+[Parent 593: Socket Thread]: V/nsHttp ] active urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] active regular conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle regular conns [
+[Parent 593: Socket Thread]: V/nsHttp ]
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::ProcessPendingQForEntry [ci=.S......[tlsflags0x00000000]content-signature-2.cdn.mozilla.net:443 ent=0xffff75bda740 active=0 idle=0 urgent-start-queue=0 queued=0]
+[Parent 593: Socket Thread]: V/nsHttp urgent queue [
+[Parent 593: Socket Thread]: V/nsHttp ] window id = 0 queue [
+[Parent 593: Socket Thread]: V/nsHttp ] active urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] active regular conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle urgent conns [
+[Parent 593: Socket Thread]: V/nsHttp ] idle regular conns [
+[Parent 593: Socket Thread]: V/nsHttp ]
+[Parent 593: Socket Thread]: V/nsHttp Destroying nsHttpConnection @0xffff74099000
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnection 0xffff74099000 performed 1 HTTP/1.x transactions
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketOutputStream::CloseWithStatus [this=0xffff7409ceb0 reason=80470002]
+[Parent 593: Socket Thread]: D/nsSocketTransport nsSocketInputStream::CloseWithStatus [this=0xffff7409ce78 reason=80470002]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: Main Thread]: D/nsSocketTransport destroying nsSocketTransport @0xffff7409cc00
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::OnStartRequest [this=0xffff7426e000 request=0xffff74242ac0 status=805a1f7d]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ProcessFallback [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp   choosing not to fallback [(nil),,0]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ContinueOnStartRequest4 [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::CallOnStartRequest [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp   calling mListener->OnStartRequest [this=0xffff7426e000, listener=0xffff75aa1820]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::OnStopRequest [this=0xffff7426e000 request=0xffff74242ac0 status=805a1f7d]
+[Parent 593: Main Thread]: D/nsHttp OnStopRequest 0xffff7426e000 requestFromCache: 0 mFirstResponseSource: 0
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel 0xffff7426e000 has a strongly framed transaction: 0
+[Parent 593: Main Thread]: D/nsHttp   mAuthRetryPending=0, status=805a1f7d, sticky conn cap=0
+[Parent 593: Main Thread]: V/nsHttp nsHttpTransaction::DeleteSelfOnConsumerThread [this=0xffff7409b000]
+[Parent 593: Main Thread]: V/nsHttp Destroying nsHttpTransaction @0xffff7409b000
+[Parent 593: Main Thread]: V/nsHttp nsHttpTransaction::RemoveDispatchedAsBlocking this=0xffff7409b000 not blocking
+[Parent 593: Main Thread]: V/nsHttp nsHttpTransaction 0xffff7409b000 request context set to null in ReleaseBlockingTransaction() - was (nil)
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ContinueOnStopRequestAfterAuthRetry [this=0xffff7426e000, aStatus=805a1f7d aAuthRetry=0, aIsFromNet=1, aTransWithStickyConn=(nil)]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::ContinueOnStopRequest [this=0xffff7426e000 aStatus=805a1f7d, aIsFromNet=1]
+[Parent 593: Main Thread]: D/nsHttp   nsHttpChannel::OnStopRequest ChannelDisposition 11
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::FinalizeCacheEntry [this=0xffff7426e000]
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel 0xffff7426e000 calling OnStopRequest
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffff7426e040 event="http-on-stop-request"]
+[Parent 593: Main Thread]: V/nsHttp HttpBaseChannel::RemoveAsNonTailRequest this=0xffff7426e000, rc=0xffff75bda270, already added=1
+[Parent 593: Main Thread]: D/nsHttp nsHttpChannel::CloseCacheEntry [this=0xffff7426e000] mStatus=805a1f7d mCacheEntryIsWriteOnly=1
+[Parent 593: Main Thread]: D/nsHttp   dooming cache entry!!
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 http:content-signature-2.cdn.mozilla.net:443:P:
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 http:content-signature-2.cdn.mozilla.net:443:P::I:https://content-signature-2.cdn.mozilla.net|
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 http:content-signature-2.cdn.mozilla.net:443:.:
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 http:content-signature-2.cdn.mozilla.net:443:.::I:https://content-signature-2.cdn.mozilla.net|
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 https:content-signature-2.cdn.mozilla.net:443:P:
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 https:content-signature-2.cdn.mozilla.net:443:P::I:https://content-signature-2.cdn.mozilla.net|
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 https:content-signature-2.cdn.mozilla.net:443:.:
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 https:content-signature-2.cdn.mozilla.net:443:.::I:https://content-signature-2.cdn.mozilla.net|
+[Parent 593: Main Thread]: D/nsHttp AltSvcCache::LookupMapping 0xffff7c2f5820 MISS
+JavaScript error: chrome://browser/content/preferences/main.js, line 310: TypeError: win is null
+JavaScript error: chrome://browser/content/preferences/search.js, line 255: TypeError: this._separatePrivateDefaultEnabledPref is undefined
+[Parent 593: Main Thread]: D/nsHttp Destroying nsHttpChannel [this=0xffff7426e000]
+[Parent 593: Main Thread]: V/nsHttp Destroying HttpBaseChannel @0xffff7426e000
+[Parent 593: Main Thread]: V/nsHttp HttpBaseChannel::RemoveAsNonTailRequest this=0xffff7426e000, rc=0xffff75bda270, already added=0
+[Parent 593: Main Thread]: D/nsHttp Destroying nsHttpConnectionInfo @0xffff74273120
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="profile-change-net-teardown"]
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7c2b8850
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7c2b8878
+[Parent 593: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 593: Main Thread]: D/nsSocketTransport STS dispatch [0xffff74024100]
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 593: Socket Thread]: D/nsSocketTransport     ...returned after 10482 milliseconds
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff740276d0]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdown
+[Parent 593: Socket Thread]: D/nsSocketTransport EventTokenBucket::Stop 0xffff7b010580 armed=0
+[Parent 593: Socket Thread]: D/nsSocketTransport EventTokenBucket::dtor 0xffff7b010580 events=0
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::AbortAndCloseAllConnections
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::StopPruneDeadConnectionsTimer
+[Parent 593: Socket Thread]: V/nsHttp nsConnectionEntry::~nsConnectionEntry this=0xffff75bda740
+[Parent 593: Socket Thread]: D/nsHttp Destroying nsHttpConnectionInfo @0xffff74273ac0
+[Parent 593: Socket Thread]: V/nsHttp nsHttpConnectionMgr::StopPruneDeadConnectionsTimer
+[Parent 593: Main Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdownConfirm
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 593: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+[Parent 593: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: Main Thread]: D/nsSocketTransport nsSocketTransportService::ShutdownThread
+[Parent 593: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 593: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff74027910]
+[Parent 593: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport STS shutting down thread
+[Parent 593: SSL Cert #1]: D/nsSocketTransport PollableEvent::Signal
+[Parent 593: Socket Thread]: D/nsSocketTransport STS thread exit
+[Child 625: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Child 625: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 625: Socket Thread]: D/nsSocketTransport     ...returned after 17515 milliseconds
+[Child 625: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 625: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 625: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 625: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 625: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 593: Main Thread]: D/nsHostResolver Shutting down host resolver.
+[Parent 593: DNS Resolver #1]: D/nsHostResolver DNS lookup thread - queue empty, task finished.
+[Parent 593: DNS Resolver #2]: D/nsHostResolver DNS lookup thread - queue empty, task finished.
+[Parent 593: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="xpcom-shutdown"]
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7c2b8850
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7c2b8878
+[Parent 593: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 593: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+[Parent 593: Main Thread]: D/nsHostResolver TRR::Observe() topic=xpcom-shutdown-threads
+[Parent 593: Main Thread]: D/nsHttp Deleting nsHttpHandler [this=0xffff7c2b8800]
+[Parent 593: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 593: Main Thread]: V/nsHttp Destroying nsHttpConnectionMgr @0xffff7c2abe20
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff7c2b8878
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7c2b8878
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff7c2b8850
+[Parent 593: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7c2b8850

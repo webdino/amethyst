@@ -1,0 +1,763 @@
+[(null) 527: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[(null) 527: Main Thread]: D/nsSocketTransport STS dispatch [0xffff75cc00a0]
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[(null) 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 527: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[(null) 527: Socket Thread]: D/nsSocketTransport     ...returned after 1 milliseconds
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 527: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff75cc04f0]
+[(null) 527: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 527: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[(null) 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 527: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 527: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff7155c850
+[(null) 527: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff7155c878
+[(null) 527: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff7155c800].
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::Init
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff7155c800 child=0
+[(null) 527: Main Thread]: V/nsHttp Creating nsHttpConnectionMgr @0xffff75c30a00
+[(null) 527: Main Thread]: V/nsHttp nsHttpConnectionMgr::Init
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff7155c800 child=0
+[(null) 527: Main Thread]: D/nsSocketTransport EventTokenBucket::SetRate 0xffff713f6a00 80 10
+[(null) 527: Main Thread]: D/nsSocketTransport STS dispatch [0xffff708a4100]
+[(null) 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[(null) 527: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[(null) 527: Socket Thread]: D/nsSocketTransport     ...returned after 1816 milliseconds
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 527: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff7124ef40]
+[(null) 527: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 527: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 527: Main Thread]: D/nsSocketTransport nsSocketTransportService::Observe topic=profile-initial-state
+[(null) 527: Main Thread]: V/nsHttp ParentChannelListener::ParentChannelListener [this=0xffff6e46e190, next=0xffff6cb79ad0]
+[(null) 527: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffff7f762050 event="document-on-opening-request"]
+[(null) 527: Main Thread]: V/nsHttp ParentChannelListener::OnStartRequest [this=0xffff6e46e190]
+[(null) 527: Main Thread]: V/nsHttp ParentChannelListener::OnDataAvailable [this=0xffff6e46e190]
+[(null) 527: Main Thread]: V/nsHttp ParentChannelListener::OnStopRequest: [this=0xffff6e46e190 status=0]
+[(null) 527: Main Thread]: V/nsHttp ParentChannelListener::~ParentChannelListener 0xffff6e46e190
+[Parent 527: Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0; loadContext: 0, 0. [channel=0xffff6bc4a9b8]
+[Child 563: Main Thread]: D/nsSocketTransport STS dispatch [0xffff8b1bc5e0]
+[Child 563: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 563: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Child 563: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 563: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Child 563: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 563: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff8b1c1700]
+[Child 563: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Child 563: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[Child 563: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 563: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 563: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 527: Main Thread]: D/nsHostResolver nsHostResolver::Init this=0xffff6c679060
+[Parent 527: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[localhost]
+[Parent 527: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[local]
+[Parent 527: Main Thread]: D/nsHostResolver TRRService::Init mCaptiveState=0 mCaptiveIsPassed=0
+[Parent 527: Main Thread]: D/nsHostResolver TRRService::GetParentalControlEnabledInternal=0
+[Parent 527: Main Thread]: D/nsHostResolver Initialized TRRService
+[Child 563: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff86b2c050
+[Child 563: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff86b2c078
+[Child 563: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff86b2c000].
+[Child 563: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[Child 563: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[Child 563: Main Thread]: D/nsHttp nsHttpHandler::Init
+[Child 563: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[Child 563: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[Child 563: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff86b2c000 child=1
+[Child 563: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff86b2c000 child=1
+[Parent 527: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="profile-change-net-teardown"]
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7155c850
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7155c878
+[Parent 527: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 527: Main Thread]: D/nsSocketTransport STS dispatch [0xffff6c49aac0]
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 527: Socket Thread]: D/nsSocketTransport     ...returned after 15152 milliseconds
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Parent 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Parent 527: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Parent 527: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff6ba28580]
+[Parent 527: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 527: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdown
+[Parent 527: Socket Thread]: D/nsSocketTransport EventTokenBucket::Stop 0xffff713f6a00 armed=0
+[Parent 527: Socket Thread]: D/nsSocketTransport EventTokenBucket::dtor 0xffff713f6a00 events=0
+[Parent 527: Socket Thread]: V/nsHttp nsHttpConnectionMgr::AbortAndCloseAllConnections
+[Parent 527: Socket Thread]: V/nsHttp nsHttpConnectionMgr::StopPruneDeadConnectionsTimer
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 527: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 527: Main Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdownConfirm
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Child 563: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Child 563: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 563: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Child 563: Socket Thread]: D/nsSocketTransport     ...returned after 6571 milliseconds
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 563: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 563: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 563: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 563: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 527: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 527: Main Thread]: D/nsSocketTransport nsSocketTransportService::ShutdownThread
+[Parent 527: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 527: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff6ba28580]
+[Parent 527: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 527: Socket Thread]: D/nsSocketTransport STS shutting down thread
+[Parent 527: Socket Thread]: D/nsSocketTransport STS thread exit
+JavaScript error: resource:///modules/BrowserGlue.jsm, line 1131: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIIdleService.removeIdleObserver]
+[Parent 527: Main Thread]: D/nsHostResolver Shutting down host resolver.
+[Parent 527: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="xpcom-shutdown"]
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7155c850
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7155c878
+[Parent 527: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 527: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+JavaScript error: resource://gre/modules/osfile/osfile_async_front.jsm, line 446: Error: OS.File has been shut down. Rejecting request to DirectoryIterator_prototype_close
+[Parent 527: Main Thread]: D/nsHostResolver TRR::Observe() topic=xpcom-shutdown-threads
+[Parent 527: Main Thread]: D/nsHttp Deleting nsHttpHandler [this=0xffff7155c800]
+[Parent 527: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 527: Main Thread]: V/nsHttp Destroying nsHttpConnectionMgr @0xffff75c30a00
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff7155c878
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7155c878
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff7155c850
+[Parent 527: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff7155c850

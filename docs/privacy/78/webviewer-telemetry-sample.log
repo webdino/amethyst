@@ -1,0 +1,426 @@
+[(null) 4074: Main Thread]: D/nsSocketTransport STS dispatch [0xffff975c01f0]
+[(null) 4074: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[(null) 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 4074: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[(null) 4074: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 4074: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff975d62e0]
+[(null) 4074: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 4074: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[(null) 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 4074: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 4074: Main Thread]: D/nsSocketTransport nsSocketTransportService::Observe topic=profile-initial-state
+[(null) 4074: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff90ad8050
+[(null) 4074: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff90ad8078
+[(null) 4074: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff90ad8000].
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::Init
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff90ad8000 child=0
+[(null) 4074: Main Thread]: V/nsHttp Creating nsHttpConnectionMgr @0xffff90acecc0
+[(null) 4074: Main Thread]: V/nsHttp nsHttpConnectionMgr::Init
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff90ad8000 child=0
+[(null) 4074: Main Thread]: D/nsSocketTransport EventTokenBucket::SetRate 0xffff8e824400 80 10
+[(null) 4074: Main Thread]: D/nsSocketTransport STS dispatch [0xffff8e822600]
+[(null) 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[(null) 4074: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[(null) 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[(null) 4074: Main Thread]: V/nsHttp ParentChannelListener::ParentChannelListener [this=0xffff90a2e510, next=0xffff8e821750]
+[(null) 4074: Socket Thread]: D/nsSocketTransport     ...returned after 1705 milliseconds
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[(null) 4074: Main Thread]: D/nsHttp nsHttpHandler::NotifyObservers [chan=0xffffa1062390 event="document-on-opening-request"]
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[(null) 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[(null) 4074: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff8e812ca0]
+[(null) 4074: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[(null) 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[(null) 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[(null) 4074: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[(null) 4074: Main Thread]: V/nsHttp ParentChannelListener::OnStartRequest [this=0xffff90a2e510]
+[(null) 4074: Main Thread]: V/nsHttp ParentChannelListener::OnStopRequest: [this=0xffff90a2e510 status=2153578529]
+[(null) 4074: Main Thread]: V/nsHttp ParentChannelListener::~ParentChannelListener 0xffff90a2e510
+[Parent 4074: Main Thread]: D/nsHttp NS_CompareLoadInfoAndLoadContext - loadInfo: 0, 0; loadContext: 0, 0. [channel=0xffff8e4d4fb8]
+[Parent 4074: Main Thread]: D/nsHostResolver nsHostResolver::Init this=0xffff8e4b4060
+[Parent 4074: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[localhost]
+[Parent 4074: Main Thread]: D/nsHostResolver TRRService::ReadPrefs network.trr.builtin-excluded-domains host:[local]
+[Parent 4074: Main Thread]: D/nsHostResolver TRRService::Init mCaptiveState=0 mCaptiveIsPassed=0
+[Parent 4074: Main Thread]: D/nsHostResolver TRRService::GetParentalControlEnabledInternal=0
+[Parent 4074: Main Thread]: D/nsHostResolver Initialized TRRService
+[Child 4108: Main Thread]: D/nsSocketTransport STS dispatch [0xffff871bc790]
+[Child 4108: Socket Thread]: D/nsSocketTransport STS thread init 1000 sockets
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent() using pipe
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent() ctor ok
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 4108: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Child 4108: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 4108: Socket Thread]: D/nsSocketTransport     timeout = 0 milliseconds
+[Child 4108: Socket Thread]: D/nsSocketTransport     ...returned after 0 milliseconds
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 4108: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff871f43a0]
+[Child 4108: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Child 4108: Socket Thread]: D/nsSocketTransport nsSocketTransportService::OnKeepaliveEnabledPrefChange enabled
+[Child 4108: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 4108: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 4108: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Child 4108: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff82b2b850
+[Child 4108: Main Thread]: D/nsHttp nsHttpAuthCache::nsHttpAuthCache 0xffff82b2b878
+[Child 4108: Main Thread]: D/nsHttp Creating nsHttpHandler [this=0xffff82b2b800].
+[Child 4108: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport version 4.19.140-cip33-yocto-standard
+[Child 4108: Main Thread]: D/nsHttp nsHttpHandler::SetFastOpenOSSupport  supported.
+[Child 4108: Main Thread]: D/nsHttp nsHttpHandler::Init
+[Child 4108: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged [pref=(null)]
+[Child 4108: Main Thread]: D/nsHttp nsHttpHandler::PrefsChanged Security Pref Changed (null)
+[Child 4108: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff82b2b800 child=1
+[Child 4108: Main Thread]: D/nsHttp nsHttpHandler::MakeNewRequestTokenBucket this=0xffff82b2b800 child=1
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+Fontconfig warning: Directory/file mtime in the future. New fonts may not be detected.
+[Parent 4074: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="profile-change-net-teardown"]
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff90ad8050
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff90ad8078
+[Parent 4074: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 4074: Main Thread]: D/nsSocketTransport STS dispatch [0xffff8db6f880]
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 4074: Socket Thread]: D/nsSocketTransport     ...returned after 1777014 milliseconds
+[Parent 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Parent 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 2ms
+[Parent 4074: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff8e33aee0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 4074: Socket Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdown
+[Parent 4074: Socket Thread]: D/nsSocketTransport EventTokenBucket::Stop 0xffff8e824400 armed=0
+[Parent 4074: Socket Thread]: D/nsSocketTransport EventTokenBucket::dtor 0xffff8e824400 events=0
+[Parent 4074: Socket Thread]: V/nsHttp nsHttpConnectionMgr::AbortAndCloseAllConnections
+[Parent 4074: Socket Thread]: V/nsHttp nsHttpConnectionMgr::StopPruneDeadConnectionsTimer
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Main Thread]: V/nsHttp nsHttpConnectionMgr::OnMsgShutdownConfirm
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 4108: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Child 4108: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Child 4108: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Child 4108: Socket Thread]: D/nsSocketTransport     ...returned after 1776057 milliseconds
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::Clear
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::Clear time to signal 0ms
+[Child 4108: Socket Thread]: D/nsSocketTransport PollableEvent::Clear PR_Read 1
+[Child 4108: Socket Thread]: D/nsSocketTransport STS poll iter
+[Child 4108: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Child 4108: Socket Thread]: D/nsSocketTransport     timeout = -1 milliseconds
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::MarkFirstSignalTimestamp
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal PR_Write 1
+[Parent 4074: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4074: Main Thread]: D/nsSocketTransport nsSocketTransportService::ShutdownThread
+[Parent 4074: Main Thread]: D/nsSocketTransport PollableEvent::Signal
+[Parent 4074: Socket Thread]: D/nsSocketTransport PollableEvent::AdjustFirstSignalTimestamp
+[Parent 4074: Socket Thread]: D/nsSocketTransport   calling PR_Poll [active=0 idle=0]
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS dispatch [0xffff8e344760]
+[Parent 4074: Socket Thread]: D/nsSocketTransport OnDispatchedEvent Same Thread Skip Signal
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS shutting down thread
+[Parent 4074: Socket Thread]: D/nsSocketTransport STS thread exit
+[Parent 4074: Main Thread]: D/nsHostResolver Shutting down host resolver.
+[Parent 4074: Main Thread]: D/nsHttp nsHttpHandler::Observe [topic="xpcom-shutdown"]
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff90ad8050
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff90ad8078
+[Parent 4074: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 4074: Main Thread]: D/nsSocketTransport nsSocketTransportService::Shutdown
+[Parent 4074: Main Thread]: D/nsHostResolver TRR::Observe() topic=xpcom-shutdown-threads
+[Parent 4074: Main Thread]: D/nsHttp Deleting nsHttpHandler [this=0xffff90ad8000]
+[Parent 4074: Main Thread]: V/nsHttp nsHttpConnectionMgr::Shutdown
+[Parent 4074: Main Thread]: V/nsHttp Destroying nsHttpConnectionMgr @0xffff90acecc0
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff90ad8078
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff90ad8078
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::~nsHttpAuthCache 0xffff90ad8050
+[Parent 4074: Main Thread]: D/nsHttp nsHttpAuthCache::ClearAll 0xffff90ad8050

@@ -46,7 +46,7 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,127 @@
 +const { Preferences } = ChromeUtils.import(
 +  "resource://gre/modules/Preferences.jsm"
 +);
@@ -92,10 +92,6 @@ new file mode 100644
 +
 +function getSelectedBrowser(){
 +  return document.getElementById("content");
-+}
-+
-+function getPopupAnchor(){
-+  return document.getElementById("invalid-form-popup-anchor");
 +}
 +
 +/**

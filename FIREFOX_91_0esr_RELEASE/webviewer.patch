@@ -1,9 +1,37 @@
+diff --git a/browser/actors/BrowserTabParent.jsm b/browser/actors/BrowserTabParent.jsm
+--- a/browser/actors/BrowserTabParent.jsm
++++ b/browser/actors/BrowserTabParent.jsm
+@@ -18,6 +18,9 @@ class BrowserTabParent extends JSWindowA
+     }
+ 
+     let gBrowser = browser.ownerGlobal.gBrowser;
++    if (!gBrowser) {
++      return;
++    }
+ 
+     switch (message.name) {
+       case "Browser:WindowCreated": {
 diff --git a/browser/amethyst/content/browser.css b/browser/amethyst/content/browser.css
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.css
-@@ -0,0 +1,11 @@
-+/* browser/base/content/browser.css:981 */
+@@ -0,0 +1,26 @@
++.browserContainer {
++  height: 100%;
++  width: 100%;
++}
++
++/* browser/base/content/browser.css:7 */
++:root,
++body {
++  margin: 0;
++  padding: 0;
++  height: 100%;
++  width: 100%;
++  overflow: clip;
++}
++
++/* browser/base/content/browser.css:977 */
 +#invalid-form-popup > description {
 +  max-width: 280px;
 +}
@@ -18,8 +46,7 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,132 @@
-+const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
+@@ -0,0 +1,131 @@
 +const { Preferences } = ChromeUtils.import(
 +  "resource://gre/modules/Preferences.jsm"
 +);
@@ -155,25 +182,34 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,82 @@
 +<?xml version="1.0"?>
-+<!DOCTYPE html [
++<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
++<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
++
++<!DOCTYPE window [
 +<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 +%brandDTD;
 +]>
 +
-+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-+<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
-+
 +<html id="main-window"
-+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
++        xmlns:html="http://www.w3.org/1999/xhtml"
++        xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
++        xmlns="http://www.w3.org/1999/xhtml"
 +        width="800"
 +        height="480"
 +        sizemode="maximized"
-+        title="&brandFullName;"
-+        onload="onload()"
 +>
++<head>
++  <title>&brandFullName;</title>
++  <script type="text/javascript">
++    var {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
++    Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
++    window.addEventListener("load", onload, { once: true });
++  </script>
++</head>
 +
++<html:body xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 +<commandset id="mainCommandSet">
 +  <command id="Browser:Home"    oncommand="BrowserHomePage();"/>
 +  <command id="Browser:Back"    oncommand="BrowserBack();"/>
@@ -210,20 +246,23 @@ new file mode 100644
 +  <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
 +</keyset>
 +
-+<script type="application/javascript">
-+  Components.utils.import("resource://gre/modules/Services.jsm");
-+  Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
-+</script>
-+
 +<!-- for invalid form error message -->
-+<panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" hidden="true" level="parent">
-+  <description/>
-+</panel>
++<popupset id="mainPopupSet">
++  <html:template id="invalidFormTemplate">
++    <!-- for invalid form error message -->
++    <panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" level="parent" locationspecific="true">
++      <description/>
++    </panel>
++  </html:template>
++</popupset>
 +
-+<stack class="browserStack" flex="10000">
-+  <browser id="content" contextmenu="contentAreaContextMenu" datetimepicker="DateTimePickerPanel" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" autoscrollpopup="autoscroller"/>
-+  <browser id="aboutContent" contextmenu="contentAreaContextMenu" datetimepicker="DateTimePickerPanel" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" remote="false" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" autoscrollpopup="autoscroller"/>
-+</stack>
++<vbox class="browserContainer" flex="10000">
++  <stack class="browserStack" flex="10000">
++    <browser id="content" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="false" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
++    <browser id="aboutContent" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="false" remote="false" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
++  </stack>
++</vbox>
++</html:body>
 +
 +</html>
 diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn

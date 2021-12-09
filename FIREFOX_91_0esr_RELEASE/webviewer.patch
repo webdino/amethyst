@@ -254,8 +254,8 @@ new file mode 100644
 +
 +<vbox class="browserContainer" flex="10000">
 +  <stack class="browserStack" flex="10000">
-+    <browser id="content" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="false" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
-+    <browser id="aboutContent" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="false" remote="false" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
++    <browser id="content" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="true" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
++    <browser id="aboutContent" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="true" remote="false" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
 +  </stack>
 +</vbox>
 +</html:body>

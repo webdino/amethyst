@@ -1,0 +1,86 @@
+diff --git a/build/appini_header.py b/build/appini_header.py
+--- a/build/appini_header.py
++++ b/build/appini_header.py
+@@ -18,11 +18,6 @@ def main(output, file):
+             flags.add("NS_XRE_ENABLE_PROFILE_MIGRATOR")
+     except Exception:
+         pass
+-    try:
+-        if config.getint("Crash Reporter", "Enabled") == 1:
+-            flags.add("NS_XRE_ENABLE_CRASH_REPORTER")
+-    except Exception:
+-        pass
+     appdata = dict(
+         ("%s:%s" % (s, o), config.get(s, o))
+         for s in config.sections()
+diff --git a/js/xpconnect/src/XPCShellImpl.cpp b/js/xpconnect/src/XPCShellImpl.cpp
+--- a/js/xpconnect/src/XPCShellImpl.cpp
++++ b/js/xpconnect/src/XPCShellImpl.cpp
+@@ -1209,7 +1209,7 @@ int XRE_XPCShellMain(int argc, char** ar
+       argv += 2;
+     }
+ 
+-    const char* val = getenv("MOZ_CRASHREPORTER");
++    const char* val = NULL;
+     if (val && *val && !CrashReporter::IsDummy()) {
+       rv = CrashReporter::SetExceptionHandler(greDir, true);
+       if (NS_FAILED(rv)) {
+diff --git a/old-configure.in b/old-configure.in
+--- a/old-configure.in
++++ b/old-configure.in
+@@ -1813,6 +1813,7 @@ if test "$OS_ARCH" != "$HOST_OS_ARCH" -a
+   MOZ_CRASHREPORTER=
+ fi
+ 
++MOZ_CRASHREPORTER=
+ if test -n "$MOZ_CRASHREPORTER"; then
+    AC_DEFINE(MOZ_CRASHREPORTER)
+ 
+diff --git a/toolkit/crashreporter/nsExceptionHandler.cpp b/toolkit/crashreporter/nsExceptionHandler.cpp
+--- a/toolkit/crashreporter/nsExceptionHandler.cpp
++++ b/toolkit/crashreporter/nsExceptionHandler.cpp
+@@ -1975,17 +1975,8 @@ static void RegisterRuntimeExceptionModu
+ nsresult SetExceptionHandler(nsIFile* aXREDirectory, bool force /*=false*/) {
+   if (gExceptionHandler) return NS_ERROR_ALREADY_INITIALIZED;
+ 
+-#if defined(DEBUG)
+-  // In debug builds, disable the crash reporter by default, and allow to
+-  // enable it with the MOZ_CRASHREPORTER environment variable.
+-  const char* envvar = PR_GetEnv("MOZ_CRASHREPORTER");
++  const char* envvar = NULL;
+   if ((!envvar || !*envvar) && !force) return NS_OK;
+-#else
+-  // In other builds, enable the crash reporter by default, and allow
+-  // disabling it with the MOZ_CRASHREPORTER_DISABLE environment variable.
+-  const char* envvar = PR_GetEnv("MOZ_CRASHREPORTER_DISABLE");
+-  if (envvar && *envvar && !force) return NS_OK;
+-#endif
+ 
+   // this environment variable prevents us from launching
+   // the crash reporter client
+diff --git a/toolkit/xre/CreateAppData.cpp b/toolkit/xre/CreateAppData.cpp
+--- a/toolkit/xre/CreateAppData.cpp
++++ b/toolkit/xre/CreateAppData.cpp
+@@ -70,8 +70,6 @@ nsresult XRE_ParseAppData(nsIFile* aINIF
+   ReadString(parser, "AppUpdate", "URL", aAppData.updateURL);
+   ReadFlag(parser, "XRE", "EnableProfileMigrator",
+            NS_XRE_ENABLE_PROFILE_MIGRATOR, aAppData.flags);
+-  ReadFlag(parser, "Crash Reporter", "Enabled", NS_XRE_ENABLE_CRASH_REPORTER,
+-           aAppData.flags);
+ 
+   return NS_OK;
+ }
+diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
+--- a/toolkit/xre/nsAppRunner.cpp
++++ b/toolkit/xre/nsAppRunner.cpp
+@@ -3719,10 +3719,6 @@ int XREMain::XRE_mainInit(bool* aExitFla
+   rv = mDirProvider.Initialize(mAppData->directory, mAppData->xreDirectory);
+   if (NS_FAILED(rv)) return 1;
+ 
+-  if (EnvHasValue("MOZ_CRASHREPORTER")) {
+-    mAppData->flags |= NS_XRE_ENABLE_CRASH_REPORTER;
+-  }
+-
+   nsCOMPtr<nsIFile> xreBinDirectory;
+   xreBinDirectory = mDirProvider.GetGREBinDir();
+ 

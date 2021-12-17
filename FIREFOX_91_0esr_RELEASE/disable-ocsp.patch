@@ -22,7 +22,15 @@ diff --git a/security/certverifier/NSSCertDBTrustDomain.cpp b/security/certverif
        mThirdPartyRootInputs(thirdPartyRootInputs),
        mThirdPartyIntermediateInputs(thirdPartyIntermediateInputs),
        mExtraCertificates(extraCertificates),
-@@ -489,72 +483,6 @@ Result NSSCertDBTrustDomain::DigestBuf(I
+@@ -98,7 +92,6 @@ NSSCertDBTrustDomain::NSSCertDBTrustDoma
+       mPinningTelemetryInfo(pinningTelemetryInfo),
+       mHostname(hostname),
+       mCertStorage(do_GetService(NS_CERT_STORAGE_CID)),
+-      mOCSPStaplingStatus(CertVerifier::OCSP_STAPLING_NEVER_CHECKED),
+       mSCTListFromCertificate(),
+       mSCTListFromOCSPStapling(),
+       mBuiltInRootsModule(SECMOD_FindModule(kRootModuleName)) {}
+@@ -489,72 +482,6 @@ Result NSSCertDBTrustDomain::DigestBuf(I
    return DigestBufNSS(item, digestAlg, digestBuf, digestBufLen);
  }
  
@@ -95,7 +103,7 @@ diff --git a/security/certverifier/NSSCertDBTrustDomain.cpp b/security/certverif
  Result GetEarliestSCTTimestamp(Input sctExtension,
                                 Maybe<uint64_t>& earliestTimestamp) {
    earliestTimestamp.reset();
-@@ -583,498 +511,7 @@ Result NSSCertDBTrustDomain::CheckRevoca
+@@ -583,498 +510,7 @@ Result NSSCertDBTrustDomain::CheckRevoca
      /*optional*/ const Input* stapledOCSPResponse,
      /*optional*/ const Input* aiaExtension,
      /*optional*/ const Input* sctExtension) {
@@ -595,9 +603,26 @@ diff --git a/security/certverifier/NSSCertDBTrustDomain.cpp b/security/certverif
  }
  
  SECStatus GetCertDistrustAfterValue(const SECItem* distrustItem,
+@@ -1389,7 +825,6 @@ Result NSSCertDBTrustDomain::NetscapeSte
+ }
+ 
+ void NSSCertDBTrustDomain::ResetAccumulatedState() {
+-  mOCSPStaplingStatus = CertVerifier::OCSP_STAPLING_NEVER_CHECKED;
+   mSCTListFromOCSPStapling = nullptr;
+   mSCTListFromCertificate = nullptr;
+   mSawDistrustedCAByPolicyError = false;
 diff --git a/security/certverifier/NSSCertDBTrustDomain.h b/security/certverifier/NSSCertDBTrustDomain.h
 --- a/security/certverifier/NSSCertDBTrustDomain.h
 +++ b/security/certverifier/NSSCertDBTrustDomain.h
+@@ -206,7 +206,7 @@ class NSSCertDBTrustDomain : public mozi
+   void ResetAccumulatedState();
+ 
+   CertVerifier::OCSPStaplingStatus GetOCSPStaplingStatus() const {
+-    return mOCSPStaplingStatus;
++    return CertVerifier::OCSP_STAPLING_NEVER_CHECKED;
+   }
+ 
+   // SCT lists (see Certificate Transparency) extracted during
 @@ -224,36 +224,16 @@ class NSSCertDBTrustDomain : public mozi
      ResponseIsFromNetwork = 1,
      ResponseWasStapled = 2
@@ -635,6 +660,14 @@ diff --git a/security/certverifier/NSSCertDBTrustDomain.h b/security/certverifie
    const Vector<mozilla::pkix::Input>& mThirdPartyRootInputs;  // non-owning
    const Vector<mozilla::pkix::Input>&
        mThirdPartyIntermediateInputs;                             // non-owning
+@@ -262,7 +242,6 @@ class NSSCertDBTrustDomain : public mozi
+   PinningTelemetryInfo* mPinningTelemetryInfo;
+   const char* mHostname;  // non-owning - only used for pinning checks
+   nsCOMPtr<nsICertStorage> mCertStorage;
+-  CertVerifier::OCSPStaplingStatus mOCSPStaplingStatus;
+   // Certificate Transparency data extracted during certificate verification
+   UniqueSECItem mSCTListFromCertificate;
+   UniqueSECItem mSCTListFromOCSPStapling;
 diff --git a/security/manager/ssl/nsNSSCallbacks.cpp b/security/manager/ssl/nsNSSCallbacks.cpp
 --- a/security/manager/ssl/nsNSSCallbacks.cpp
 +++ b/security/manager/ssl/nsNSSCallbacks.cpp
@@ -887,16 +920,30 @@ diff --git a/security/nss/lib/ssl/sslauth.c b/security/nss/lib/ssl/sslauth.c
  
  /* NEED LOCKS IN HERE.  */
  CERTCertificate *
-@@ -259,12 +258,6 @@ SSL_AuthCertificate(void *arg, PRFileDes
+@@ -245,7 +244,6 @@ SSL_AuthCertificate(void *arg, PRFileDes
+     sslSocket *ss;
+     SECCertUsage certUsage;
+     const char *hostname = NULL;
+-    SECItemArray *certStatusArray;
+ 
+     ss = ssl_FindSocket(fd);
+     PORT_Assert(ss != NULL);
+@@ -254,18 +252,8 @@ SSL_AuthCertificate(void *arg, PRFileDes
+     }
+ 
+     handle = (CERTCertDBHandle *)arg;
+-    certStatusArray = &ss->sec.ci.sid->peerCertStatus;
+ 
      PRTime now = ssl_Time(ss);
-     if (certStatusArray->len) {
-         PORT_SetError(0);
+-    if (certStatusArray->len) {
+-        PORT_SetError(0);
 -        if (CERT_CacheOCSPResponseFromSideChannel(handle, ss->sec.peerCert, now,
 -                                                  &certStatusArray->items[0],
 -                                                  ss->pkcs11PinArg) !=
 -            SECSuccess) {
 -            PORT_Assert(PR_GetError() != 0);
 -        }
-     }
+-    }
  
      /* this may seem backwards, but isn't. */
+     certUsage = isServer ? certUsageSSLClient : certUsageSSLServer;

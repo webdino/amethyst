@@ -11,6 +11,31 @@ diff --git a/browser/actors/BrowserTabParent.jsm b/browser/actors/BrowserTabPare
  
      switch (message.name) {
        case "Browser:WindowCreated": {
+diff --git a/browser/actors/ContextMenuParent.jsm b/browser/actors/ContextMenuParent.jsm
+--- a/browser/actors/ContextMenuParent.jsm
++++ b/browser/actors/ContextMenuParent.jsm
+@@ -16,8 +16,7 @@ class ContextMenuParent extends JSWindow
+     // since that'll likely be the "top" <xul:browser>, and then use its window's
+     // nsContextMenu instance instead.
+     if (!win.openContextMenu) {
+-      let topBrowser = browser.ownerGlobal.docShell.chromeEventHandler;
+-      win = topBrowser.ownerGlobal;
++      return;
+     }
+ 
+     win.openContextMenu(message, browser, this);
+diff --git a/browser/actors/DecoderDoctorParent.jsm b/browser/actors/DecoderDoctorParent.jsm
+--- a/browser/actors/DecoderDoctorParent.jsm
++++ b/browser/actors/DecoderDoctorParent.jsm
+@@ -99,7 +99,7 @@ class DecoderDoctorParent extends JSWind
+     // The xul browser is owned by a window.
+     let window = browser?.ownerGlobal;
+ 
+-    if (!browser || !window) {
++    if (!browser || !window || !browser.getTabBrowser()) {
+       // We don't have a browser or window so bail!
+       return;
+     }
 diff --git a/browser/amethyst/content/browser.css b/browser/amethyst/content/browser.css
 new file mode 100644
 --- /dev/null

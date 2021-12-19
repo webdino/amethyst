@@ -1,0 +1,18 @@
+diff --git a/dom/system/moz.build b/dom/system/moz.build
+--- a/dom/system/moz.build
++++ b/dom/system/moz.build
+@@ -86,14 +86,6 @@ UNIFIED_SOURCES += [
+     "PathUtils.cpp",
+ ]
+ 
+-EXTRA_JS_MODULES += [
+-    "NetworkGeolocationProvider.jsm",
+-]
+-
+-XPCOM_MANIFESTS += [
+-    "components.conf",
+-]
+-
+ include("/ipc/chromium/chromium-config.mozbuild")
+ 
+ FINAL_LIBRARY = "xul"

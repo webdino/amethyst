@@ -1,0 +1,135 @@
+diff --git a/browser/components/newtab/lib/ASRouter.jsm b/browser/components/newtab/lib/ASRouter.jsm
+--- a/browser/components/newtab/lib/ASRouter.jsm
++++ b/browser/components/newtab/lib/ASRouter.jsm
+@@ -296,36 +296,11 @@ const MessageLoaderUtils = {
+             // "en-US", therefore, we should allow the fetch for it.
+             Services.locale.appLocaleAsBCP47 === "und")
+         ) {
+-          let locale = Services.locale.appLocaleAsBCP47;
+-          // Fallback to "en-US" if locale is "und"
+-          if (locale === "und") {
+-            locale = "en-US";
+-          }
+-          const recordId = `${RS_FLUENT_RECORD_PREFIX}-${locale}`;
+-          const kinto = new KintoHttpClient(
+-            Services.prefs.getStringPref(RS_SERVER_PREF)
+-          );
+-          const record = await kinto
+-            .bucket(RS_MAIN_BUCKET)
+-            .collection(RS_COLLECTION_L10N)
+-            .getRecord(recordId);
+-          if (record && record.data) {
+-            const downloader = new Downloader(
+-              RS_MAIN_BUCKET,
+-              RS_COLLECTION_L10N
+-            );
+-            // Await here in order to capture the exceptions for reporting.
+-            await downloader.download(record.data, {
+-              retries: RS_DOWNLOAD_MAX_RETRIES,
+-            });
+-            RemoteL10n.reloadL10n();
+-          } else {
+             MessageLoaderUtils._handleRemoteSettingsUndesiredEvent(
+               "ASR_RS_NO_MESSAGES",
+               RS_COLLECTION_L10N,
+               options.dispatchCFRAction
+             );
+-          }
+         }
+       } catch (e) {
+         MessageLoaderUtils._handleRemoteSettingsUndesiredEvent(
+diff --git a/services/settings/Utils.jsm b/services/settings/Utils.jsm
+--- a/services/settings/Utils.jsm
++++ b/services/settings/Utils.jsm
+@@ -196,86 +196,12 @@ var Utils = {
+    * @param {Object} filters
+    */
+   async fetchLatestChanges(serverUrl, options = {}) {
+-    const { expectedTimestamp, lastEtag = "", filters = {} } = options;
+-
+-    let url = serverUrl + Utils.CHANGES_PATH;
+-    const params = {
+-      ...filters,
+-      _expected: expectedTimestamp ?? 0,
+-    };
+-    if (lastEtag != "") {
+-      params._since = lastEtag;
+-    }
+-    if (params) {
+-      url +=
+-        "?" +
+-        Object.entries(params)
+-          .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+-          .join("&");
+-    }
+-    const response = await fetch(url);
+-
+-    if (response.status >= 500) {
+-      throw new Error(`Server error ${response.status} ${response.statusText}`);
+-    }
+-
+-    const is404FromCustomServer =
+-      response.status == 404 &&
+-      Services.prefs.prefHasUserValue("services.settings.server");
+-
+-    const ct = response.headers.get("Content-Type");
+-    if (!is404FromCustomServer && (!ct || !ct.includes("application/json"))) {
+-      throw new Error(`Unexpected content-type "${ct}"`);
+-    }
+-
+-    let payload;
+-    try {
+-      payload = await response.json();
+-    } catch (e) {
+-      payload = e.message;
+-    }
+-
+-    if (!payload.hasOwnProperty("changes")) {
+-      // If the server is failing, the JSON response might not contain the
+-      // expected data. For example, real server errors (Bug 1259145)
+-      // or dummy local server for tests (Bug 1481348)
+-      if (!is404FromCustomServer) {
+-        throw new Error(
+-          `Server error ${url} ${response.status} ${
+-            response.statusText
+-          }: ${JSON.stringify(payload)}`
+-        );
+-      }
+-    }
+-
+-    const { changes = [], timestamp } = payload;
+-
+-    let serverTimeMillis = Date.parse(response.headers.get("Date"));
+-    // Since the response is served via a CDN, the Date header value could have been cached.
+-    const cacheAgeSeconds = response.headers.has("Age")
+-      ? parseInt(response.headers.get("Age"), 10)
+-      : 0;
+-    serverTimeMillis += cacheAgeSeconds * 1000;
+-
+-    // Age of data (time between publication and now).
+-    let lastModifiedMillis = Date.parse(response.headers.get("Last-Modified"));
+-    const ageSeconds = (serverTimeMillis - lastModifiedMillis) / 1000;
+-
+-    // Check if the server asked the clients to back off.
+-    let backoffSeconds;
+-    if (response.headers.has("Backoff")) {
+-      const value = parseInt(response.headers.get("Backoff"), 10);
+-      if (!isNaN(value)) {
+-        backoffSeconds = value;
+-      }
+-    }
+-
+     return {
+-      changes,
+-      currentEtag: `"${timestamp}"`,
+-      serverTimeMillis,
+-      backoffSeconds,
+-      ageSeconds,
++      changes: [],
++      currentEtag: "",
++      serverTimeMillis: undefined,
++      backoffSeconds: undefined,
++      ageSeconds: undefined,
+     };
+   },
+ 

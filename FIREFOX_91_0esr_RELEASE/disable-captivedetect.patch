@@ -1,3 +1,180 @@
+diff --git a/netwerk/base/NetworkConnectivityService.cpp b/netwerk/base/NetworkConnectivityService.cpp
+--- a/netwerk/base/NetworkConnectivityService.cpp
++++ b/netwerk/base/NetworkConnectivityService.cpp
+@@ -172,9 +172,6 @@ void NetworkConnectivityService::Perform
+       mNAT64 = OK;
+     }
+   }
+-
+-  RecheckDNS();
+-  RecheckIPConnectivity();
+ }
+ 
+ static inline void NotifyObservers(const char* aTopic) {
+@@ -290,47 +287,6 @@ NetworkConnectivityService::OnLookupComp
+ }
+ 
+ NS_IMETHODIMP
+-NetworkConnectivityService::RecheckDNS() {
+-  bool enabled =
+-      Preferences::GetBool("network.connectivity-service.enabled", false);
+-  if (!enabled) {
+-    return NS_OK;
+-  }
+-
+-  nsresult rv;
+-  nsCOMPtr<nsIDNSService> dns = do_GetService(NS_DNSSERVICE_CONTRACTID);
+-  OriginAttributes attrs;
+-  nsAutoCString host;
+-  Preferences::GetCString("network.connectivity-service.DNSv4.domain", host);
+-
+-  rv = dns->AsyncResolveNative(host, nsIDNSService::RESOLVE_TYPE_DEFAULT,
+-                               nsIDNSService::RESOLVE_DISABLE_IPV6 |
+-                                   nsIDNSService::RESOLVE_TRR_DISABLED_MODE,
+-                               nullptr, this, NS_GetCurrentThread(), attrs,
+-                               getter_AddRefs(mDNSv4Request));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  Preferences::GetCString("network.connectivity-service.DNSv6.domain", host);
+-  rv = dns->AsyncResolveNative(host, nsIDNSService::RESOLVE_TYPE_DEFAULT,
+-                               nsIDNSService::RESOLVE_DISABLE_IPV4 |
+-                                   nsIDNSService::RESOLVE_TRR_DISABLED_MODE,
+-                               nullptr, this, NS_GetCurrentThread(), attrs,
+-                               getter_AddRefs(mDNSv6Request));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  if (StaticPrefs::network_connectivity_service_nat64_check()) {
+-    rv = dns->AsyncResolveNative("ipv4only.arpa"_ns,
+-                                 nsIDNSService::RESOLVE_TYPE_DEFAULT,
+-                                 nsIDNSService::RESOLVE_DISABLE_IPV4 |
+-                                     nsIDNSService::RESOLVE_TRR_DISABLED_MODE,
+-                                 nullptr, this, NS_GetCurrentThread(), attrs,
+-                                 getter_AddRefs(mNAT64Request));
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  }
+-  return rv;
+-}
+-
+-NS_IMETHODIMP
+ NetworkConnectivityService::Observe(nsISupports* aSubject, const char* aTopic,
+                                     const char16_t* aData) {
+   if (!strcmp(aTopic, "network:captive-portal-connectivity")) {
+@@ -365,101 +321,6 @@ NetworkConnectivityService::Observe(nsIS
+   return NS_OK;
+ }
+ 
+-static inline already_AddRefed<nsIChannel> SetupIPCheckChannel(bool ipv4) {
+-  nsresult rv;
+-  nsAutoCString url;
+-
+-  if (ipv4) {
+-    rv = Preferences::GetCString("network.connectivity-service.IPv4.url", url);
+-  } else {
+-    rv = Preferences::GetCString("network.connectivity-service.IPv6.url", url);
+-  }
+-  NS_ENSURE_SUCCESS(rv, nullptr);
+-
+-  nsCOMPtr<nsIURI> uri;
+-  rv = NS_NewURI(getter_AddRefs(uri), url);
+-  NS_ENSURE_SUCCESS(rv, nullptr);
+-
+-  nsCOMPtr<nsIChannel> channel;
+-  rv = NS_NewChannel(
+-      getter_AddRefs(channel), uri, nsContentUtils::GetSystemPrincipal(),
+-      nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_SEC_CONTEXT_IS_NULL,
+-      nsIContentPolicy::TYPE_OTHER,
+-      nullptr,  // nsICookieJarSettings
+-      nullptr,  // aPerformanceStorage
+-      nullptr,  // aLoadGroup
+-      nullptr,
+-      nsIRequest::LOAD_BYPASS_CACHE |    // don't read from the cache
+-          nsIRequest::INHIBIT_CACHING |  // don't write the response to cache
+-          nsIRequest::LOAD_ANONYMOUS);   // prevent privacy leaks
+-  NS_ENSURE_SUCCESS(rv, nullptr);
+-
+-  rv = channel->SetTRRMode(nsIRequest::TRR_DISABLED_MODE);
+-  NS_ENSURE_SUCCESS(rv, nullptr);
+-
+-  {
+-    // Prevent HTTPS-Only Mode from upgrading the OCSP request.
+-    nsCOMPtr<nsILoadInfo> loadInfo = channel->LoadInfo();
+-    uint32_t httpsOnlyStatus = loadInfo->GetHttpsOnlyStatus();
+-    httpsOnlyStatus |= nsILoadInfo::HTTPS_ONLY_EXEMPT;
+-    loadInfo->SetHttpsOnlyStatus(httpsOnlyStatus);
+-
+-    // allow deprecated HTTP request from SystemPrincipal
+-    loadInfo->SetAllowDeprecatedSystemRequests(true);
+-  }
+-
+-  nsCOMPtr<nsIHttpChannelInternal> internalChan = do_QueryInterface(channel);
+-  NS_ENSURE_TRUE(internalChan, nullptr);
+-
+-  if (ipv4) {
+-    internalChan->SetIPv6Disabled();
+-  } else {
+-    internalChan->SetIPv4Disabled();
+-  }
+-
+-  return channel.forget();
+-}
+-
+-NS_IMETHODIMP
+-NetworkConnectivityService::RecheckIPConnectivity() {
+-  bool enabled =
+-      Preferences::GetBool("network.connectivity-service.enabled", false);
+-  if (!enabled) {
+-    return NS_OK;
+-  }
+-
+-  if (xpc::AreNonLocalConnectionsDisabled() &&
+-      !Preferences::GetBool("network.captive-portal-service.testMode", false)) {
+-    return NS_OK;
+-  }
+-
+-  if (mIPv4Channel) {
+-    mIPv4Channel->Cancel(NS_ERROR_ABORT);
+-    mIPv4Channel = nullptr;
+-  }
+-  if (mIPv6Channel) {
+-    mIPv6Channel->Cancel(NS_ERROR_ABORT);
+-    mIPv6Channel = nullptr;
+-  }
+-
+-  nsresult rv;
+-  mHasNetworkId = false;
+-  mCheckedNetworkId = false;
+-  mIPv4Channel = SetupIPCheckChannel(/* ipv4 = */ true);
+-  if (mIPv4Channel) {
+-    rv = mIPv4Channel->AsyncOpen(this);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  }
+-
+-  mIPv6Channel = SetupIPCheckChannel(/* ipv4 = */ false);
+-  if (mIPv6Channel) {
+-    rv = mIPv6Channel->AsyncOpen(this);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  }
+-
+-  return NS_OK;
+-}
+-
+ NS_IMETHODIMP
+ NetworkConnectivityService::OnStartRequest(nsIRequest* aRequest) {
+   return NS_OK;
+diff --git a/netwerk/base/nsINetworkConnectivityService.idl b/netwerk/base/nsINetworkConnectivityService.idl
+--- a/netwerk/base/nsINetworkConnectivityService.idl
++++ b/netwerk/base/nsINetworkConnectivityService.idl
+@@ -35,10 +35,4 @@ interface nsINetworkConnectivityService 
+   /* If a NAT64 gateway was detected on the current network */
+   [infallible]
+   readonly attribute nsINetworkConnectivityService_ConnectivityState NAT64;
+-
+-  /* Starts the DNS request to check for DNS v4/v6 availability */
+-  void recheckDNS();
+-
+-  /* Starts HTTP requests over IPv4 and IPv6, and checks if they work */
+-  void recheckIPConnectivity();
+ };
 diff --git a/toolkit/components/captivedetect/moz.build b/toolkit/components/captivedetect/moz.build
 --- a/toolkit/components/captivedetect/moz.build
 +++ b/toolkit/components/captivedetect/moz.build

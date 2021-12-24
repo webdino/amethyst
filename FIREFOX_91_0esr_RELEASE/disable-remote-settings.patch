@@ -403,6 +403,27 @@ diff --git a/services/settings/RemoteSettingsClient.jsm b/services/settings/Remo
     * Determine the Telemetry uptake status based on the specified
     * error.
     */
+diff --git a/services/settings/moz.build b/services/settings/moz.build
+--- a/services/settings/moz.build
++++ b/services/settings/moz.build
+@@ -20,17 +20,12 @@ EXTRA_JS_MODULES["services-settings"] +=
+     "IDBHelpers.jsm",
+     "remote-settings.js",
+     "RemoteSettingsClient.jsm",
+-    "RemoteSettingsComponents.jsm",
+     "RemoteSettingsWorker.js",
+     "RemoteSettingsWorker.jsm",
+     "SharedUtils.jsm",
+     "Utils.jsm",
+ ]
+ 
+-XPCOM_MANIFESTS += [
+-    "components.conf",
+-]
+-
+ XPCSHELL_TESTS_MANIFESTS += ["test/unit/xpcshell.ini"]
+ 
+ SPHINX_TREES["/services/settings"] = "docs"
 diff --git a/services/settings/remote-settings.js b/services/settings/remote-settings.js
 --- a/services/settings/remote-settings.js
 +++ b/services/settings/remote-settings.js
@@ -674,3 +695,14 @@ diff --git a/services/settings/remote-settings.js b/services/settings/remote-set
    };
  
    /**
+diff --git a/services/settings/servicesSettings.manifest b/services/settings/servicesSettings.manifest
+--- a/services/settings/servicesSettings.manifest
++++ b/services/settings/servicesSettings.manifest
+@@ -1,7 +1,2 @@
+ # Register resource aliases
+ resource services-settings resource://gre/modules/services-settings/
+-
+-# Schedule polling of remote settings changes
+-# (default 24H, max 72H)
+-# see syntax https://searchfox.org/mozilla-central/rev/cc280c4be94ff8cf64a27cc9b3d6831ffa49fa45/toolkit/components/timermanager/UpdateTimerManager.jsm#155
+-category update-timer RemoteSettingsComponents @mozilla.org/services/settings;1,getService,services-settings-poll-changes,services.settings.poll_interval,86400,259200

@@ -1,7 +1,15 @@
 diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/BrowserContentHandler.jsm
 --- a/browser/components/BrowserContentHandler.jsm
 +++ b/browser/components/BrowserContentHandler.jsm
-@@ -93,98 +93,6 @@ let gKiosk = false;
+@@ -24,7 +24,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+   SessionStartup: "resource:///modules/sessionstore/SessionStartup.jsm",
+   ShellService: "resource:///modules/ShellService.jsm",
+-  UpdatePing: "resource://gre/modules/UpdatePing.jsm",
+ });
+ XPCOMUtils.defineLazyServiceGetter(
+   this,
+@@ -93,98 +92,6 @@ let gKiosk = false;
  let gMajorUpgrade = false;
  var gFirstWindow = false;
  
@@ -100,7 +108,7 @@ diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/B
  /**
   * Open a browser window. If this is the initial launch, this function will
   * attempt to use the navigator:blank window opened by BrowserGlue.jsm during
-@@ -597,165 +505,7 @@ nsBrowserContentHandler.prototype = {
+@@ -597,165 +504,7 @@ nsBrowserContentHandler.prototype = {
    },
  
    getArgs(isStartup = false) {

@@ -1808,32 +1808,6 @@ diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/c
      // Wait on pings to be saved.
      return Promise.all(p);
    },
-diff --git a/toolkit/mozapps/extensions/content/aboutaddons.js b/toolkit/mozapps/extensions/content/aboutaddons.js
---- a/toolkit/mozapps/extensions/content/aboutaddons.js
-+++ b/toolkit/mozapps/extensions/content/aboutaddons.js
-@@ -112,8 +112,6 @@ const PREF_THEME_RECOMMENDATION_URL =
-   "extensions.recommendations.themeRecommendationUrl";
- const PREF_RECOMMENDATION_HIDE_NOTICE = "extensions.recommendations.hideNotice";
- const PREF_PRIVACY_POLICY_URL = "extensions.recommendations.privacyPolicyUrl";
--const PREF_RECOMMENDATION_ENABLED = "browser.discovery.enabled";
--const PREF_TELEMETRY_ENABLED = "datareporting.healthreport.uploadEnabled";
- const PRIVATE_BROWSING_PERM_NAME = "internal:privateBrowsingAllowed";
- const PRIVATE_BROWSING_PERMS = {
-   permissions: [PRIVATE_BROWSING_PERM_NAME],
-@@ -603,12 +601,7 @@ var DiscoveryAPI = {
-   },
- 
-   get clientIdDiscoveryEnabled() {
--    // These prefs match Discovery.jsm for enabling clientId cookies.
--    return (
--      Services.prefs.getBoolPref(PREF_RECOMMENDATION_ENABLED, false) &&
--      Services.prefs.getBoolPref(PREF_TELEMETRY_ENABLED, false) &&
--      !PrivateBrowsingUtils.isContentWindowPrivate(window)
--    );
-+    return false;
-   },
- 
-   async _fetchRecommendedAddons(useClientId) {
 diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
 --- a/toolkit/xre/nsAppRunner.cpp
 +++ b/toolkit/xre/nsAppRunner.cpp

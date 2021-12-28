@@ -15,18 +15,10 @@ diff --git a/security/manager/ssl/RemoteSecuritySettings.jsm b/security/manager/
 diff --git a/services/settings/RemoteSettingsClient.jsm b/services/settings/RemoteSettingsClient.jsm
 --- a/services/settings/RemoteSettingsClient.jsm
 +++ b/services/settings/RemoteSettingsClient.jsm
-@@ -358,48 +358,7 @@ class RemoteSettingsClient extends Event
- 
-     let data;
-     try {
--      let lastModified = await this.db.getLastModified();
--      let hasLocalData = lastModified !== null;
--
--      if (syncIfEmpty && !hasLocalData) {
--        // .get() was called before we had the chance to synchronize the local database.
--        // We'll try to avoid returning an empty list.
--        if (!this._importingPromise) {
--          // Prevent parallel loading when .get() is called multiple times.
+@@ -366,18 +366,7 @@ class RemoteSettingsClient extends Event
+         // We'll try to avoid returning an empty list.
+         if (!this._importingPromise) {
+           // Prevent parallel loading when .get() is called multiple times.
 -          this._importingPromise = (async () => {
 -            const importedFromDump = gLoadDump
 -              ? await this._importJSONDump()
@@ -39,33 +31,11 @@ diff --git a/services/settings/RemoteSettingsClient.jsm b/services/settings/Remo
 -              await this.sync({ loadDump: false });
 -            }
 -          })();
--        } else {
--          console.debug(`${this.identifier} Awaiting existing import.`);
--        }
--      } else if (hasLocalData && loadDumpIfNewer) {
--        // Check whether the local data is older than the packaged dump.
--        // If it is, load the packaged dump (which overwrites the local data).
--        let lastModifiedDump = await Utils.getLocalDumpLastModified(
--          this.bucketName,
--          this.collectionName
--        );
--        if (lastModified < lastModifiedDump) {
--          console.debug(
--            `${this.identifier} Local DB is stale (${lastModified}), using dump instead (${lastModifiedDump})`
--          );
--          if (!this._importingPromise) {
--            // As part of importing, any existing data is wiped.
--            this._importingPromise = this._importJSONDump();
--          } else {
--            console.debug(`${this.identifier} Awaiting existing import.`);
--          }
--        }
--      }
-+      this._importingPromise = this._importJSONDump();
- 
-       if (this._importingPromise) {
-         try {
-@@ -464,7 +423,6 @@ class RemoteSettingsClient extends Event
++          this._importingPromise = this._importJSONDump();
+         } else {
+           console.debug(`${this.identifier} Awaiting existing import.`);
+         }
+@@ -464,7 +453,6 @@ class RemoteSettingsClient extends Event
        let metadata = await this.db.getMetadata();
        if (syncIfEmpty && ObjectUtils.isEmpty(metadata)) {
          // No sync occured yet, may have records from dump but no metadata.
@@ -73,7 +43,7 @@ diff --git a/services/settings/RemoteSettingsClient.jsm b/services/settings/Remo
          metadata = await this.db.getMetadata();
        }
        // Will throw MissingSignatureError if no metadata and `syncIfEmpty` is false.
-@@ -484,291 +442,6 @@ class RemoteSettingsClient extends Event
+@@ -484,291 +472,6 @@ class RemoteSettingsClient extends Event
    }
  
    /**

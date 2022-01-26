@@ -273,6 +273,29 @@ diff --git a/browser/components/pocket/content/SaveToPocket.jsm b/browser/compon
      if (this.prefEnabled) {
        PocketOverlay.startup();
      } else {
+diff --git a/browser/components/preferences/dialogs/jar.mn b/browser/components/preferences/dialogs/jar.mn
+--- a/browser/components/preferences/dialogs/jar.mn
++++ b/browser/components/preferences/dialogs/jar.mn
+@@ -39,7 +39,5 @@ browser.jar:
+    content/browser/preferences/dialogs/siteDataSettings.js
+ *  content/browser/preferences/dialogs/siteDataRemoveSelected.xhtml
+    content/browser/preferences/dialogs/siteDataRemoveSelected.js
+-   content/browser/preferences/dialogs/syncChooseWhatToSync.xhtml
+-   content/browser/preferences/dialogs/syncChooseWhatToSync.js
+    content/browser/preferences/dialogs/translation.xhtml
+    content/browser/preferences/dialogs/translation.js
+diff --git a/browser/components/preferences/jar.mn b/browser/components/preferences/jar.mn
+--- a/browser/components/preferences/jar.mn
++++ b/browser/components/preferences/jar.mn
+@@ -12,8 +12,5 @@ browser.jar:
+    content/browser/preferences/search.js
+    content/browser/preferences/privacy.js
+    content/browser/preferences/containers.js
+-   content/browser/preferences/sync.js
+    content/browser/preferences/experimental.js
+-   content/browser/preferences/fxaPairDevice.xhtml
+-   content/browser/preferences/fxaPairDevice.js
+    content/browser/preferences/findInPage.js
 diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
 --- a/browser/components/preferences/main.js
 +++ b/browser/components/preferences/main.js
@@ -360,6 +383,14 @@ diff --git a/browser/components/preferences/preferences.xhtml b/browser/componen
          <richlistitem id="category-experimental"
                        class="category"
                        hidden="true"
+@@ -202,7 +190,6 @@
+ #include search.inc.xhtml
+ #include privacy.inc.xhtml
+ #include containers.inc.xhtml
+-#include sync.inc.xhtml
+ #include experimental.inc.xhtml
+         </vbox>
+       </vbox>
 diff --git a/services/fxaccounts/FxAccounts.jsm b/services/fxaccounts/FxAccounts.jsm
 --- a/services/fxaccounts/FxAccounts.jsm
 +++ b/services/fxaccounts/FxAccounts.jsm

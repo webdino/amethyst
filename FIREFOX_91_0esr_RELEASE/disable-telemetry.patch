@@ -1,3 +1,253 @@
+diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+--- a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
++++ b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+@@ -251,13 +251,6 @@ class AboutWelcomeChild extends JSWindow
+    * @param {object} eventData
+    */
+   AWSendEventTelemetry(eventData) {
+-    this.AWSendToParent("TELEMETRY_EVENT", {
+-      ...eventData,
+-      event_context: {
+-        ...eventData.event_context,
+-        page: "about:welcome",
+-      },
+-    });
+   }
+ 
+   /**
+diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm b/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
+--- a/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
++++ b/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
+@@ -18,8 +18,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   OS: "resource://gre/modules/osfile.jsm",
+   SpecialMessageActions:
+     "resource://messaging-system/lib/SpecialMessageActions.jsm",
+-  AboutWelcomeTelemetry:
+-    "resource://activity-stream/aboutwelcome/lib/AboutWelcomeTelemetry.jsm",
+   AboutWelcomeDefaults:
+     "resource://activity-stream/aboutwelcome/lib/AboutWelcomeDefaults.jsm",
+   PromiseUtils: "resource://gre/modules/PromiseUtils.jsm",
+@@ -34,12 +32,6 @@ XPCOMUtils.defineLazyGetter(this, "log",
+   return new Logger("AboutWelcomeParent");
+ });
+ 
+-XPCOMUtils.defineLazyGetter(
+-  this,
+-  "Telemetry",
+-  () => new AboutWelcomeTelemetry()
+-);
+-
+ const DID_SEE_ABOUT_WELCOME_PREF = "trailhead.firstrun.didSeeAboutWelcome";
+ const AWTerminate = {
+   WINDOW_CLOSED: "welcome-window-closed",
+@@ -188,16 +180,6 @@ class AboutWelcomeParent extends JSWindo
+       this.AboutWelcomeObserver.stop();
+     }
+     this.RegionHomeObserver?.stop();
+-
+-    Telemetry.sendTelemetry({
+-      event: "SESSION_END",
+-      event_context: {
+-        reason: this.AboutWelcomeObserver.terminateReason,
+-        page: "about:welcome",
+-      },
+-      message_id: this.AWMessageId,
+-      id: "ABOUT_WELCOME",
+-    });
+   }
+ 
+   /**
+@@ -226,12 +208,6 @@ class AboutWelcomeParent extends JSWindo
+         return FxAccounts.config.promiseMetricsFlowURI("aboutwelcome");
+       case "AWPage:IMPORTABLE_SITES":
+         return getImportableSites();
+-      case "AWPage:TELEMETRY_EVENT":
+-        Telemetry.sendTelemetry(data);
+-        break;
+-      case "AWPage:GET_ATTRIBUTION_DATA":
+-        let attributionData = await AboutWelcomeDefaults.getAttributionContent();
+-        return attributionData;
+       case "AWPage:SELECT_THEME":
+         return AddonManager.getAddonByID(
+           LIGHT_WEIGHT_THEMES[data]
+diff --git a/browser/components/newtab/lib/TelemetryFeed.jsm b/browser/components/newtab/lib/TelemetryFeed.jsm
+--- a/browser/components/newtab/lib/TelemetryFeed.jsm
++++ b/browser/components/newtab/lib/TelemetryFeed.jsm
+@@ -29,11 +29,6 @@ ChromeUtils.defineModuleGetter(
+ );
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "PingCentre",
+-  "resource:///modules/PingCentre.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "UTEventReporting",
+   "resource://activity-stream/lib/UTEventReporting.jsm"
+ );
+@@ -302,16 +297,6 @@ this.TelemetryFeed = class TelemetryFeed
+   }
+ 
+   /**
+-   * Lazily initialize PingCentre for Activity Stream to send pings
+-   */
+-  get pingCentre() {
+-    Object.defineProperty(this, "pingCentre", {
+-      value: new PingCentre({ topic: ACTIVITY_STREAM_ID }),
+-    });
+-    return this.pingCentre;
+-  }
+-
+-  /**
+    * Lazily initialize UTEventReporting to send pings
+    */
+   get utEvents() {
+@@ -744,40 +729,6 @@ this.TelemetryFeed = class TelemetryFeed
+   }
+ 
+   sendEvent(event_object) {
+-    switch (event_object.action) {
+-      case "activity_stream_user_event":
+-        this.sendEventPing(event_object);
+-        break;
+-      case "activity_stream_session":
+-        this.sendSessionPing(event_object);
+-        break;
+-    }
+-  }
+-
+-  async sendEventPing(ping) {
+-    delete ping.action;
+-    ping.client_id = await this.telemetryClientId;
+-    ping.browser_session_id = browserSessionId;
+-    if (ping.value && typeof ping.value === "object") {
+-      ping.value = JSON.stringify(ping.value);
+-    }
+-    this.sendStructuredIngestionEvent(
+-      ping,
+-      STRUCTURED_INGESTION_NAMESPACE_AS,
+-      "events",
+-      1
+-    );
+-  }
+-
+-  async sendSessionPing(ping) {
+-    delete ping.action;
+-    ping.client_id = await this.telemetryClientId;
+-    this.sendStructuredIngestionEvent(
+-      ping,
+-      STRUCTURED_INGESTION_NAMESPACE_AS,
+-      "sessions",
+-      1
+-    );
+   }
+ 
+   sendUTEvent(event_object, eventFunction) {
+@@ -786,32 +737,7 @@ this.TelemetryFeed = class TelemetryFeed
+     }
+   }
+ 
+-  /**
+-   * Generates an endpoint for Structured Ingestion telemetry pipeline. Note that
+-   * Structured Ingestion requires a different endpoint for each ping. See more
+-   * details about endpoint schema at:
+-   * https://github.com/mozilla/gcp-ingestion/blob/master/docs/edge.md#postput-request
+-   *
+-   * @param {String} namespace Namespace of the ping, such as "activity-stream" or "messaging-system".
+-   * @param {String} pingType  Type of the ping, such as "impression-stats".
+-   * @param {String} version   Endpoint version for this ping type.
+-   */
+-  _generateStructuredIngestionEndpoint(namespace, pingType, version) {
+-    const uuid = gUUIDGenerator.generateUUID().toString();
+-    // Structured Ingestion does not support the UUID generated by gUUIDGenerator,
+-    // because it contains leading and trailing braces. Need to trim them first.
+-    const docID = uuid.slice(1, -1);
+-    const extension = `${namespace}/${pingType}/${version}/${docID}`;
+-    return `${this.structuredIngestionEndpointBase}/${extension}`;
+-  }
+-
+   sendStructuredIngestionEvent(eventObject, namespace, pingType, version) {
+-    if (this.telemetryEnabled) {
+-      this.pingCentre.sendStructuredIngestionPing(
+-        eventObject,
+-        this._generateStructuredIngestionEndpoint(namespace, pingType, version)
+-      );
+-    }
+   }
+ 
+   handleImpressionStats(action) {
+@@ -1140,10 +1066,6 @@ this.TelemetryFeed = class TelemetryFeed
+       // init has finished setting up the observer
+     }
+ 
+-    // Only uninit if the getter has initialized it
+-    if (Object.prototype.hasOwnProperty.call(this, "pingCentre")) {
+-      this.pingCentre.uninit();
+-    }
+     if (Object.prototype.hasOwnProperty.call(this, "utEvents")) {
+       this.utEvents.uninit();
+     }
+diff --git a/browser/components/pocket/content/pktTelemetry.jsm b/browser/components/pocket/content/pktTelemetry.jsm
+--- a/browser/components/pocket/content/pktTelemetry.jsm
++++ b/browser/components/pocket/content/pktTelemetry.jsm
+@@ -12,11 +12,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+ const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "PingCentre",
+-  "resource:///modules/PingCentre.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "pktApi",
+   "chrome://pocket/content/pktApi.jsm"
+ );
+@@ -36,10 +31,6 @@ const STRUCTURED_INGESTION_ENDPOINT_PREF
+ const POCKET_TELEMETRY_TOPIC = "pocket";
+ const PREF_IMPRESSION_ID = "browser.newtabpage.activity-stream.impressionId";
+ 
+-XPCOMUtils.defineLazyGetter(this, "pingCentre", () => {
+-  return new PingCentre({ topic: POCKET_TELEMETRY_TOPIC });
+-});
+-
+ var pktTelemetry = {
+   get structuredIngestionEndpointBase() {
+     if (!this._structuredIngestionEndpointBase) {
+@@ -95,34 +86,11 @@ var pktTelemetry = {
+     );
+   },
+ 
+-  _generateUUID() {
+-    return String(gUUIDGenerator.generateUUID());
+-  },
+-
+-  /**
+-   * Generates an endpoint for Structured Ingestion telemetry pipeline. Note that
+-   * Structured Ingestion requires a different endpoint for each ping. See more
+-   * details about endpoint schema at:
+-   * https://github.com/mozilla/gcp-ingestion/blob/master/docs/edge.md#postput-request
+-   */
+-  _generateStructuredIngestionEndpoint() {
+-    const uuid = this._generateUUID();
+-    // Structured Ingestion does not support the UUID generated by gUUIDGenerator,
+-    // because it contains leading and trailing braces. Need to trim them first.
+-    const docID = uuid.slice(1, -1);
+-    const extension = `${STRUCTURED_INGESTION_NAMESPACE_AS}/pocket-button/1/${docID}`;
+-    return `${this.structuredIngestionEndpointBase}/${extension}`;
+-  },
+-
+   /**
+    * sendStructuredIngestionEvent - Sent a ping for an impression stats
+    *
+    * @param {ob} eventObject The data object to be included in the ping.
+    */
+   sendStructuredIngestionEvent(eventObject) {
+-    pingCentre.sendStructuredIngestionPing(
+-      eventObject,
+-      this._generateStructuredIngestionEndpoint()
+-    );
+   },
+ };
 diff --git a/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js b/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js
 --- a/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js
 +++ b/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js
@@ -84,6 +334,177 @@ diff --git a/browser/modules/Discovery.jsm b/browser/modules/Discovery.jsm
    "gCachedClientID",
    "toolkit.telemetry.cachedClientID",
    "",
+diff --git a/browser/modules/PartnerLinkAttribution.jsm b/browser/modules/PartnerLinkAttribution.jsm
+--- a/browser/modules/PartnerLinkAttribution.jsm
++++ b/browser/modules/PartnerLinkAttribution.jsm
+@@ -17,28 +17,12 @@ const { XPCOMUtils } = ChromeUtils.impor
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   Services: "resource://gre/modules/Services.jsm",
+-  Region: "resource://gre/modules/Region.jsm",
+-  PingCentre: "resource:///modules/PingCentre.jsm",
+ });
+ 
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   gUUIDGenerator: ["@mozilla.org/uuid-generator;1", "nsIUUIDGenerator"],
+ });
+ 
+-// Endpoint base URL for Structured Ingestion
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "structuredIngestionEndpointBase",
+-  "browser.newtabpage.activity-stream.telemetry.structuredIngestion.endpoint",
+-  ""
+-);
+-const NAMESPACE_CONTEXUAL_SERVICES = "contextual-services";
+-
+-// PingCentre client to send custom pings
+-XPCOMUtils.defineLazyGetter(this, "pingcentre", () => {
+-  return new PingCentre({ topic: "contextual-services" });
+-});
+-
+ // `contextId` is a unique identifier used by Contextual Services
+ const CONTEXT_ID_PREF = "browser.contextual-services.contextId";
+ XPCOMUtils.defineLazyGetter(this, "contextId", () => {
+@@ -72,34 +56,6 @@ var PartnerLinkAttribution = {
+    *   Optional. If it's not provided, we default to the topsites campaign.
+    */
+   async makeRequest({ targetURL, source, campaignID }) {
+-    let partner = targetURL.match(/^https?:\/\/(?:www.)?([^.]*)/)[1];
+-
+-    function record(method, objectString) {
+-      recordTelemetryEvent({
+-        method,
+-        objectString,
+-        value: partner,
+-      });
+-    }
+-    record("click", source);
+-
+-    let attributionUrl = Services.prefs.getStringPref(
+-      "browser.partnerlink.attributionURL"
+-    );
+-    if (!attributionUrl) {
+-      record("attribution", "abort");
+-      return;
+-    }
+-
+-    // The default campaign is topsites.
+-    if (!campaignID) {
+-      campaignID = Services.prefs.getStringPref(
+-        "browser.partnerlink.campaign.topsites"
+-      );
+-    }
+-    attributionUrl = attributionUrl + campaignID;
+-    let result = await sendRequest(attributionUrl, source, targetURL);
+-    record("attribution", result ? "success" : "failure");
+   },
+ 
+   /**
+@@ -111,50 +67,6 @@ var PartnerLinkAttribution = {
+    *   The target URL to filter and include in the attribution.
+    */
+   async makeSearchEngineRequest(engine, targetUrl) {
+-    let cid;
+-    if (engine.attribution?.cid) {
+-      cid = engine.attribution.cid;
+-    } else if (engine.sendAttributionRequest) {
+-      cid = Services.prefs.getStringPref(
+-        "browser.partnerlink.campaign.topsites"
+-      );
+-    } else {
+-      return;
+-    }
+-
+-    let searchUrlQueryParamName = engine.searchUrlQueryParamName;
+-    if (!searchUrlQueryParamName) {
+-      Cu.reportError("makeSearchEngineRequest can't find search terms key");
+-      return;
+-    }
+-
+-    let url = targetUrl;
+-    if (typeof url == "string") {
+-      url = Services.io.newURI(url);
+-    }
+-
+-    let targetParams = new URLSearchParams(url.query);
+-    if (!targetParams.has(searchUrlQueryParamName)) {
+-      Cu.reportError(
+-        "makeSearchEngineRequest can't remove target search terms"
+-      );
+-      return;
+-    }
+-
+-    let attributionUrl = Services.prefs.getStringPref(
+-      "browser.partnerlink.attributionURL",
+-      ""
+-    );
+-    attributionUrl = attributionUrl + cid;
+-
+-    targetParams.delete(searchUrlQueryParamName);
+-    let strippedTargetUrl = `${url.prePath}${url.filePath}`;
+-    let newParams = targetParams.toString();
+-    if (newParams) {
+-      strippedTargetUrl += "?" + newParams;
+-    }
+-
+-    await sendRequest(attributionUrl, "searchurl", strippedTargetUrl);
+   },
+ 
+   /**
+@@ -178,52 +90,6 @@ var PartnerLinkAttribution = {
+       return;
+     }
+ 
+-    const endpoint = makeEndpointUrl(pingType, "1");
+     payload.context_id = contextId;
+-    pingcentre.sendStructuredIngestionPing(payload, endpoint);
+-  },
+-
+-  /**
+-   * Gets the underlying PingCentre client, only used for tests.
+-   */
+-  get _pingCentre() {
+-    return pingcentre;
+   },
+ };
+-
+-async function sendRequest(attributionUrl, source, targetURL) {
+-  const request = new Request(attributionUrl);
+-  request.headers.set("X-Region", Region.home);
+-  request.headers.set("X-Source", source);
+-  request.headers.set("X-Target-URL", targetURL);
+-  const response = await fetch(request);
+-  return response.ok;
+-}
+-
+-function recordTelemetryEvent({ method, objectString, value }) {
+-  Services.telemetry.setEventRecordingEnabled("partner_link", true);
+-  Services.telemetry.recordEvent("partner_link", method, objectString, value);
+-}
+-
+-/**
+- * Makes a new endpoint URL for a ping submission. Note that each submission
+- * to Structured Ingesttion requires a new endpoint. See more details about
+- * the specs:
+- *
+- * https://docs.telemetry.mozilla.org/concepts/pipeline/http_edge_spec.html?highlight=docId#postput-request
+- *
+- * @param {String} pingType
+- *   The ping type. Must be one of CONTEXTUAL_SERVICES_PING_TYPES
+- * @param {String} version
+- *   The schema version of the ping.
+- */
+-function makeEndpointUrl(pingType, version) {
+-  // Structured Ingestion does not support the UUID generated by gUUIDGenerator.
+-  // Stripping off the leading and trailing braces to make it happy.
+-  const docID = gUUIDGenerator
+-    .generateUUID()
+-    .toString()
+-    .slice(1, -1);
+-  const extension = `${NAMESPACE_CONTEXUAL_SERVICES}/${pingType}/${version}/${docID}`;
+-  return `${structuredIngestionEndpointBase}/${extension}`;
+-}
 diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
 --- a/browser/modules/PingCentre.jsm
 +++ b/browser/modules/PingCentre.jsm
@@ -159,6 +580,92 @@ diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
    LOGGING_PREF,
  };
  const EXPORTED_SYMBOLS = ["PingCentre", "PingCentreConstants"];
+diff --git a/browser/modules/moz.build b/browser/modules/moz.build
+--- a/browser/modules/moz.build
++++ b/browser/modules/moz.build
+@@ -143,7 +143,6 @@ EXTRA_JS_MODULES += [
+     "PageActions.jsm",
+     "PartnerLinkAttribution.jsm",
+     "PermissionUI.jsm",
+-    "PingCentre.jsm",
+     "ProcessHangMonitor.jsm",
+     "Sanitizer.jsm",
+     "SelectionChangedMenulist.jsm",
+diff --git a/docshell/base/nsAboutRedirector.cpp b/docshell/base/nsAboutRedirector.cpp
+--- a/docshell/base/nsAboutRedirector.cpp
++++ b/docshell/base/nsAboutRedirector.cpp
+@@ -144,8 +144,6 @@ static const RedirEntry kRedirMap[] = {
+     {"glean", "chrome://global/content/aboutGlean.html",
+      nsIAboutModule::HIDE_FROM_ABOUTABOUT | nsIAboutModule::ALLOW_SCRIPT},
+ #endif
+-    {"telemetry", "chrome://global/content/aboutTelemetry.xhtml",
+-     nsIAboutModule::ALLOW_SCRIPT},
+     {"url-classifier", "chrome://global/content/aboutUrlClassifier.xhtml",
+      nsIAboutModule::ALLOW_SCRIPT},
+     {"webrtc", "chrome://global/content/aboutwebrtc/aboutWebrtc.html",
+diff --git a/dom/ipc/ContentChild.cpp b/dom/ipc/ContentChild.cpp
+--- a/dom/ipc/ContentChild.cpp
++++ b/dom/ipc/ContentChild.cpp
+@@ -29,7 +29,6 @@
+ #include "mozilla/LoadInfo.h"
+ #include "mozilla/Logging.h"
+ #include "mozilla/LookAndFeel.h"
+-#include "mozilla/MemoryTelemetry.h"
+ #include "mozilla/NullPrincipal.h"
+ #include "mozilla/PerfStats.h"
+ #include "mozilla/PerformanceMetricsCollector.h"
+diff --git a/toolkit/components/backgroundhangmonitor/moz.build b/toolkit/components/backgroundhangmonitor/moz.build
+--- a/toolkit/components/backgroundhangmonitor/moz.build
++++ b/toolkit/components/backgroundhangmonitor/moz.build
+@@ -7,31 +7,6 @@
+ # NOTE: These config options must match the ones in both android/'s and
+ # browser/'s package-manifest.in.
+ 
+-# BHR disabled outside of Nightly builds due to expected high ping frequency.
+-# BHR disabled for Release builds because of bug 965392.
+-# BHR disabled for debug builds because of bug 979069.
+-# BHR disabled for TSan builds because of bug 1121216.
+-# BHR disabled for ASan builds because of bug 1445441.
+-# When changing these conditions, please also change the matching conditions in
+-# tools/profiler/public/ProfilerLabels.h.
+-if (
+-    CONFIG["NIGHTLY_BUILD"]
+-    and not CONFIG["MOZ_DEBUG"]
+-    and not CONFIG["MOZ_TSAN"]
+-    and not CONFIG["MOZ_ASAN"]
+-):
+-    DEFINES["MOZ_ENABLE_BACKGROUND_HANG_MONITOR"] = 1
+-
+-    EXTRA_JS_MODULES += [
+-        "BHRTelemetryService.jsm",
+-    ]
+-
+-    XPCOM_MANIFESTS += [
+-        "components.conf",
+-    ]
+-
+-    XPCSHELL_TESTS_MANIFESTS += ["tests/xpcshell.ini"]
+-
+ XPIDL_SOURCES += [
+     "nsIHangDetails.idl",
+ ]
+diff --git a/toolkit/components/build/components.conf b/toolkit/components/build/components.conf
+--- a/toolkit/components/build/components.conf
++++ b/toolkit/components/build/components.conf
+@@ -190,13 +190,3 @@ if not defined('MOZ_DISABLE_PARENTAL_CON
+             'headers': ['/toolkit/components/parentalcontrols/nsParentalControlsService.h'],
+         },
+     ]
+-
+-if MOZ_HAS_TERMINATOR:
+-    Classes += [
+-        {
+-            'cid': '{2e59cc70-f83a-412f-89d4-453885837217}',
+-            'contract_ids': ['@mozilla.org/toolkit/shutdown-terminator;1'],
+-            'type': 'mozilla::nsTerminator',
+-            'headers': ['nsTerminator.h'],
+-        },
+-    ]
 diff --git a/toolkit/components/extensions/parent/ext-telemetry.js b/toolkit/components/extensions/parent/ext-telemetry.js
 --- a/toolkit/components/extensions/parent/ext-telemetry.js
 +++ b/toolkit/components/extensions/parent/ext-telemetry.js
@@ -223,6 +730,19 @@ diff --git a/toolkit/components/glean/src/lib.rs b/toolkit/components/glean/src/
      let configuration = Configuration {
          upload_enabled,
          data_path,
+diff --git a/toolkit/components/moz.build b/toolkit/components/moz.build
+--- a/toolkit/components/moz.build
++++ b/toolkit/components/moz.build
+@@ -107,9 +107,6 @@ if CONFIG["MOZ_XUL"]:
+ 
+ DIRS += ["captivedetect"]
+ 
+-if CONFIG["OS_TARGET"] != "Android":
+-    DIRS += ["terminator"]
+-
+ if CONFIG["MOZ_UPDATE_AGENT"]:
+     DIRS += ["taskscheduler"]
+ 
 diff --git a/toolkit/components/nimbus/lib/ExperimentManager.jsm b/toolkit/components/nimbus/lib/ExperimentManager.jsm
 --- a/toolkit/components/nimbus/lib/ExperimentManager.jsm
 +++ b/toolkit/components/nimbus/lib/ExperimentManager.jsm
@@ -633,6 +1153,15 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerBase.jsm b/tool
  const Preferences = Object.freeze({
    OverridePreRelease: "toolkit.telemetry.testing.overridePreRelease",
    Unified: "toolkit.telemetry.unified",
+@@ -40,7 +38,7 @@ var gLogAppenderDump = null;
+ var TelemetryControllerBase = Object.freeze({
+   // Whether the FHR/Telemetry unification features are enabled.
+   // Changing this pref requires a restart.
+-  IS_UNIFIED_TELEMETRY: Services.prefs.getBoolPref(Preferences.Unified, false),
++  IS_UNIFIED_TELEMETRY: false,
+ 
+   Preferences,
+ 
 @@ -49,7 +47,7 @@ var TelemetryControllerBase = Object.fre
     * it correctly evaluates to a boolean type.
     */
@@ -674,7 +1203,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerBase.jsm b/tool
        // We're not on unified Telemetry, stick to the old behaviour for
        // supporting Fennec.
 -      Services.telemetry.canRecordBase = Services.telemetry.canRecordExtended = this.isTelemetryEnabled;
-+      Services.telemetry.canRecordBase = false;
++      Services.telemetry.canRecordBase = Services.telemetry.canRecordExtended = false;
      }
  
      this.log.config(
@@ -689,7 +1218,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
    AsyncShutdown: "resource://gre/modules/AsyncShutdown.jsm",
    TelemetryStorage: "resource://gre/modules/TelemetryStorage.jsm",
    TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.jsm",
-@@ -72,13 +71,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+@@ -72,14 +71,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
    TelemetrySend: "resource://gre/modules/TelemetrySend.jsm",
    TelemetryReportingPolicy:
      "resource://gre/modules/TelemetryReportingPolicy.jsm",
@@ -700,10 +1229,61 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
 -  TelemetryHealthPing: "resource://gre/modules/HealthPing.jsm",
 -  TelemetryEventPing: "resource://gre/modules/EventPing.jsm",
 -  TelemetryPrioPing: "resource://gre/modules/PrioPing.jsm",
-   UninstallPing: "resource://gre/modules/UninstallPing.jsm",
+-  UninstallPing: "resource://gre/modules/UninstallPing.jsm",
    OS: "resource://gre/modules/osfile.jsm",
  });
-@@ -795,8 +787,6 @@ var Impl = {
+ 
+@@ -255,19 +246,6 @@ var TelemetryController = Object.freeze(
+   },
+ 
+   /**
+-   * Create an uninstall ping and write it to disk, replacing any already present.
+-   * This is stored independently from other pings, and only read by
+-   * the Windows uninstaller.
+-   *
+-   * WINDOWS ONLY, does nothing and resolves immediately on other platforms.
+-   *
+-   * @return {Promise} Resolved when the ping has been saved.
+-   */
+-  saveUninstallPing() {
+-    return Impl.saveUninstallPing();
+-  },
+-
+-  /**
+    * Allows the sync ping to tell the controller that it is initializing, so
+    * should be included in the orderly shutdown process.
+    *
+@@ -725,29 +703,6 @@ var Impl = {
+     return TelemetryStorage.removeAbortedSessionPing();
+   },
+ 
+-  async saveUninstallPing() {
+-    if (AppConstants.platform != "win") {
+-      return undefined;
+-    }
+-
+-    this._log.trace("saveUninstallPing");
+-
+-    let payload = {};
+-    try {
+-      payload.otherInstalls = UninstallPing.getOtherInstallsCount();
+-      this._log.info(
+-        "saveUninstallPing - otherInstalls",
+-        payload.otherInstalls
+-      );
+-    } catch (e) {
+-      this._log.warn("saveUninstallPing - getOtherInstallCount failed", e);
+-    }
+-    const options = { addClientId: true, addEnvironment: true };
+-    const pingData = this.assemblePing(PING_TYPE_UNINSTALL, payload, options);
+-
+-    return TelemetryStorage.saveUninstallPing(pingData);
+-  },
+-
+   /**
+    * This triggers basic telemetry initialization and schedules a full initialized for later
+    * for performance reasons.
+@@ -795,8 +750,6 @@ var Impl = {
        return Promise.resolve();
      }
  
@@ -712,7 +1292,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
      // Perform a lightweight, early initialization for the component, just registering
      // a few observers and initializing the session.
      TelemetrySession.earlyInit(this._testMode);
-@@ -811,10 +801,6 @@ var Impl = {
+@@ -811,10 +764,6 @@ var Impl = {
      // lead to some stale client ids.
      this._clientID = ClientID.getCachedClientID();
  
@@ -723,7 +1303,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
      // Delay full telemetry initialization to give the browser time to
      // run various late initializers. Otherwise our gathered memory
      // footprint and other numbers would be too optimistic.
-@@ -830,10 +816,7 @@ var Impl = {
+@@ -830,10 +779,7 @@ var Impl = {
            this._clientID = await ClientID.getClientID();
  
            // Fix-up a canary client ID if detected.
@@ -735,7 +1315,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
            if (uploadEnabled && this._clientID == Utils.knownClientID) {
              this._log.trace(
                "Upload enabled, but got canary client ID. Resetting."
-@@ -854,17 +837,6 @@ var Impl = {
+@@ -854,17 +800,6 @@ var Impl = {
            await TelemetrySession.delayedInit();
            await Services.telemetry.delayedInit();
  
@@ -753,7 +1333,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
            // Purge the pings archive by removing outdated pings. We don't wait for
            // this task to complete, but TelemetryStorage blocks on it during
            // shutdown.
-@@ -875,25 +847,6 @@ var Impl = {
+@@ -875,35 +810,6 @@ var Impl = {
            // in the future.
            TelemetryStorage.removeFHRDatabase();
  
@@ -776,10 +1356,20 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
 -          TelemetryEventPing.startup();
 -          TelemetryPrioPing.startup();
 -
-           if (uploadEnabled) {
-             await this.saveUninstallPing().catch(e =>
-               this._log.warn("_delayedInitTask - saveUninstallPing failed", e)
-@@ -935,8 +888,6 @@ var Impl = {
+-          if (uploadEnabled) {
+-            await this.saveUninstallPing().catch(e =>
+-              this._log.warn("_delayedInitTask - saveUninstallPing failed", e)
+-            );
+-          } else {
+-            await TelemetryStorage.removeUninstallPings().catch(e =>
+-              this._log.warn("_delayedInitTask - saveUninstallPing", e)
+-            );
+-          }
+-
+           this._delayedInitTaskDeferred.resolve();
+         } catch (e) {
+           this._delayedInitTaskDeferred.reject(e);
+@@ -935,8 +841,6 @@ var Impl = {
      let now = () => " " + (TelemetryUtils.monotonicNow() - start);
      this._shutdownStep = "_cleanupOnShutdown begin " + now();
  
@@ -788,7 +1378,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
      // Now do an orderly shutdown.
      try {
        if (this._delayedNewPingTask) {
-@@ -944,14 +895,6 @@ var Impl = {
+@@ -944,14 +848,6 @@ var Impl = {
          await this._delayedNewPingTask.finalize();
        }
  
@@ -803,7 +1393,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
        // Shutdown the sync ping if it is initialized - this is likely, but not
        // guaranteed, to submit a "shutdown" sync ping.
        if (this._fnSyncPingShutdown) {
-@@ -969,10 +912,6 @@ var Impl = {
+@@ -969,10 +865,6 @@ var Impl = {
        this._shutdownStep = "TelemetrySend" + now();
        await TelemetrySend.shutdown();
  
@@ -814,7 +1404,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
        this._shutdownStep = "TelemetrySession" + now();
        await TelemetrySession.shutdown();
        this._shutdownStep = "Services.telemetry" + now();
-@@ -1050,10 +989,6 @@ var Impl = {
+@@ -1050,10 +942,6 @@ var Impl = {
        case "profile-after-change":
          // profile-after-change is only registered for chrome processes.
          return this.setupTelemetry();
@@ -825,7 +1415,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
      }
      return undefined;
    },
-@@ -1084,122 +1019,8 @@ var Impl = {
+@@ -1084,122 +972,8 @@ var Impl = {
      };
    },
  
@@ -948,7 +1538,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
    /**
     * Allows waiting for TelemetryControllers delayed initialization to complete.
     * This will complete before TelemetryController is shutting down.
-@@ -1231,7 +1052,6 @@ var Impl = {
+@@ -1231,7 +1005,6 @@ var Impl = {
    async reset() {
      this._clientID = null;
      this._fnSyncPingShutdown = null;
@@ -956,7 +1546,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/to
  
      let sessionReset = TelemetrySession.testReset();
  
-@@ -1255,75 +1075,6 @@ var Impl = {
+@@ -1255,75 +1028,6 @@ var Impl = {
    },
  
    /**
@@ -1680,6 +2270,65 @@ diff --git a/toolkit/components/telemetry/app/TelemetryUtils.jsm b/toolkit/compo
    },
  
    /**
+diff --git a/toolkit/components/telemetry/components.conf b/toolkit/components/telemetry/components.conf
+--- a/toolkit/components/telemetry/components.conf
++++ b/toolkit/components/telemetry/components.conf
+@@ -6,13 +6,6 @@
+ 
+ Classes = [
+     {
+-        'cid': '{117b219f-92fe-4bd2-a21b-95a342a9d474}',
+-        'contract_ids': ['@mozilla.org/base/telemetry-startup;1'],
+-        'jsm': 'resource://gre/modules/TelemetryStartup.jsm',
+-        'constructor': 'TelemetryStartup',
+-        'processes': ProcessSelector.MAIN_PROCESS_ONLY,
+-    },
+-    {
+         'cid': '{efc1415c-5708-41cc-8226-82bf1d3bee16}',
+         'contract_ids': ['@mozilla.org/base/telemetry-controller-content;1'],
+         'jsm': 'resource://gre/modules/TelemetryControllerContent.jsm',
+diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/components/telemetry/core/Telemetry.cpp
+--- a/toolkit/components/telemetry/core/Telemetry.cpp
++++ b/toolkit/components/telemetry/core/Telemetry.cpp
+@@ -37,7 +37,6 @@
+ #include "mozilla/Likely.h"
+ #include "mozilla/MathAlgorithms.h"
+ #include "mozilla/MemoryReporting.h"
+-#include "mozilla/MemoryTelemetry.h"
+ #include "mozilla/ModuleUtils.h"
+ #include "mozilla/Mutex.h"
+ #include "mozilla/PoisonIOInterposer.h"
+@@ -1680,20 +1679,16 @@ TelemetryImpl::FlushBatchedChildTelemetr
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::EarlyInit() {
+-  Unused << MemoryTelemetry::Get();
+-
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::DelayedInit() {
+-  MemoryTelemetry::Get().DelayedInit();
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::Shutdown() {
+-  MemoryTelemetry::Get().Shutdown();
+   return NS_OK;
+ }
+ 
+@@ -1705,9 +1700,6 @@ TelemetryImpl::GatherMemory(JSContext* a
+     return rv.StealNSResult();
+   }
+ 
+-  MemoryTelemetry::Get().GatherReports(
+-      [promise]() { promise->MaybeResolve(JS::UndefinedHandleValue); });
+-
+   promise.forget(aResult);
+   return NS_OK;
+ }
 diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemetry/moz.build
 --- a/toolkit/components/telemetry/moz.build
 +++ b/toolkit/components/telemetry/moz.build
@@ -1694,7 +2343,16 @@ diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemet
  DEFINES["MOZ_APP_VERSION"] = '"%s"' % CONFIG["MOZ_APP_VERSION"]
  
  LOCAL_INCLUDES += [
-@@ -105,14 +101,7 @@ EXTRA_JS_MODULES += [
+@@ -89,8 +85,6 @@ XPCOM_MANIFESTS += [
+     "core/components.conf",
+ ]
+ 
+-EXTRA_COMPONENTS += ["TelemetryStartup.manifest"]
+-
+ EXTRA_JS_MODULES += [
+     "app/ClientID.jsm",
+     "app/TelemetryArchive.jsm",
+@@ -105,22 +99,9 @@ EXTRA_JS_MODULES += [
      "app/TelemetryStorage.jsm",
      "app/TelemetryTimestamps.jsm",
      "app/TelemetryUtils.jsm",
@@ -1706,9 +2364,17 @@ diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemet
      "pings/TelemetrySession.jsm",
 -    "pings/UntrustedModulesPing.jsm",
 -    "pings/UpdatePing.jsm",
-     "TelemetryStartup.jsm",
+-    "TelemetryStartup.jsm",
  ]
  
+-if CONFIG["OS_ARCH"] == "WINNT":
+-    EXTRA_JS_MODULES += [
+-        "pings/UninstallPing.jsm",
+-    ]
+-
+ TESTING_JS_MODULES += [
+     "tests/unit/TelemetryArchiveTesting.jsm",
+     "tests/unit/TelemetryEnvironmentTesting.jsm",
 diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/components/telemetry/pings/TelemetrySession.jsm
 --- a/toolkit/components/telemetry/pings/TelemetrySession.jsm
 +++ b/toolkit/components/telemetry/pings/TelemetrySession.jsm
@@ -1808,6 +2474,32 @@ diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/c
      // Wait on pings to be saved.
      return Promise.all(p);
    },
+diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
+--- a/toolkit/content/jar.mn
++++ b/toolkit/content/jar.mn
+@@ -30,9 +30,6 @@ toolkit.jar:
+    content/global/aboutGlean.html
+    content/global/aboutGlean.css
+ #endif
+-   content/global/aboutTelemetry.js
+-   content/global/aboutTelemetry.xhtml
+-   content/global/aboutTelemetry.css
+    content/global/aboutUrlClassifier.js
+    content/global/aboutUrlClassifier.xhtml
+    content/global/aboutUrlClassifier.css
+diff --git a/toolkit/content/moz.build b/toolkit/content/moz.build
+--- a/toolkit/content/moz.build
++++ b/toolkit/content/moz.build
+@@ -232,9 +232,6 @@ with Files("aboutService*"):
+ with Files("aboutSupport*"):
+     BUG_COMPONENT = ("Toolkit", "General")
+ 
+-with Files("aboutTelemetry*"):
+-    BUG_COMPONENT = ("Toolkit", "Telemetry")
+-
+ with Files("autocomplete.css"):
+     BUG_COMPONENT = ("Firefox", "Search")
+ 
 diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
 --- a/toolkit/xre/nsAppRunner.cpp
 +++ b/toolkit/xre/nsAppRunner.cpp
@@ -2121,3 +2813,96 @@ diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
              &OnDefaultAgentTelemetryPrefChanged, kPrefDefaultAgentEnabled);
  
          Preferences::RegisterCallbackAndCall(
+diff --git a/xpcom/base/AppShutdown.cpp b/xpcom/base/AppShutdown.cpp
+--- a/xpcom/base/AppShutdown.cpp
++++ b/xpcom/base/AppShutdown.cpp
+@@ -31,10 +31,6 @@
+ 
+ #include "AppShutdown.h"
+ 
+-// TODO: understand why on Android we cannot include this and if we should
+-#ifndef ANDROID
+-#  include "nsTerminator.h"
+-#endif
+ #include "prenv.h"
+ 
+ #ifdef MOZ_NEW_XULSTORE
+@@ -66,10 +62,6 @@ const char* sPhaseObserverKeys[] = {
+ static_assert(sizeof(sPhaseObserverKeys) / sizeof(sPhaseObserverKeys[0]) ==
+               (size_t)ShutdownPhase::ShutdownPhase_Length);
+ 
+-#ifndef ANDROID
+-static nsTerminator* sTerminator = nullptr;
+-#endif
+-
+ static ShutdownPhase sFastShutdownPhase = ShutdownPhase::NotInShutdown;
+ static ShutdownPhase sLateWriteChecksPhase = ShutdownPhase::NotInShutdown;
+ static AppShutdownMode sShutdownMode = AppShutdownMode::Normal;
+@@ -183,10 +175,6 @@ void AppShutdown::Init(AppShutdownMode a
+ 
+   sExitCode = aExitCode;
+ 
+-#ifndef ANDROID
+-  sTerminator = new nsTerminator();
+-#endif
+-
+   // Late-write checks needs to find the profile directory, so it has to
+   // be initialized before services::Shutdown or (because of
+   // xpcshell tests replacing the service) modules being unloaded.
+@@ -313,12 +301,6 @@ void AdvanceShutdownPhaseInternal(
+   if (sCurrentShutdownPhase >= aPhase) return;
+   sCurrentShutdownPhase = aPhase;
+ 
+-#ifndef ANDROID
+-  if (sTerminator) {
+-    sTerminator->AdvancePhase(aPhase);
+-  }
+-#endif
+-
+   mozilla::KillClearOnShutdown(aPhase);
+ 
+   AppShutdown::MaybeFastShutdown(aPhase);
+diff --git a/xpcom/base/moz.build b/xpcom/base/moz.build
+--- a/xpcom/base/moz.build
++++ b/xpcom/base/moz.build
+@@ -124,7 +124,6 @@ EXPORTS.mozilla += [
+     "MemoryInfo.h",
+     "MemoryMapping.h",
+     "MemoryReportingProcess.h",
+-    "MemoryTelemetry.h",
+     "nsMemoryInfoDumper.h",
+     "NSPRLogModulesParser.h",
+     "OwningNonNull.h",
+@@ -165,7 +164,6 @@ UNIFIED_SOURCES += [
+     "LogCommandLineHandler.cpp",
+     "Logging.cpp",
+     "LogModulePrefWatcher.cpp",
+-    "MemoryTelemetry.cpp",
+     "nsClassInfoImpl.cpp",
+     "nsCOMPtr.cpp",
+     "nsConsoleMessage.cpp",
+diff --git a/xpcom/build/XPCOMInit.cpp b/xpcom/build/XPCOMInit.cpp
+--- a/xpcom/build/XPCOMInit.cpp
++++ b/xpcom/build/XPCOMInit.cpp
+@@ -18,10 +18,6 @@
+ #include "mozJSComponentLoader.h"
+ #include "nsXULAppAPI.h"
+ 
+-#ifndef ANDROID
+-#  include "nsTerminator.h"
+-#endif
+-
+ #include "nsXPCOMPrivate.h"
+ #include "nsXPCOMCIDInternal.h"
+ 
+@@ -612,10 +608,6 @@ nsresult ShutdownXPCOM(nsIServiceManager
+           do_QueryInterface(mgr));
+     }
+ 
+-#ifndef ANDROID
+-    mozilla::XPCOMShutdownNotified();
+-#endif
+-
+     // This must happen after the shutdown of media and widgets, which
+     // are triggered by the NS_XPCOM_SHUTDOWN_OBSERVER_ID notification.
+     NS_ProcessPendingEvents(thread);

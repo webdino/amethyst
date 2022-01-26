@@ -99,17 +99,6 @@ diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsCont
      this.showItem("context-media-eme-learnmore", this.onDRMMedia);
  
      // Disable them when there isn't a valid media source loaded.
-diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
---- a/browser/extensions/moz.build
-+++ b/browser/extensions/moz.build
-@@ -10,7 +10,6 @@ DIRS += [
-     "screenshots",
-     "webcompat",
-     "report-site-issue",
--    "pictureinpicture",
- ]
- 
- if CONFIG["NIGHTLY_BUILD"]:
 diff --git a/toolkit/actors/UAWidgetsChild.jsm b/toolkit/actors/UAWidgetsChild.jsm
 --- a/toolkit/actors/UAWidgetsChild.jsm
 +++ b/toolkit/actors/UAWidgetsChild.jsm

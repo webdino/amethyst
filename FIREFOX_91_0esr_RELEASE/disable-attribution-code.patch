@@ -330,3 +330,319 @@ diff --git a/browser/components/attribution/AttributionCode.jsm b/browser/compon
    },
  
    /**
+diff --git a/browser/components/moz.build b/browser/components/moz.build
+--- a/browser/components/moz.build
++++ b/browser/components/moz.build
+@@ -29,7 +29,6 @@ with Files("controlcenter/**"):
+ DIRS += [
+     "about",
+     "aboutlogins",
+-    "attribution",
+     "contextualidentity",
+     "customizableui",
+     "doh",
+diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+--- a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
++++ b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+@@ -183,16 +183,6 @@ class AboutWelcomeChild extends JSWindow
+    * Send initial data to page including experiment information
+    */
+   async getAWContent() {
+-    let attributionData = await this.sendQuery("AWPage:GET_ATTRIBUTION_DATA");
+-
+-    // Return to AMO gets returned early.
+-    if (attributionData?.template) {
+-      log.debug("Loading about:welcome with RTAMO attribution data");
+-      return Cu.cloneInto(attributionData, this.contentWindow);
+-    } else if (attributionData?.ua) {
+-      log.debug("Loading about:welcome with UA attribution");
+-    }
+-
+     let experimentMetadata =
+       ExperimentAPI.getExperimentMetaData({
+         featureId: "aboutwelcome",
+@@ -212,7 +202,6 @@ class AboutWelcomeChild extends JSWindow
+     // override the default with `null`
+     return Cu.cloneInto(
+       await AboutWelcomeDefaults.prepareContentForReact({
+-        ...attributionData,
+         ...experimentMetadata,
+         ...defaults,
+         ...featureConfig,
+diff --git a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+--- a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
++++ b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+@@ -12,7 +12,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AddonRepository: "resource://gre/modules/addons/AddonRepository.jsm",
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+-  AttributionCode: "resource:///modules/AttributionCode.jsm",
+   Services: "resource://gre/modules/Services.jsm",
+ });
+ 
+@@ -438,25 +437,6 @@ async function getAddonInfo(attrbObj) {
+   return null;
+ }
+ 
+-async function getAttributionContent() {
+-  let attribution = await AttributionCode.getAttrDataAsync();
+-  if (attribution?.source === "addons.mozilla.org") {
+-    let addonInfo = await getAddonInfo(attribution);
+-    if (addonInfo) {
+-      return {
+-        ...addonInfo,
+-        template: "return_to_amo",
+-      };
+-    }
+-  }
+-  if (attribution?.ua) {
+-    return {
+-      ua: decodeURIComponent(attribution.ua),
+-    };
+-  }
+-  return null;
+-}
+-
+ const RULES = [
+   {
+     description: "Proton Default AW content",
+@@ -676,5 +656,4 @@ async function prepareContentForReact(co
+ const AboutWelcomeDefaults = {
+   prepareContentForReact,
+   getDefaults,
+-  getAttributionContent,
+ };
+diff --git a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm
+--- a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm
++++ b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm
+@@ -13,7 +13,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   ClientID: "resource://gre/modules/ClientID.jsm",
+   Services: "resource://gre/modules/Services.jsm",
+   TelemetrySession: "resource://gre/modules/TelemetrySession.jsm",
+-  AttributionCode: "resource:///modules/AttributionCode.jsm",
+ });
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   gUUIDGenerator: ["@mozilla.org/uuid-generator;1", "nsIUUIDGenerator"],
+@@ -79,10 +78,6 @@ class AboutWelcomeTelemetry {
+    * read the cached results for the most if not all of the pings.
+    */
+   _maybeAttachAttribution(ping) {
+-    const attribution = AttributionCode.getCachedAttributionData();
+-    if (attribution && Object.keys(attribution).length) {
+-      ping.attribution = attribution;
+-    }
+     return ping;
+   }
+ 
+diff --git a/browser/components/newtab/lib/ASRouter.jsm b/browser/components/newtab/lib/ASRouter.jsm
+--- a/browser/components/newtab/lib/ASRouter.jsm
++++ b/browser/components/newtab/lib/ASRouter.jsm
+@@ -33,7 +33,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   SpecialMessageActions:
+     "resource://messaging-system/lib/SpecialMessageActions.jsm",
+   TargetingContext: "resource://messaging-system/targeting/Targeting.jsm",
+-  MacAttribution: "resource:///modules/MacAttribution.jsm",
+ });
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   BrowserHandler: ["@mozilla.org/browser/clh;1", "nsIBrowserHandler"],
+@@ -54,9 +53,6 @@ const { RemoteSettings } = ChromeUtils.i
+ const { CFRPageActions } = ChromeUtils.import(
+   "resource://activity-stream/lib/CFRPageActions.jsm"
+ );
+-const { AttributionCode } = ChromeUtils.import(
+-  "resource:///modules/AttributionCode.jsm"
+-);
+ 
+ // List of hosts for endpoints that serve router messages.
+ // Key is allowed host, value is a name for the endpoint host.
+@@ -1562,52 +1558,6 @@ class _ASRouter {
+     return Promise.resolve();
+   }
+ 
+-  /**
+-   * forceAttribution - this function should only be called from within about:newtab#asrouter.
+-   * It forces the browser attribution to be set to something specified in asrouter admin
+-   * tools, and reloads the providers in order to get messages that are dependant on this
+-   * attribution data (see Return to AMO flow in bug 1475354 for example). Note - OSX and Windows only
+-   * @param {data} Object an object containing the attribtion data that came from asrouter admin page
+-   */
+-  async forceAttribution(data) {
+-    // Extract the parameters from data that will make up the referrer url
+-    const attributionData = AttributionCode.allowedCodeKeys
+-      .map(key => `${key}=${encodeURIComponent(data[key] || "")}`)
+-      .join("&");
+-    if (AppConstants.platform === "win") {
+-      // The whole attribution data is encoded (again) for windows
+-      await AttributionCode.writeAttributionFile(
+-        encodeURIComponent(attributionData)
+-      );
+-    } else if (AppConstants.platform === "macosx") {
+-      let appPath = MacAttribution.applicationPath;
+-      let attributionSvc = Cc["@mozilla.org/mac-attribution;1"].getService(
+-        Ci.nsIMacAttributionService
+-      );
+-
+-      // The attribution data is treated as a url query for mac
+-      let referrer = `https://www.mozilla.org/anything/?${attributionData}`;
+-
+-      // This sets the Attribution to be the referrer
+-      attributionSvc.setReferrerUrl(appPath, referrer, true);
+-
+-      // Delete attribution data file
+-      await AttributionCode.deleteFileAsync();
+-    }
+-
+-    // Clear cache call is only possible in a testing environment
+-    let env = Cc["@mozilla.org/process/environment;1"].getService(
+-      Ci.nsIEnvironment
+-    );
+-    env.set("XPCSHELL_TEST_PROFILE_DIR", "testing");
+-
+-    // Clear and refresh Attribution, and then fetch the messages again to update
+-    AttributionCode._clearCache();
+-    await AttributionCode.getAttrDataAsync();
+-    await this._updateMessageProviders();
+-    return this.loadMessagesFromAllProviders();
+-  }
+-
+   async sendNewTabMessage({ endpoint, tabId, browser }) {
+     let message;
+ 
+diff --git a/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm b/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm
+--- a/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm
++++ b/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm
+@@ -125,9 +125,6 @@ class ASRouterParentProcessMessageHandle
+         this._queryCache.expireAll();
+         return Promise.resolve();
+       }
+-      case msg.FORCE_ATTRIBUTION: {
+-        return this._router.forceAttribution(data);
+-      }
+       case msg.FORCE_WHATSNEW_PANEL: {
+         return this._router.forceWNPanel(browser);
+       }
+diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
+--- a/browser/components/newtab/lib/ASRouterTargeting.jsm
++++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
+@@ -20,7 +20,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   ShellService: "resource:///modules/ShellService.jsm",
+   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.jsm",
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+-  AttributionCode: "resource:///modules/AttributionCode.jsm",
+   TargetingContext: "resource://messaging-system/targeting/Targeting.jsm",
+   fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   Region: "resource://gre/modules/Region.jsm",
+@@ -386,10 +385,6 @@ const TargetingGetters = {
+       update: settings.update,
+     };
+   },
+-  get attributionData() {
+-    // Attribution is determined at startup - so we can use the cached attribution at this point
+-    return AttributionCode.getCachedAttributionData();
+-  },
+   get currentDate() {
+     return new Date();
+   },
+diff --git a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+--- a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
++++ b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+@@ -28,11 +28,6 @@ const { AddonManager, AddonManagerPrivat
+ 
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "AttributionCode",
+-  "resource:///modules/AttributionCode.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "ProfileAge",
+   "resource://gre/modules/ProfileAge.jsm"
+ );
+@@ -950,9 +945,6 @@ function EnvironmentCache() {
+ 
+   this._currentEnvironment.profile = {};
+   p.push(this._updateProfile());
+-  if (AppConstants.MOZ_BUILD_APP == "browser") {
+-    p.push(this._loadAttributionAsync());
+-  }
+   p.push(this._loadAsyncUpdateSettings());
+   p.push(this._loadIntlData());
+ 
+@@ -1590,7 +1582,6 @@ EnvironmentCache.prototype = {
+     this._currentEnvironment.settings.addonCompatibilityCheckEnabled =
+       AddonManager.checkCompatibility;
+ 
+-    this._updateAttribution();
+     this._updateDefaultBrowser();
+     await this._updateSearchEngine();
+     this._loadAsyncUpdateSettingsFromCache();
+@@ -1649,47 +1640,6 @@ EnvironmentCache.prototype = {
+   },
+ 
+   /**
+-   * Load the attribution data object and updates the environment.
+-   * @returns Promise<> resolved when the I/O is complete.
+-   */
+-  async _loadAttributionAsync() {
+-    try {
+-      await AttributionCode.getAttrDataAsync();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-      return;
+-    }
+-    this._updateAttribution();
+-  },
+-
+-  /**
+-   * Update the environment with the cached attribution data.
+-   */
+-  _updateAttribution() {
+-    let data = null;
+-    try {
+-      data = AttributionCode.getCachedAttributionData();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-    }
+-
+-    if (!data || !Object.keys(data).length) {
+-      return;
+-    }
+-
+-    let attributionData = {};
+-    for (let key in data) {
+-      attributionData[key] = limitStringToLength(
+-        data[key],
+-        MAX_ATTRIBUTION_STRING_LENGTH
+-      );
+-    }
+-    this._currentEnvironment.settings.attribution = attributionData;
+-  },
+-
+-  /**
+    * Load the per-installation update settings, cache them, and add them to the
+    * environment.
+    */
+diff --git a/toolkit/components/utils/ClientEnvironment.jsm b/toolkit/components/utils/ClientEnvironment.jsm
+--- a/toolkit/components/utils/ClientEnvironment.jsm
++++ b/toolkit/components/utils/ClientEnvironment.jsm
+@@ -13,7 +13,6 @@ ChromeUtils.defineModuleGetter(this, "Te
+ ChromeUtils.defineModuleGetter(this, "TelemetryController", "resource://gre/modules/TelemetryController.jsm");
+ ChromeUtils.defineModuleGetter(this, "UpdateUtils", "resource://gre/modules/UpdateUtils.jsm");
+ ChromeUtils.defineModuleGetter(this, "AppConstants", "resource://gre/modules/AppConstants.jsm");
+-ChromeUtils.defineModuleGetter(this, "AttributionCode", "resource:///modules/AttributionCode.jsm");
+ ChromeUtils.defineModuleGetter(this, "WindowsVersionInfo", "resource://gre/modules/components-utils/WindowsVersionInfo.jsm");
+ ChromeUtils.defineModuleGetter(this, "NormandyUtils", "resource://normandy/lib/NormandyUtils.jsm");
+ /* eslint-enable prettier/prettier */
+@@ -253,10 +252,6 @@ class ClientEnvironmentBase {
+     return osInfo;
+   }
+ 
+-  static get attribution() {
+-    return AttributionCode.getAttrDataAsync();
+-  }
+-
+   static get appinfo() {
+     Services.appinfo.QueryInterface(Ci.nsIXULAppInfo);
+     Services.appinfo.QueryInterface(Ci.nsIPlatformInfo);

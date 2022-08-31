@@ -1,0 +1,2908 @@
+diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+--- a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
++++ b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+@@ -251,13 +251,6 @@ class AboutWelcomeChild extends JSWindow
+    * @param {object} eventData
+    */
+   AWSendEventTelemetry(eventData) {
+-    this.AWSendToParent("TELEMETRY_EVENT", {
+-      ...eventData,
+-      event_context: {
+-        ...eventData.event_context,
+-        page: "about:welcome",
+-      },
+-    });
+   }
+ 
+   /**
+diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm b/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
+--- a/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
++++ b/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
+@@ -18,8 +18,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   OS: "resource://gre/modules/osfile.jsm",
+   SpecialMessageActions:
+     "resource://messaging-system/lib/SpecialMessageActions.jsm",
+-  AboutWelcomeTelemetry:
+-    "resource://activity-stream/aboutwelcome/lib/AboutWelcomeTelemetry.jsm",
+   AboutWelcomeDefaults:
+     "resource://activity-stream/aboutwelcome/lib/AboutWelcomeDefaults.jsm",
+   PromiseUtils: "resource://gre/modules/PromiseUtils.jsm",
+@@ -34,12 +32,6 @@ XPCOMUtils.defineLazyGetter(this, "log",
+   return new Logger("AboutWelcomeParent");
+ });
+ 
+-XPCOMUtils.defineLazyGetter(
+-  this,
+-  "Telemetry",
+-  () => new AboutWelcomeTelemetry()
+-);
+-
+ const DID_SEE_ABOUT_WELCOME_PREF = "trailhead.firstrun.didSeeAboutWelcome";
+ const AWTerminate = {
+   WINDOW_CLOSED: "welcome-window-closed",
+@@ -188,16 +180,6 @@ class AboutWelcomeParent extends JSWindo
+       this.AboutWelcomeObserver.stop();
+     }
+     this.RegionHomeObserver?.stop();
+-
+-    Telemetry.sendTelemetry({
+-      event: "SESSION_END",
+-      event_context: {
+-        reason: this.AboutWelcomeObserver.terminateReason,
+-        page: "about:welcome",
+-      },
+-      message_id: this.AWMessageId,
+-      id: "ABOUT_WELCOME",
+-    });
+   }
+ 
+   /**
+@@ -226,12 +208,6 @@ class AboutWelcomeParent extends JSWindo
+         return FxAccounts.config.promiseMetricsFlowURI("aboutwelcome");
+       case "AWPage:IMPORTABLE_SITES":
+         return getImportableSites();
+-      case "AWPage:TELEMETRY_EVENT":
+-        Telemetry.sendTelemetry(data);
+-        break;
+-      case "AWPage:GET_ATTRIBUTION_DATA":
+-        let attributionData = await AboutWelcomeDefaults.getAttributionContent();
+-        return attributionData;
+       case "AWPage:SELECT_THEME":
+         return AddonManager.getAddonByID(
+           LIGHT_WEIGHT_THEMES[data]
+diff --git a/browser/components/newtab/lib/TelemetryFeed.jsm b/browser/components/newtab/lib/TelemetryFeed.jsm
+--- a/browser/components/newtab/lib/TelemetryFeed.jsm
++++ b/browser/components/newtab/lib/TelemetryFeed.jsm
+@@ -29,11 +29,6 @@ ChromeUtils.defineModuleGetter(
+ );
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "PingCentre",
+-  "resource:///modules/PingCentre.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "UTEventReporting",
+   "resource://activity-stream/lib/UTEventReporting.jsm"
+ );
+@@ -302,16 +297,6 @@ this.TelemetryFeed = class TelemetryFeed
+   }
+ 
+   /**
+-   * Lazily initialize PingCentre for Activity Stream to send pings
+-   */
+-  get pingCentre() {
+-    Object.defineProperty(this, "pingCentre", {
+-      value: new PingCentre({ topic: ACTIVITY_STREAM_ID }),
+-    });
+-    return this.pingCentre;
+-  }
+-
+-  /**
+    * Lazily initialize UTEventReporting to send pings
+    */
+   get utEvents() {
+@@ -744,40 +729,6 @@ this.TelemetryFeed = class TelemetryFeed
+   }
+ 
+   sendEvent(event_object) {
+-    switch (event_object.action) {
+-      case "activity_stream_user_event":
+-        this.sendEventPing(event_object);
+-        break;
+-      case "activity_stream_session":
+-        this.sendSessionPing(event_object);
+-        break;
+-    }
+-  }
+-
+-  async sendEventPing(ping) {
+-    delete ping.action;
+-    ping.client_id = await this.telemetryClientId;
+-    ping.browser_session_id = browserSessionId;
+-    if (ping.value && typeof ping.value === "object") {
+-      ping.value = JSON.stringify(ping.value);
+-    }
+-    this.sendStructuredIngestionEvent(
+-      ping,
+-      STRUCTURED_INGESTION_NAMESPACE_AS,
+-      "events",
+-      1
+-    );
+-  }
+-
+-  async sendSessionPing(ping) {
+-    delete ping.action;
+-    ping.client_id = await this.telemetryClientId;
+-    this.sendStructuredIngestionEvent(
+-      ping,
+-      STRUCTURED_INGESTION_NAMESPACE_AS,
+-      "sessions",
+-      1
+-    );
+   }
+ 
+   sendUTEvent(event_object, eventFunction) {
+@@ -786,32 +737,7 @@ this.TelemetryFeed = class TelemetryFeed
+     }
+   }
+ 
+-  /**
+-   * Generates an endpoint for Structured Ingestion telemetry pipeline. Note that
+-   * Structured Ingestion requires a different endpoint for each ping. See more
+-   * details about endpoint schema at:
+-   * https://github.com/mozilla/gcp-ingestion/blob/master/docs/edge.md#postput-request
+-   *
+-   * @param {String} namespace Namespace of the ping, such as "activity-stream" or "messaging-system".
+-   * @param {String} pingType  Type of the ping, such as "impression-stats".
+-   * @param {String} version   Endpoint version for this ping type.
+-   */
+-  _generateStructuredIngestionEndpoint(namespace, pingType, version) {
+-    const uuid = gUUIDGenerator.generateUUID().toString();
+-    // Structured Ingestion does not support the UUID generated by gUUIDGenerator,
+-    // because it contains leading and trailing braces. Need to trim them first.
+-    const docID = uuid.slice(1, -1);
+-    const extension = `${namespace}/${pingType}/${version}/${docID}`;
+-    return `${this.structuredIngestionEndpointBase}/${extension}`;
+-  }
+-
+   sendStructuredIngestionEvent(eventObject, namespace, pingType, version) {
+-    if (this.telemetryEnabled) {
+-      this.pingCentre.sendStructuredIngestionPing(
+-        eventObject,
+-        this._generateStructuredIngestionEndpoint(namespace, pingType, version)
+-      );
+-    }
+   }
+ 
+   handleImpressionStats(action) {
+@@ -1140,10 +1066,6 @@ this.TelemetryFeed = class TelemetryFeed
+       // init has finished setting up the observer
+     }
+ 
+-    // Only uninit if the getter has initialized it
+-    if (Object.prototype.hasOwnProperty.call(this, "pingCentre")) {
+-      this.pingCentre.uninit();
+-    }
+     if (Object.prototype.hasOwnProperty.call(this, "utEvents")) {
+       this.utEvents.uninit();
+     }
+diff --git a/browser/components/pocket/content/pktTelemetry.jsm b/browser/components/pocket/content/pktTelemetry.jsm
+--- a/browser/components/pocket/content/pktTelemetry.jsm
++++ b/browser/components/pocket/content/pktTelemetry.jsm
+@@ -12,11 +12,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+ const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "PingCentre",
+-  "resource:///modules/PingCentre.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "pktApi",
+   "chrome://pocket/content/pktApi.jsm"
+ );
+@@ -36,10 +31,6 @@ const STRUCTURED_INGESTION_ENDPOINT_PREF
+ const POCKET_TELEMETRY_TOPIC = "pocket";
+ const PREF_IMPRESSION_ID = "browser.newtabpage.activity-stream.impressionId";
+ 
+-XPCOMUtils.defineLazyGetter(this, "pingCentre", () => {
+-  return new PingCentre({ topic: POCKET_TELEMETRY_TOPIC });
+-});
+-
+ var pktTelemetry = {
+   get structuredIngestionEndpointBase() {
+     if (!this._structuredIngestionEndpointBase) {
+@@ -95,34 +86,11 @@ var pktTelemetry = {
+     );
+   },
+ 
+-  _generateUUID() {
+-    return String(gUUIDGenerator.generateUUID());
+-  },
+-
+-  /**
+-   * Generates an endpoint for Structured Ingestion telemetry pipeline. Note that
+-   * Structured Ingestion requires a different endpoint for each ping. See more
+-   * details about endpoint schema at:
+-   * https://github.com/mozilla/gcp-ingestion/blob/master/docs/edge.md#postput-request
+-   */
+-  _generateStructuredIngestionEndpoint() {
+-    const uuid = this._generateUUID();
+-    // Structured Ingestion does not support the UUID generated by gUUIDGenerator,
+-    // because it contains leading and trailing braces. Need to trim them first.
+-    const docID = uuid.slice(1, -1);
+-    const extension = `${STRUCTURED_INGESTION_NAMESPACE_AS}/pocket-button/1/${docID}`;
+-    return `${this.structuredIngestionEndpointBase}/${extension}`;
+-  },
+-
+   /**
+    * sendStructuredIngestionEvent - Sent a ping for an impression stats
+    *
+    * @param {ob} eventObject The data object to be included in the ping.
+    */
+   sendStructuredIngestionEvent(eventObject) {
+-    pingCentre.sendStructuredIngestionPing(
+-      eventObject,
+-      this._generateStructuredIngestionEndpoint()
+-    );
+   },
+ };
+diff --git a/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js b/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js
+--- a/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js
++++ b/browser/extensions/report-site-issue/experimentalAPIs/browserInfo.js
+@@ -7,10 +7,7 @@
+ /* global AppConstants, ExtensionAPI, Services */
+ 
+ function isTelemetryEnabled() {
+-  return Services.prefs.getBoolPref(
+-    "datareporting.healthreport.uploadEnabled",
+-    false
+-  );
++  return false;
+ }
+ 
+ function isWebRenderEnabled() {
+diff --git a/browser/extensions/translations/extension/experiment-apis/telemetryPreferences/api.js b/browser/extensions/translations/extension/experiment-apis/telemetryPreferences/api.js
+--- a/browser/extensions/translations/extension/experiment-apis/telemetryPreferences/api.js
++++ b/browser/extensions/translations/extension/experiment-apis/telemetryPreferences/api.js
+@@ -29,7 +29,7 @@ this.telemetryPreferences = class extend
+             },
+           }).api(),
+           async getUploadEnabledPref() {
+-            return Services.prefs.getBoolPref(uploadEnabledPrefName, undefined);
++            return false;
+           },
+           onCachedClientIDPrefChange: new EventManager({
+             context,
+diff --git a/browser/fxr/content/prefs.js b/browser/fxr/content/prefs.js
+--- a/browser/fxr/content/prefs.js
++++ b/browser/fxr/content/prefs.js
+@@ -81,8 +81,7 @@ function initSubmitHealthReport() {
+     checkbox.addEventListener("change", updateSubmitHealthReport);
+ 
+     checkbox.checked =
+-      Services.prefs.getBoolPref(PREF_UPLOAD_ENABLED) &&
+-      AppConstants.MOZ_TELEMETRY_REPORTING;
++      false;
+   }
+ }
+ 
+diff --git a/browser/modules/Discovery.jsm b/browser/modules/Discovery.jsm
+--- a/browser/modules/Discovery.jsm
++++ b/browser/modules/Discovery.jsm
+@@ -22,20 +22,16 @@ ChromeUtils.defineModuleGetter(
+ );
+ 
+ const RECOMMENDATION_ENABLED = "browser.discovery.enabled";
+-const TELEMETRY_ENABLED = "datareporting.healthreport.uploadEnabled";
+ const TAAR_COOKIE_NAME = "taarId";
+ 
+ const Discovery = {
+   set enabled(val) {
+     val = !!val;
+-    if (val && !gTelemetryEnabled) {
+-      throw Error("unable to turn on recommendations");
+-    }
+     Services.prefs.setBoolPref(RECOMMENDATION_ENABLED, val);
+   },
+ 
+   get enabled() {
+-    return gTelemetryEnabled && gRecommendationEnabled;
++    return false;
+   },
+ 
+   reset() {
+@@ -49,20 +45,6 @@ const Discovery = {
+ 
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+-  "gRecommendationEnabled",
+-  RECOMMENDATION_ENABLED,
+-  false,
+-  Discovery.update
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "gTelemetryEnabled",
+-  TELEMETRY_ENABLED,
+-  false,
+-  Discovery.update
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+   "gCachedClientID",
+   "toolkit.telemetry.cachedClientID",
+   "",
+diff --git a/browser/modules/PartnerLinkAttribution.jsm b/browser/modules/PartnerLinkAttribution.jsm
+--- a/browser/modules/PartnerLinkAttribution.jsm
++++ b/browser/modules/PartnerLinkAttribution.jsm
+@@ -17,28 +17,12 @@ const { XPCOMUtils } = ChromeUtils.impor
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   Services: "resource://gre/modules/Services.jsm",
+-  Region: "resource://gre/modules/Region.jsm",
+-  PingCentre: "resource:///modules/PingCentre.jsm",
+ });
+ 
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   gUUIDGenerator: ["@mozilla.org/uuid-generator;1", "nsIUUIDGenerator"],
+ });
+ 
+-// Endpoint base URL for Structured Ingestion
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "structuredIngestionEndpointBase",
+-  "browser.newtabpage.activity-stream.telemetry.structuredIngestion.endpoint",
+-  ""
+-);
+-const NAMESPACE_CONTEXUAL_SERVICES = "contextual-services";
+-
+-// PingCentre client to send custom pings
+-XPCOMUtils.defineLazyGetter(this, "pingcentre", () => {
+-  return new PingCentre({ topic: "contextual-services" });
+-});
+-
+ // `contextId` is a unique identifier used by Contextual Services
+ const CONTEXT_ID_PREF = "browser.contextual-services.contextId";
+ XPCOMUtils.defineLazyGetter(this, "contextId", () => {
+@@ -72,34 +56,6 @@ var PartnerLinkAttribution = {
+    *   Optional. If it's not provided, we default to the topsites campaign.
+    */
+   async makeRequest({ targetURL, source, campaignID }) {
+-    let partner = targetURL.match(/^https?:\/\/(?:www.)?([^.]*)/)[1];
+-
+-    function record(method, objectString) {
+-      recordTelemetryEvent({
+-        method,
+-        objectString,
+-        value: partner,
+-      });
+-    }
+-    record("click", source);
+-
+-    let attributionUrl = Services.prefs.getStringPref(
+-      "browser.partnerlink.attributionURL"
+-    );
+-    if (!attributionUrl) {
+-      record("attribution", "abort");
+-      return;
+-    }
+-
+-    // The default campaign is topsites.
+-    if (!campaignID) {
+-      campaignID = Services.prefs.getStringPref(
+-        "browser.partnerlink.campaign.topsites"
+-      );
+-    }
+-    attributionUrl = attributionUrl + campaignID;
+-    let result = await sendRequest(attributionUrl, source, targetURL);
+-    record("attribution", result ? "success" : "failure");
+   },
+ 
+   /**
+@@ -111,50 +67,6 @@ var PartnerLinkAttribution = {
+    *   The target URL to filter and include in the attribution.
+    */
+   async makeSearchEngineRequest(engine, targetUrl) {
+-    let cid;
+-    if (engine.attribution?.cid) {
+-      cid = engine.attribution.cid;
+-    } else if (engine.sendAttributionRequest) {
+-      cid = Services.prefs.getStringPref(
+-        "browser.partnerlink.campaign.topsites"
+-      );
+-    } else {
+-      return;
+-    }
+-
+-    let searchUrlQueryParamName = engine.searchUrlQueryParamName;
+-    if (!searchUrlQueryParamName) {
+-      Cu.reportError("makeSearchEngineRequest can't find search terms key");
+-      return;
+-    }
+-
+-    let url = targetUrl;
+-    if (typeof url == "string") {
+-      url = Services.io.newURI(url);
+-    }
+-
+-    let targetParams = new URLSearchParams(url.query);
+-    if (!targetParams.has(searchUrlQueryParamName)) {
+-      Cu.reportError(
+-        "makeSearchEngineRequest can't remove target search terms"
+-      );
+-      return;
+-    }
+-
+-    let attributionUrl = Services.prefs.getStringPref(
+-      "browser.partnerlink.attributionURL",
+-      ""
+-    );
+-    attributionUrl = attributionUrl + cid;
+-
+-    targetParams.delete(searchUrlQueryParamName);
+-    let strippedTargetUrl = `${url.prePath}${url.filePath}`;
+-    let newParams = targetParams.toString();
+-    if (newParams) {
+-      strippedTargetUrl += "?" + newParams;
+-    }
+-
+-    await sendRequest(attributionUrl, "searchurl", strippedTargetUrl);
+   },
+ 
+   /**
+@@ -178,52 +90,6 @@ var PartnerLinkAttribution = {
+       return;
+     }
+ 
+-    const endpoint = makeEndpointUrl(pingType, "1");
+     payload.context_id = contextId;
+-    pingcentre.sendStructuredIngestionPing(payload, endpoint);
+-  },
+-
+-  /**
+-   * Gets the underlying PingCentre client, only used for tests.
+-   */
+-  get _pingCentre() {
+-    return pingcentre;
+   },
+ };
+-
+-async function sendRequest(attributionUrl, source, targetURL) {
+-  const request = new Request(attributionUrl);
+-  request.headers.set("X-Region", Region.home);
+-  request.headers.set("X-Source", source);
+-  request.headers.set("X-Target-URL", targetURL);
+-  const response = await fetch(request);
+-  return response.ok;
+-}
+-
+-function recordTelemetryEvent({ method, objectString, value }) {
+-  Services.telemetry.setEventRecordingEnabled("partner_link", true);
+-  Services.telemetry.recordEvent("partner_link", method, objectString, value);
+-}
+-
+-/**
+- * Makes a new endpoint URL for a ping submission. Note that each submission
+- * to Structured Ingesttion requires a new endpoint. See more details about
+- * the specs:
+- *
+- * https://docs.telemetry.mozilla.org/concepts/pipeline/http_edge_spec.html?highlight=docId#postput-request
+- *
+- * @param {String} pingType
+- *   The ping type. Must be one of CONTEXTUAL_SERVICES_PING_TYPES
+- * @param {String} version
+- *   The schema version of the ping.
+- */
+-function makeEndpointUrl(pingType, version) {
+-  // Structured Ingestion does not support the UUID generated by gUUIDGenerator.
+-  // Stripping off the leading and trailing braces to make it happy.
+-  const docID = gUUIDGenerator
+-    .generateUUID()
+-    .toString()
+-    .slice(1, -1);
+-  const extension = `${NAMESPACE_CONTEXUAL_SERVICES}/${pingType}/${version}/${docID}`;
+-  return `${structuredIngestionEndpointBase}/${extension}`;
+-}
+diff --git a/browser/modules/PingCentre.jsm b/browser/modules/PingCentre.jsm
+--- a/browser/modules/PingCentre.jsm
++++ b/browser/modules/PingCentre.jsm
+@@ -27,12 +27,9 @@ ChromeUtils.defineModuleGetter(
+ 
+ const PREF_BRANCH = "browser.ping-centre.";
+ 
+-const TELEMETRY_PREF = `${PREF_BRANCH}telemetry`;
+ const LOGGING_PREF = `${PREF_BRANCH}log`;
+ const STRUCTURED_INGESTION_SEND_TIMEOUT = 30 * 1000; // 30 seconds
+ 
+-const FHR_UPLOAD_ENABLED_PREF = "datareporting.healthreport.uploadEnabled";
+-
+ /**
+  * Observe various notifications and send them to a telemetry endpoint.
+  *
+@@ -49,35 +46,19 @@ class PingCentre {
+     this._topic = options.topic;
+     this._prefs = Services.prefs.getBranch("");
+ 
+-    this._enabled = this._prefs.getBoolPref(TELEMETRY_PREF);
+-    this._onTelemetryPrefChange = this._onTelemetryPrefChange.bind(this);
+-    this._prefs.addObserver(TELEMETRY_PREF, this._onTelemetryPrefChange);
+-
+-    this._fhrEnabled = this._prefs.getBoolPref(FHR_UPLOAD_ENABLED_PREF);
+-    this._onFhrPrefChange = this._onFhrPrefChange.bind(this);
+-    this._prefs.addObserver(FHR_UPLOAD_ENABLED_PREF, this._onFhrPrefChange);
+-
+     this.logging = this._prefs.getBoolPref(LOGGING_PREF);
+     this._onLoggingPrefChange = this._onLoggingPrefChange.bind(this);
+     this._prefs.addObserver(LOGGING_PREF, this._onLoggingPrefChange);
+   }
+ 
+   get enabled() {
+-    return this._enabled && this._fhrEnabled;
++    return false;
+   }
+ 
+   _onLoggingPrefChange(aSubject, aTopic, prefKey) {
+     this.logging = this._prefs.getBoolPref(prefKey);
+   }
+ 
+-  _onTelemetryPrefChange(aSubject, aTopic, prefKey) {
+-    this._enabled = this._prefs.getBoolPref(prefKey);
+-  }
+-
+-  _onFhrPrefChange(aSubject, aTopic, prefKey) {
+-    this._fhrEnabled = this._prefs.getBoolPref(prefKey);
+-  }
+-
+   _createExperimentsPayload() {
+     let activeExperiments = TelemetryEnvironment.getActiveExperiments();
+     let experiments = {};
+@@ -207,12 +188,7 @@ class PingCentre {
+ 
+   uninit() {
+     try {
+-      this._prefs.removeObserver(TELEMETRY_PREF, this._onTelemetryPrefChange);
+       this._prefs.removeObserver(LOGGING_PREF, this._onLoggingPrefChange);
+-      this._prefs.removeObserver(
+-        FHR_UPLOAD_ENABLED_PREF,
+-        this._onFhrPrefChange
+-      );
+     } catch (e) {
+       Cu.reportError(e);
+     }
+@@ -221,8 +197,6 @@ class PingCentre {
+ 
+ this.PingCentre = PingCentre;
+ this.PingCentreConstants = {
+-  FHR_UPLOAD_ENABLED_PREF,
+-  TELEMETRY_PREF,
+   LOGGING_PREF,
+ };
+ const EXPORTED_SYMBOLS = ["PingCentre", "PingCentreConstants"];
+diff --git a/browser/modules/moz.build b/browser/modules/moz.build
+--- a/browser/modules/moz.build
++++ b/browser/modules/moz.build
+@@ -143,7 +143,6 @@ EXTRA_JS_MODULES += [
+     "PageActions.jsm",
+     "PartnerLinkAttribution.jsm",
+     "PermissionUI.jsm",
+-    "PingCentre.jsm",
+     "ProcessHangMonitor.jsm",
+     "Sanitizer.jsm",
+     "SelectionChangedMenulist.jsm",
+diff --git a/docshell/base/nsAboutRedirector.cpp b/docshell/base/nsAboutRedirector.cpp
+--- a/docshell/base/nsAboutRedirector.cpp
++++ b/docshell/base/nsAboutRedirector.cpp
+@@ -144,8 +144,6 @@ static const RedirEntry kRedirMap[] = {
+     {"glean", "chrome://global/content/aboutGlean.html",
+      nsIAboutModule::HIDE_FROM_ABOUTABOUT | nsIAboutModule::ALLOW_SCRIPT},
+ #endif
+-    {"telemetry", "chrome://global/content/aboutTelemetry.xhtml",
+-     nsIAboutModule::ALLOW_SCRIPT},
+     {"url-classifier", "chrome://global/content/aboutUrlClassifier.xhtml",
+      nsIAboutModule::ALLOW_SCRIPT},
+     {"webrtc", "chrome://global/content/aboutwebrtc/aboutWebrtc.html",
+diff --git a/dom/ipc/ContentChild.cpp b/dom/ipc/ContentChild.cpp
+--- a/dom/ipc/ContentChild.cpp
++++ b/dom/ipc/ContentChild.cpp
+@@ -29,7 +29,6 @@
+ #include "mozilla/LoadInfo.h"
+ #include "mozilla/Logging.h"
+ #include "mozilla/LookAndFeel.h"
+-#include "mozilla/MemoryTelemetry.h"
+ #include "mozilla/NullPrincipal.h"
+ #include "mozilla/PerfStats.h"
+ #include "mozilla/PerformanceMetricsCollector.h"
+diff --git a/toolkit/components/backgroundhangmonitor/moz.build b/toolkit/components/backgroundhangmonitor/moz.build
+--- a/toolkit/components/backgroundhangmonitor/moz.build
++++ b/toolkit/components/backgroundhangmonitor/moz.build
+@@ -7,31 +7,6 @@
+ # NOTE: These config options must match the ones in both android/'s and
+ # browser/'s package-manifest.in.
+ 
+-# BHR disabled outside of Nightly builds due to expected high ping frequency.
+-# BHR disabled for Release builds because of bug 965392.
+-# BHR disabled for debug builds because of bug 979069.
+-# BHR disabled for TSan builds because of bug 1121216.
+-# BHR disabled for ASan builds because of bug 1445441.
+-# When changing these conditions, please also change the matching conditions in
+-# tools/profiler/public/ProfilerLabels.h.
+-if (
+-    CONFIG["NIGHTLY_BUILD"]
+-    and not CONFIG["MOZ_DEBUG"]
+-    and not CONFIG["MOZ_TSAN"]
+-    and not CONFIG["MOZ_ASAN"]
+-):
+-    DEFINES["MOZ_ENABLE_BACKGROUND_HANG_MONITOR"] = 1
+-
+-    EXTRA_JS_MODULES += [
+-        "BHRTelemetryService.jsm",
+-    ]
+-
+-    XPCOM_MANIFESTS += [
+-        "components.conf",
+-    ]
+-
+-    XPCSHELL_TESTS_MANIFESTS += ["tests/xpcshell.ini"]
+-
+ XPIDL_SOURCES += [
+     "nsIHangDetails.idl",
+ ]
+diff --git a/toolkit/components/build/components.conf b/toolkit/components/build/components.conf
+--- a/toolkit/components/build/components.conf
++++ b/toolkit/components/build/components.conf
+@@ -190,13 +190,3 @@ if not defined('MOZ_DISABLE_PARENTAL_CON
+             'headers': ['/toolkit/components/parentalcontrols/nsParentalControlsService.h'],
+         },
+     ]
+-
+-if MOZ_HAS_TERMINATOR:
+-    Classes += [
+-        {
+-            'cid': '{2e59cc70-f83a-412f-89d4-453885837217}',
+-            'contract_ids': ['@mozilla.org/toolkit/shutdown-terminator;1'],
+-            'type': 'mozilla::nsTerminator',
+-            'headers': ['nsTerminator.h'],
+-        },
+-    ]
+diff --git a/toolkit/components/extensions/parent/ext-telemetry.js b/toolkit/components/extensions/parent/ext-telemetry.js
+--- a/toolkit/components/extensions/parent/ext-telemetry.js
++++ b/toolkit/components/extensions/parent/ext-telemetry.js
+@@ -89,20 +89,7 @@ this.telemetry = class extends Extension
+         },
+         canUpload() {
+           desktopCheck();
+-          // Note: remove the ternary and direct pref check when
+-          // TelemetryController.canUpload() is implemented (bug 1440089).
+-          try {
+-            const result =
+-              "canUpload" in TelemetryController
+-                ? TelemetryController.canUpload()
+-                : Services.prefs.getBoolPref(
+-                    TelemetryUtils.Preferences.FhrUploadEnabled,
+-                    false
+-                  );
+-            return result;
+-          } catch (ex) {
+-            throw new ExtensionUtils.ExtensionError(ex);
+-          }
++          return false;
+         },
+         scalarAdd(name, value) {
+           desktopCheck();
+diff --git a/toolkit/components/glean/src/lib.rs b/toolkit/components/glean/src/lib.rs
+--- a/toolkit/components/glean/src/lib.rs
++++ b/toolkit/components/glean/src/lib.rs
+@@ -47,11 +47,9 @@ use xpcom::XpCom;
+ 
+ use glean::{ClientInfoMetrics, Configuration};
+ 
+-mod upload_pref;
+ mod user_activity;
+ mod viaduct_uploader;
+ 
+-use crate::upload_pref::UploadPrefObserver;
+ use crate::user_activity::UserActivityObserver;
+ use crate::viaduct_uploader::ViaductUploader;
+ 
+@@ -89,14 +87,6 @@ pub unsafe extern "C" fn fog_init(
+     };
+     log::debug!("Client Info: {:#?}", client_info);
+ 
+-    if let Err(e) = UploadPrefObserver::begin_observing() {
+-        log::error!(
+-            "Could not observe data upload pref. Abandoning FOG init due to {:?}",
+-            e
+-        );
+-        return e;
+-    }
+-
+     if let Err(e) = UserActivityObserver::begin_observing() {
+         log::error!(
+             "Could not observe user activity. Abandoning FOG init due to {:?}",
+@@ -119,7 +109,7 @@ pub unsafe extern "C" fn fog_init(
+         app_id_override.to_utf8().to_string()
+     };
+ 
+-    let upload_enabled = static_prefs::pref!("datareporting.healthreport.uploadEnabled");
++    let upload_enabled = false;
+     let configuration = Configuration {
+         upload_enabled,
+         data_path,
+diff --git a/toolkit/components/moz.build b/toolkit/components/moz.build
+--- a/toolkit/components/moz.build
++++ b/toolkit/components/moz.build
+@@ -107,9 +107,6 @@ if CONFIG["MOZ_XUL"]:
+ 
+ DIRS += ["captivedetect"]
+ 
+-if CONFIG["OS_TARGET"] != "Android":
+-    DIRS += ["terminator"]
+-
+ if CONFIG["MOZ_UPDATE_AGENT"]:
+     DIRS += ["taskscheduler"]
+ 
+diff --git a/toolkit/components/nimbus/lib/ExperimentManager.jsm b/toolkit/components/nimbus/lib/ExperimentManager.jsm
+--- a/toolkit/components/nimbus/lib/ExperimentManager.jsm
++++ b/toolkit/components/nimbus/lib/ExperimentManager.jsm
+@@ -33,8 +33,6 @@ const TELEMETRY_EVENT_OBJECT = "nimbus_e
+ const TELEMETRY_EXPERIMENT_ACTIVE_PREFIX = "nimbus-";
+ const TELEMETRY_DEFAULT_EXPERIMENT_TYPE = "nimbus";
+ 
+-const STUDIES_OPT_OUT_PREF = "app.shield.optoutstudies.enabled";
+-
+ /**
+  * A module for processes Experiment recipes, choosing and storing enrollment state,
+  * and sending experiment-related Telemetry.
+@@ -44,7 +42,6 @@ class _ExperimentManager {
+     this.id = id;
+     this.store = store || new ExperimentStore();
+     this.sessions = new Map();
+-    Services.prefs.addObserver(STUDIES_OPT_OUT_PREF, this);
+   }
+ 
+   /**
+@@ -332,18 +329,6 @@ class _ExperimentManager {
+   }
+ 
+   /**
+-   * Unenroll from all active studies if user opts out.
+-   */
+-  observe(aSubject, aTopic, aPrefName) {
+-    if (Services.prefs.getBoolPref(STUDIES_OPT_OUT_PREF)) {
+-      return;
+-    }
+-    for (const { slug } of this.store.getAllActive()) {
+-      this.unenroll(slug, "studies-opt-out");
+-    }
+-  }
+-
+-  /**
+    * Send Telemetry for undesired event
+    *
+    * @param {string} eventName
+diff --git a/toolkit/components/nimbus/lib/RemoteSettingsExperimentLoader.jsm b/toolkit/components/nimbus/lib/RemoteSettingsExperimentLoader.jsm
+--- a/toolkit/components/nimbus/lib/RemoteSettingsExperimentLoader.jsm
++++ b/toolkit/components/nimbus/lib/RemoteSettingsExperimentLoader.jsm
+@@ -40,8 +40,6 @@ XPCOMUtils.defineLazyServiceGetter(
+ const COLLECTION_ID_PREF = "messaging-system.rsexperimentloader.collection_id";
+ const COLLECTION_ID_FALLBACK = "nimbus-desktop-experiments";
+ const COLLECTION_REMOTE_DEFAULTS = "nimbus-desktop-defaults";
+-const ENABLED_PREF = "messaging-system.rsexperimentloader.enabled";
+-const STUDIES_OPT_OUT_PREF = "app.shield.optoutstudies.enabled";
+ 
+ const TIMER_NAME = "rs-experiment-loader-timer";
+ const TIMER_LAST_UPDATE_PREF = `app.update.lastUpdateTime.${TIMER_NAME}`;
+@@ -186,22 +184,6 @@ class _RemoteSettingsExperimentLoader {
+ 
+     XPCOMUtils.defineLazyPreferenceGetter(
+       this,
+-      "enabled",
+-      ENABLED_PREF,
+-      false,
+-      this.onEnabledPrefChange.bind(this)
+-    );
+-
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "studiesEnabled",
+-      STUDIES_OPT_OUT_PREF,
+-      false,
+-      this.onEnabledPrefChange.bind(this)
+-    );
+-
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+       "intervalInSeconds",
+       RUN_INTERVAL_PREF,
+       21600,
+@@ -210,20 +192,8 @@ class _RemoteSettingsExperimentLoader {
+   }
+ 
+   async init() {
+-    if (this._initialized || !this.enabled || !this.studiesEnabled) {
+       // Resolves any Promise waiting for Remote Settings data
+       ExperimentManager.store.finalizeRemoteConfigs([]);
+-      return;
+-    }
+-
+-    this.setTimer();
+-    CleanupManager.addCleanupHandler(() => this.uninit());
+-    this._initialized = true;
+-
+-    await Promise.all([
+-      this.updateRecipes(),
+-      RemoteDefaultsLoader.syncRemoteDefaults("init"),
+-    ]);
+   }
+ 
+   uninit() {
+@@ -369,22 +339,6 @@ class _RemoteSettingsExperimentLoader {
+   }
+ 
+   /**
+-   * Handles feature status based on feature pref and STUDIES_OPT_OUT_PREF.
+-   * Changing any of them to false will turn off any recipe fetching and
+-   * processing.
+-   */
+-  onEnabledPrefChange(prefName, oldValue, newValue) {
+-    if (this._initialized && !newValue) {
+-      this.uninit();
+-    } else if (!this._initialized && newValue && this.enabled) {
+-      // If the feature pref is turned on then turn on recipe processing.
+-      // If the opt in pref is turned on then turn on recipe processing only if
+-      // the feature pref is also enabled.
+-      this.init();
+-    }
+-  }
+-
+-  /**
+    * Sets a timer to update recipes every this.intervalInSeconds
+    */
+   setTimer() {
+diff --git a/toolkit/components/normandy/Normandy.jsm b/toolkit/components/normandy/Normandy.jsm
+--- a/toolkit/components/normandy/Normandy.jsm
++++ b/toolkit/components/normandy/Normandy.jsm
+@@ -22,7 +22,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PreferenceExperiments: "resource://normandy/lib/PreferenceExperiments.jsm",
+   PreferenceRollouts: "resource://normandy/lib/PreferenceRollouts.jsm",
+   RecipeRunner: "resource://normandy/lib/RecipeRunner.jsm",
+-  ShieldPreferences: "resource://normandy/lib/ShieldPreferences.jsm",
+   TelemetryUtils: "resource://gre/modules/TelemetryUtils.jsm",
+   TelemetryEvents: "resource://normandy/lib/TelemetryEvents.jsm",
+   ExperimentManager: "resource://nimbus/lib/ExperimentManager.jsm",
+@@ -163,12 +162,6 @@ var Normandy = {
+       log.error("Failed to initialize preference experiments:", err);
+     }
+ 
+-    try {
+-      ShieldPreferences.init();
+-    } catch (err) {
+-      log.error("Failed to initialize preferences UI:", err);
+-    }
+-
+     await RecipeRunner.init();
+     Services.obs.notifyObservers(null, SHIELD_INIT_NOTIFICATION);
+   },
+diff --git a/toolkit/components/normandy/NormandyMigrations.jsm b/toolkit/components/normandy/NormandyMigrations.jsm
+--- a/toolkit/components/normandy/NormandyMigrations.jsm
++++ b/toolkit/components/normandy/NormandyMigrations.jsm
+@@ -133,18 +133,10 @@ function migrateShieldPrefs() {
+  * to true then the pref should stay true. Otherwise set it to false.
+  */
+ function migrateStudiesEnabledWithoutHealthReporting() {
+-  const optOutStudiesEnabled = Services.prefs.getBoolPref(
++  Services.prefs.setBoolPref(
+     PREF_OPTOUTSTUDIES_ENABLED,
+     false
+   );
+-  const healthReportUploadEnabled = Services.prefs.getBoolPref(
+-    "datareporting.healthreport.uploadEnabled",
+-    false
+-  );
+-  Services.prefs.setBoolPref(
+-    PREF_OPTOUTSTUDIES_ENABLED,
+-    optOutStudiesEnabled && healthReportUploadEnabled
+-  );
+ }
+ 
+ /**
+diff --git a/toolkit/components/normandy/actions/BaseStudyAction.jsm b/toolkit/components/normandy/actions/BaseStudyAction.jsm
+--- a/toolkit/components/normandy/actions/BaseStudyAction.jsm
++++ b/toolkit/components/normandy/actions/BaseStudyAction.jsm
+@@ -11,8 +11,6 @@ const { BaseAction } = ChromeUtils.impor
+ 
+ var EXPORTED_SYMBOLS = ["BaseStudyAction"];
+ 
+-const OPT_OUT_STUDIES_ENABLED_PREF = "app.shield.optoutstudies.enabled";
+-
+ /**
+  * Base class for local study actions.
+  *
+@@ -29,16 +27,6 @@ const OPT_OUT_STUDIES_ENABLED_PREF = "ap
+  */
+ class BaseStudyAction extends BaseAction {
+   _preExecution() {
+-    if (!Services.policies.isAllowed("Shield")) {
+-      this.log.debug("Disabling Shield because it's blocked by policy.");
+       this.disable();
+-    }
+-
+-    if (!Services.prefs.getBoolPref(OPT_OUT_STUDIES_ENABLED_PREF, true)) {
+-      this.log.debug(
+-        "User has opted-out of opt-out experiments, disabling action."
+-      );
+-      this.disable();
+-    }
+   }
+ }
+diff --git a/toolkit/components/normandy/content/AboutPages.jsm b/toolkit/components/normandy/content/AboutPages.jsm
+--- a/toolkit/components/normandy/content/AboutPages.jsm
++++ b/toolkit/components/normandy/content/AboutPages.jsm
+@@ -42,11 +42,6 @@ ChromeUtils.defineModuleGetter(
+ var EXPORTED_SYMBOLS = ["AboutPages"];
+ 
+ const SHIELD_LEARN_MORE_URL_PREF = "app.normandy.shieldLearnMoreUrl";
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "gOptOutStudiesEnabled",
+-  "app.shield.optoutstudies.enabled"
+-);
+ 
+ /**
+  * Class for managing an about: page that Normandy provides. Adapted from
+@@ -178,7 +173,7 @@ XPCOMUtils.defineLazyGetter(AboutPages, 
+      */
+     async getStudiesEnabled() {
+       await RecipeRunner.initializedPromise.promise;
+-      return RecipeRunner.enabled && gOptOutStudiesEnabled;
++      return false;
+     },
+ 
+     /**
+diff --git a/toolkit/components/normandy/lib/ClientEnvironment.jsm b/toolkit/components/normandy/lib/ClientEnvironment.jsm
+--- a/toolkit/components/normandy/lib/ClientEnvironment.jsm
++++ b/toolkit/components/normandy/lib/ClientEnvironment.jsm
+@@ -138,8 +138,4 @@ class ClientEnvironment extends ClientEn
+       return rv;
+     })();
+   }
+-
+-  static get isFirstRun() {
+-    return Services.prefs.getBoolPref("app.normandy.first_run", true);
+-  }
+ }
+diff --git a/toolkit/components/normandy/lib/RecipeRunner.jsm b/toolkit/components/normandy/lib/RecipeRunner.jsm
+--- a/toolkit/components/normandy/lib/RecipeRunner.jsm
++++ b/toolkit/components/normandy/lib/RecipeRunner.jsm
+@@ -46,9 +46,6 @@ const REMOTE_SETTINGS_COLLECTION = "norm
+ const PREF_CHANGED_TOPIC = "nsPref:changed";
+ 
+ const RUN_INTERVAL_PREF = "app.normandy.run_interval_seconds";
+-const FIRST_RUN_PREF = "app.normandy.first_run";
+-const SHIELD_ENABLED_PREF = "app.normandy.enabled";
+-const DEV_MODE_PREF = "app.normandy.dev_mode";
+ const API_URL_PREF = "app.normandy.api_url";
+ const LAZY_CLASSIFY_PREF = "app.normandy.experiments.lazy_classify";
+ const ONSYNC_SKEW_SEC_PREF = "app.normandy.onsync_skew_sec";
+@@ -57,7 +54,7 @@ const ONSYNC_SKEW_SEC_PREF = "app.norman
+ // see https://searchfox.org/mozilla-central/rev/11cfa0462/toolkit/components/timermanager/UpdateTimerManager.jsm#8
+ const TIMER_LAST_UPDATE_PREF = `app.update.lastUpdateTime.${TIMER_NAME}`;
+ 
+-const PREFS_TO_WATCH = [RUN_INTERVAL_PREF, SHIELD_ENABLED_PREF, API_URL_PREF];
++const PREFS_TO_WATCH = [RUN_INTERVAL_PREF];
+ 
+ XPCOMUtils.defineLazyGetter(this, "gRemoteSettingsClient", () => {
+   return RemoteSettings(REMOTE_SETTINGS_COLLECTION);
+@@ -94,63 +91,13 @@ var RecipeRunner = {
+     this.loadFromRemoteSettings = false;
+     this._syncSkewTimeout = null;
+ 
+-    this.checkPrefs(); // sets this.enabled
++    this.disable();
+     this.watchPrefs();
+     this.setUpRemoteSettings();
+ 
+-    // Here "first run" means the first run this profile has ever done. This
+-    // preference is set to true at the end of this function, and never reset to
+-    // false.
+-    const firstRun = Services.prefs.getBoolPref(FIRST_RUN_PREF, true);
+-
+-    // If we've seen a build ID from a previous run that doesn't match the
+-    // current build ID, run immediately. This is probably an upgrade or
+-    // downgrade, which may cause recipe eligibility to change.
+-    let hasNewBuildID =
+-      Services.appinfo.lastAppBuildID != null &&
+-      Services.appinfo.lastAppBuildID != Services.appinfo.appBuildID;
+-
+-    // Dev mode is a mode used for development and QA that bypasses the normal
+-    // timer function of Normandy, to make testing more convenient.
+-    const devMode = Services.prefs.getBoolPref(DEV_MODE_PREF, false);
+-
+-    if (this.enabled && (devMode || firstRun || hasNewBuildID)) {
+-      // In dev mode, if remote settings is enabled, force an immediate sync
+-      // before running. This ensures that the latest data is used for testing.
+-      // This is not needed for the first run case, because remote settings
+-      // already handles empty collections well.
+-      if (devMode) {
+-        await gRemoteSettingsClient.sync();
+-      }
+-      let trigger;
+-      if (devMode) {
+-        trigger = "devMode";
+-      } else if (firstRun) {
+-        trigger = "firstRun";
+-      } else if (hasNewBuildID) {
+-        trigger = "newBuildID";
+-      }
+-
+-      await this.run({ trigger });
+-    }
+-
+-    // Update the firstRun pref, to indicate that Normandy has run at least once
+-    // on this profile.
+-    if (firstRun) {
+-      Services.prefs.setBoolPref(FIRST_RUN_PREF, false);
+-    }
+-
+     this.initializedPromise.resolve();
+   },
+ 
+-  enable() {
+-    if (this.enabled) {
+-      return;
+-    }
+-    this.registerTimer();
+-    this.enabled = true;
+-  },
+-
+   disable() {
+     if (this.enabled) {
+       this.unregisterTimer();
+@@ -185,12 +132,6 @@ var RecipeRunner = {
+             this.updateRunInterval();
+             break;
+ 
+-          // explicit fall-through
+-          case SHIELD_ENABLED_PREF:
+-          case API_URL_PREF:
+-            this.checkPrefs();
+-            break;
+-
+           default:
+             log.debug(
+               `Observer fired with unexpected pref change: ${prefName}`
+@@ -202,33 +143,6 @@ var RecipeRunner = {
+     }
+   },
+ 
+-  checkPrefs() {
+-    if (!Services.prefs.getBoolPref(SHIELD_ENABLED_PREF)) {
+-      log.debug(
+-        `Disabling Shield because ${SHIELD_ENABLED_PREF} is set to false`
+-      );
+-      this.disable();
+-      return;
+-    }
+-
+-    const apiUrl = Services.prefs.getCharPref(API_URL_PREF);
+-    if (!apiUrl) {
+-      log.warn(`Disabling Shield because ${API_URL_PREF} is not set.`);
+-      this.disable();
+-      return;
+-    }
+-    if (!apiUrl.startsWith("https://")) {
+-      log.warn(
+-        `Disabling Shield because ${API_URL_PREF} is not an HTTPS url: ${apiUrl}.`
+-      );
+-      this.disable();
+-      return;
+-    }
+-
+-    log.debug(`Enabling Shield`);
+-    this.enable();
+-  },
+-
+   registerTimer() {
+     this.updateRunInterval();
+     CleanupManager.addCleanupHandler(() =>
+diff --git a/toolkit/components/telemetry/app/TelemetryArchive.jsm b/toolkit/components/telemetry/app/TelemetryArchive.jsm
+--- a/toolkit/components/telemetry/app/TelemetryArchive.jsm
++++ b/toolkit/components/telemetry/app/TelemetryArchive.jsm
+@@ -65,10 +65,6 @@ var TelemetryArchive = {
+  * to do that.
+  * @return {Boolean} True if pings should be archived, false otherwise.
+  */
+-function shouldArchivePings() {
+-  return Preferences.get(TelemetryUtils.Preferences.ArchiveEnabled, false);
+-}
+-
+ var TelemetryArchiveImpl = {
+   _logger: null,
+ 
+@@ -84,19 +80,7 @@ var TelemetryArchiveImpl = {
+   },
+ 
+   promiseArchivePing(ping) {
+-    if (!shouldArchivePings()) {
+-      this._log.trace("promiseArchivePing - archiving is disabled");
+       return Promise.resolve();
+-    }
+-
+-    for (let field of ["creationDate", "id", "type"]) {
+-      if (!(field in ping)) {
+-        this._log.warn("promiseArchivePing - missing field " + field);
+-        return Promise.reject(new Error("missing field " + field));
+-      }
+-    }
+-
+-    return TelemetryStorage.saveArchivedPing(ping);
+   },
+ 
+   _buildArchivedPingList(archivedPingsMap) {
+diff --git a/toolkit/components/telemetry/app/TelemetryControllerBase.jsm b/toolkit/components/telemetry/app/TelemetryControllerBase.jsm
+--- a/toolkit/components/telemetry/app/TelemetryControllerBase.jsm
++++ b/toolkit/components/telemetry/app/TelemetryControllerBase.jsm
+@@ -22,8 +22,6 @@ const PREF_BRANCH_LOG = "toolkit.telemet
+ const PREF_LOG_LEVEL = "toolkit.telemetry.log.level";
+ const PREF_LOG_DUMP = "toolkit.telemetry.log.dump";
+ 
+-const PREF_TELEMETRY_ENABLED = "toolkit.telemetry.enabled";
+-
+ const Preferences = Object.freeze({
+   OverridePreRelease: "toolkit.telemetry.testing.overridePreRelease",
+   Unified: "toolkit.telemetry.unified",
+@@ -40,7 +38,7 @@ var gLogAppenderDump = null;
+ var TelemetryControllerBase = Object.freeze({
+   // Whether the FHR/Telemetry unification features are enabled.
+   // Changing this pref requires a restart.
+-  IS_UNIFIED_TELEMETRY: Services.prefs.getBoolPref(Preferences.Unified, false),
++  IS_UNIFIED_TELEMETRY: false,
+ 
+   Preferences,
+ 
+@@ -49,7 +47,7 @@ var TelemetryControllerBase = Object.fre
+    * it correctly evaluates to a boolean type.
+    */
+   get isTelemetryEnabled() {
+-    return Services.prefs.getBoolPref(PREF_TELEMETRY_ENABLED, false) === true;
++    return false;
+   },
+ 
+   get log() {
+@@ -94,24 +92,8 @@ var TelemetryControllerBase = Object.fre
+    * Set the Telemetry core recording flag for Unified Telemetry.
+    */
+   setTelemetryRecordingFlags() {
+-    // Enable extended Telemetry on pre-release channels and disable it
+-    // on Release/ESR.
+-    let prereleaseChannels = ["nightly", "aurora", "beta"];
+-    if (!AppConstants.MOZILLA_OFFICIAL) {
+-      // Turn extended telemetry for local developer builds.
+-      prereleaseChannels.push("default");
+-    }
+-    const isPrereleaseChannel = prereleaseChannels.includes(
+-      AppConstants.MOZ_UPDATE_CHANNEL
+-    );
+-    const isReleaseCandidateOnBeta =
+-      AppConstants.MOZ_UPDATE_CHANNEL === "release" &&
+-      Services.prefs.getCharPref("app.update.channel", null) === "beta";
+-    Services.telemetry.canRecordBase = true;
+-    Services.telemetry.canRecordExtended =
+-      isPrereleaseChannel ||
+-      isReleaseCandidateOnBeta ||
+-      Services.prefs.getBoolPref(this.Preferences.OverridePreRelease, false);
++    Services.telemetry.canRecordBase = false;
++    Services.telemetry.canRecordExtended = false;
+   },
+ 
+   /**
+@@ -128,7 +110,7 @@ var TelemetryControllerBase = Object.fre
+     } else {
+       // We're not on unified Telemetry, stick to the old behaviour for
+       // supporting Fennec.
+-      Services.telemetry.canRecordBase = Services.telemetry.canRecordExtended = this.isTelemetryEnabled;
++      Services.telemetry.canRecordBase = Services.telemetry.canRecordExtended = false;
+     }
+ 
+     this.log.config(
+diff --git a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm b/toolkit/components/telemetry/app/TelemetryControllerParent.jsm
+--- a/toolkit/components/telemetry/app/TelemetryControllerParent.jsm
++++ b/toolkit/components/telemetry/app/TelemetryControllerParent.jsm
+@@ -63,7 +63,6 @@ ChromeUtils.defineModuleGetter(
+ 
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   ClientID: "resource://gre/modules/ClientID.jsm",
+-  CoveragePing: "resource://gre/modules/CoveragePing.jsm",
+   AsyncShutdown: "resource://gre/modules/AsyncShutdown.jsm",
+   TelemetryStorage: "resource://gre/modules/TelemetryStorage.jsm",
+   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.jsm",
+@@ -72,14 +71,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   TelemetrySend: "resource://gre/modules/TelemetrySend.jsm",
+   TelemetryReportingPolicy:
+     "resource://gre/modules/TelemetryReportingPolicy.jsm",
+-  TelemetryModules: "resource://gre/modules/ModulesPing.jsm",
+-  TelemetryUntrustedModulesPing:
+-    "resource://gre/modules/UntrustedModulesPing.jsm",
+-  UpdatePing: "resource://gre/modules/UpdatePing.jsm",
+-  TelemetryHealthPing: "resource://gre/modules/HealthPing.jsm",
+-  TelemetryEventPing: "resource://gre/modules/EventPing.jsm",
+-  TelemetryPrioPing: "resource://gre/modules/PrioPing.jsm",
+-  UninstallPing: "resource://gre/modules/UninstallPing.jsm",
+   OS: "resource://gre/modules/osfile.jsm",
+ });
+ 
+@@ -255,19 +246,6 @@ var TelemetryController = Object.freeze(
+   },
+ 
+   /**
+-   * Create an uninstall ping and write it to disk, replacing any already present.
+-   * This is stored independently from other pings, and only read by
+-   * the Windows uninstaller.
+-   *
+-   * WINDOWS ONLY, does nothing and resolves immediately on other platforms.
+-   *
+-   * @return {Promise} Resolved when the ping has been saved.
+-   */
+-  saveUninstallPing() {
+-    return Impl.saveUninstallPing();
+-  },
+-
+-  /**
+    * Allows the sync ping to tell the controller that it is initializing, so
+    * should be included in the orderly shutdown process.
+    *
+@@ -725,29 +703,6 @@ var Impl = {
+     return TelemetryStorage.removeAbortedSessionPing();
+   },
+ 
+-  async saveUninstallPing() {
+-    if (AppConstants.platform != "win") {
+-      return undefined;
+-    }
+-
+-    this._log.trace("saveUninstallPing");
+-
+-    let payload = {};
+-    try {
+-      payload.otherInstalls = UninstallPing.getOtherInstallsCount();
+-      this._log.info(
+-        "saveUninstallPing - otherInstalls",
+-        payload.otherInstalls
+-      );
+-    } catch (e) {
+-      this._log.warn("saveUninstallPing - getOtherInstallCount failed", e);
+-    }
+-    const options = { addClientId: true, addEnvironment: true };
+-    const pingData = this.assemblePing(PING_TYPE_UNINSTALL, payload, options);
+-
+-    return TelemetryStorage.saveUninstallPing(pingData);
+-  },
+-
+   /**
+    * This triggers basic telemetry initialization and schedules a full initialized for later
+    * for performance reasons.
+@@ -795,8 +750,6 @@ var Impl = {
+       return Promise.resolve();
+     }
+ 
+-    this._attachObservers();
+-
+     // Perform a lightweight, early initialization for the component, just registering
+     // a few observers and initializing the session.
+     TelemetrySession.earlyInit(this._testMode);
+@@ -811,10 +764,6 @@ var Impl = {
+     // lead to some stale client ids.
+     this._clientID = ClientID.getCachedClientID();
+ 
+-    // Init the update ping telemetry as early as possible. This won't have
+-    // an impact on startup.
+-    UpdatePing.earlyInit();
+-
+     // Delay full telemetry initialization to give the browser time to
+     // run various late initializers. Otherwise our gathered memory
+     // footprint and other numbers would be too optimistic.
+@@ -830,10 +779,7 @@ var Impl = {
+           this._clientID = await ClientID.getClientID();
+ 
+           // Fix-up a canary client ID if detected.
+-          const uploadEnabled = Services.prefs.getBoolPref(
+-            TelemetryUtils.Preferences.FhrUploadEnabled,
+-            false
+-          );
++          const uploadEnabled = false;
+           if (uploadEnabled && this._clientID == Utils.knownClientID) {
+             this._log.trace(
+               "Upload enabled, but got canary client ID. Resetting."
+@@ -854,17 +800,6 @@ var Impl = {
+           await TelemetrySession.delayedInit();
+           await Services.telemetry.delayedInit();
+ 
+-          if (
+-            Services.prefs.getBoolPref(
+-              TelemetryUtils.Preferences.NewProfilePingEnabled,
+-              false
+-            ) &&
+-            !TelemetrySession.newProfilePingSent
+-          ) {
+-            // Kick off the scheduling of the new-profile ping.
+-            this.scheduleNewProfilePing();
+-          }
+-
+           // Purge the pings archive by removing outdated pings. We don't wait for
+           // this task to complete, but TelemetryStorage blocks on it during
+           // shutdown.
+@@ -875,35 +810,6 @@ var Impl = {
+           // in the future.
+           TelemetryStorage.removeFHRDatabase();
+ 
+-          // The init sequence is forced to run on shutdown for short sessions and
+-          // we don't want to start TelemetryModules as the timer registration will fail.
+-          if (!this._shuttingDown) {
+-            // Report the modules loaded in the Firefox process.
+-            TelemetryModules.start();
+-
+-            // Send coverage ping.
+-            await CoveragePing.startup();
+-
+-            // Start the untrusted modules ping, which reports events where
+-            // untrusted modules were loaded into the Firefox process.
+-            if (AppConstants.platform == "win") {
+-              TelemetryUntrustedModulesPing.start();
+-            }
+-          }
+-
+-          TelemetryEventPing.startup();
+-          TelemetryPrioPing.startup();
+-
+-          if (uploadEnabled) {
+-            await this.saveUninstallPing().catch(e =>
+-              this._log.warn("_delayedInitTask - saveUninstallPing failed", e)
+-            );
+-          } else {
+-            await TelemetryStorage.removeUninstallPings().catch(e =>
+-              this._log.warn("_delayedInitTask - saveUninstallPing", e)
+-            );
+-          }
+-
+           this._delayedInitTaskDeferred.resolve();
+         } catch (e) {
+           this._delayedInitTaskDeferred.reject(e);
+@@ -935,8 +841,6 @@ var Impl = {
+     let now = () => " " + (TelemetryUtils.monotonicNow() - start);
+     this._shutdownStep = "_cleanupOnShutdown begin " + now();
+ 
+-    this._detachObservers();
+-
+     // Now do an orderly shutdown.
+     try {
+       if (this._delayedNewPingTask) {
+@@ -944,14 +848,6 @@ var Impl = {
+         await this._delayedNewPingTask.finalize();
+       }
+ 
+-      this._shutdownStep = "Update" + now();
+-      UpdatePing.shutdown();
+-
+-      this._shutdownStep = "Event" + now();
+-      TelemetryEventPing.shutdown();
+-      this._shutdownStep = "Prio" + now();
+-      await TelemetryPrioPing.shutdown();
+-
+       // Shutdown the sync ping if it is initialized - this is likely, but not
+       // guaranteed, to submit a "shutdown" sync ping.
+       if (this._fnSyncPingShutdown) {
+@@ -969,10 +865,6 @@ var Impl = {
+       this._shutdownStep = "TelemetrySend" + now();
+       await TelemetrySend.shutdown();
+ 
+-      // Send latest data.
+-      this._shutdownStep = "Health ping" + now();
+-      await TelemetryHealthPing.shutdown();
+-
+       this._shutdownStep = "TelemetrySession" + now();
+       await TelemetrySession.shutdown();
+       this._shutdownStep = "Services.telemetry" + now();
+@@ -1050,10 +942,6 @@ var Impl = {
+       case "profile-after-change":
+         // profile-after-change is only registered for chrome processes.
+         return this.setupTelemetry();
+-      case "nsPref:changed":
+-        if (aData == TelemetryUtils.Preferences.FhrUploadEnabled) {
+-          return this._onUploadPrefChange();
+-        }
+     }
+     return undefined;
+   },
+@@ -1084,122 +972,8 @@ var Impl = {
+     };
+   },
+ 
+-  /**
+-   * Called whenever the FHR Upload preference changes (e.g. when user disables FHR from
+-   * the preferences panel), this triggers sending the "deletion-request" ping.
+-   */
+-  _onUploadPrefChange() {
+-    const uploadEnabled = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.FhrUploadEnabled,
+-      false
+-    );
+-    if (uploadEnabled) {
+-      this._log.trace(
+-        "_onUploadPrefChange - upload was enabled again. Resetting client ID"
+-      );
+-
+-      // Delete cached client ID immediately, so other usage is forced to refetch it.
+-      this._clientID = null;
+-
+-      // Generate a new client ID and make sure this module uses the new version
+-      let p = (async () => {
+-        await ClientID.removeClientID();
+-        let id = await ClientID.getClientID();
+-        this._clientID = id;
+-        Telemetry.scalarSet("telemetry.data_upload_optin", true);
+-
+-        await this.saveUninstallPing().catch(e =>
+-          this._log.warn("_onUploadPrefChange - saveUninstallPing failed", e)
+-        );
+-      })();
+-
+-      this._shutdownBarrier.client.addBlocker(
+-        "TelemetryController: resetting client ID after data upload was enabled",
+-        p
+-      );
+-
+-      return;
+-    }
+-
+-    let p = (async () => {
+-      try {
+-        // 1. Cancel the current pings.
+-        // 2. Clear unpersisted pings
+-        await TelemetrySend.clearCurrentPings();
+-
+-        // 3. Remove all pending pings
+-        await TelemetryStorage.removeAppDataPings();
+-        await TelemetryStorage.runRemovePendingPingsTask();
+-        await TelemetryStorage.removeUninstallPings();
+-      } catch (e) {
+-        this._log.error(
+-          "_onUploadPrefChange - error clearing pending pings",
+-          e
+-        );
+-      } finally {
+-        // 4. Reset session and subsession counter
+-        TelemetrySession.resetSubsessionCounter();
+-
+-        // 5. Collect any additional identifiers we want to send in the
+-        // deletion request.
+-        const scalars = Telemetry.getSnapshotForScalars(
+-          "deletion-request",
+-          /* clear */ true
+-        );
+-
+-        // 6. Set ClientID to a known value
+-        let oldClientId = await ClientID.getClientID();
+-        await ClientID.setCanaryClientID();
+-        this._clientID = await ClientID.getClientID();
+-
+-        // 7. Send the deletion-request ping.
+-        this._log.trace("_onUploadPrefChange - Sending deletion-request ping.");
+-        this.submitExternalPing(
+-          PING_TYPE_DELETION_REQUEST,
+-          { scalars },
+-          { overrideClientId: oldClientId }
+-        );
+-        this._deletionRequestPingSubmittedPromise = null;
+-      }
+-    })();
+-
+-    this._deletionRequestPingSubmittedPromise = p;
+-    this._shutdownBarrier.client.addBlocker(
+-      "TelemetryController: removing pending pings after data upload was disabled",
+-      p
+-    );
+-
+-    Services.obs.notifyObservers(
+-      null,
+-      TelemetryUtils.TELEMETRY_UPLOAD_DISABLED_TOPIC
+-    );
+-  },
+-
+   QueryInterface: ChromeUtils.generateQI(["nsISupportsWeakReference"]),
+ 
+-  _attachObservers() {
+-    if (TelemetryControllerBase.IS_UNIFIED_TELEMETRY) {
+-      // Watch the FHR upload setting to trigger "deletion-request" pings.
+-      Services.prefs.addObserver(
+-        TelemetryUtils.Preferences.FhrUploadEnabled,
+-        this,
+-        true
+-      );
+-    }
+-  },
+-
+-  /**
+-   * Remove the preference observer to avoid leaks.
+-   */
+-  _detachObservers() {
+-    if (TelemetryControllerBase.IS_UNIFIED_TELEMETRY) {
+-      Services.prefs.removeObserver(
+-        TelemetryUtils.Preferences.FhrUploadEnabled,
+-        this
+-      );
+-    }
+-  },
+-
+   /**
+    * Allows waiting for TelemetryControllers delayed initialization to complete.
+    * This will complete before TelemetryController is shutting down.
+@@ -1231,7 +1005,6 @@ var Impl = {
+   async reset() {
+     this._clientID = null;
+     this._fnSyncPingShutdown = null;
+-    this._detachObservers();
+ 
+     let sessionReset = TelemetrySession.testReset();
+ 
+@@ -1255,75 +1028,6 @@ var Impl = {
+   },
+ 
+   /**
+-   * Schedule sending the "new-profile" ping.
+-   */
+-  scheduleNewProfilePing() {
+-    this._log.trace("scheduleNewProfilePing");
+-
+-    const sendDelay = Services.prefs.getIntPref(
+-      TelemetryUtils.Preferences.NewProfilePingDelay,
+-      NEWPROFILE_PING_DEFAULT_DELAY
+-    );
+-
+-    this._delayedNewPingTask = new DeferredTask(async () => {
+-      try {
+-        await this.sendNewProfilePing();
+-      } finally {
+-        this._delayedNewPingTask = null;
+-      }
+-    }, sendDelay);
+-
+-    this._delayedNewPingTask.arm();
+-  },
+-
+-  /**
+-   * Generate and send the new-profile ping
+-   */
+-  async sendNewProfilePing() {
+-    this._log.trace(
+-      "sendNewProfilePing - shutting down: " + this._shuttingDown
+-    );
+-
+-    const scalars = Telemetry.getSnapshotForScalars(
+-      "new-profile",
+-      /* clear */ true
+-    );
+-
+-    // Generate the payload.
+-    const payload = {
+-      reason: this._shuttingDown ? "shutdown" : "startup",
+-      processes: {
+-        parent: {
+-          scalars: scalars.parent,
+-        },
+-      },
+-    };
+-
+-    // Generate and send the "new-profile" ping. This uses the
+-    // pingsender if we're shutting down.
+-    let options = {
+-      addClientId: true,
+-      addEnvironment: true,
+-      usePingSender: this._shuttingDown,
+-    };
+-    // TODO: we need to be smarter about when to send the ping (and save the
+-    // state to file). |requestIdleCallback| is currently only accessible
+-    // through DOM. See bug 1361996.
+-    await TelemetryController.submitExternalPing(
+-      "new-profile",
+-      payload,
+-      options
+-    ).then(
+-      () => TelemetrySession.markNewProfilePingSent(),
+-      e =>
+-        this._log.error(
+-          "sendNewProfilePing - failed to submit new-profile ping",
+-          e
+-        )
+-    );
+-  },
+-
+-  /**
+    * Register 'dynamic builtin' probes from the JSON definition files.
+    * This is needed to support adding new probes in developer builds
+    * without rebuilding the whole codebase.
+diff --git a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm b/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm
+--- a/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm
++++ b/toolkit/components/telemetry/app/TelemetryReportingPolicy.jsm
+@@ -252,11 +252,7 @@ var TelemetryReportingPolicyImpl = {
+    * false, we never request upload or deletion.
+    */
+   get dataSubmissionEnabled() {
+-    // Default is true because we are opt-out.
+-    return Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.DataSubmissionEnabled,
+-      true
+-    );
++    return false;
+   },
+ 
+   get currentPolicyVersion() {
+@@ -346,9 +342,6 @@ var TelemetryReportingPolicyImpl = {
+ 
+     // Migrate the data choices infobar, if needed.
+     this._migratePreferences();
+-
+-    // Add the event observers.
+-    Services.obs.addObserver(this, "sessionstore-windows-restored");
+   },
+ 
+   /**
+@@ -357,19 +350,10 @@ var TelemetryReportingPolicyImpl = {
+   shutdown() {
+     this._log.trace("shutdown");
+ 
+-    this._detachObservers();
+-
+     Policy.clearShowInfobarTimeout(this._startupNotificationTimerId);
+   },
+ 
+   /**
+-   * Detach the observers that were attached during setup.
+-   */
+-  _detachObservers() {
+-    Services.obs.removeObserver(this, "sessionstore-windows-restored");
+-  },
+-
+-  /**
+    * Check if we are allowed to upload data. In order to submit data both these conditions
+    * should be true:
+    * - The data submission preference should be true.
+@@ -378,29 +362,11 @@ var TelemetryReportingPolicyImpl = {
+    * @return {Boolean} True if we are allowed to upload data, false otherwise.
+    */
+   canUpload() {
+-    // If data submission is disabled, there's no point in showing the infobar. Just
+-    // forbid to upload.
+-    if (!this.dataSubmissionEnabled) {
+       return false;
+-    }
+-
+-    // Submission is enabled. We enable upload if user is notified or we need to bypass
+-    // the policy.
+-    const bypassNotification = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.BypassNotification,
+-      false
+-    );
+-    return this.isUserNotifiedOfCurrentPolicy || bypassNotification;
+   },
+ 
+   isFirstRun() {
+-    if (this._isFirstRun === undefined) {
+-      this._isFirstRun = Services.prefs.getBoolPref(
+-        TelemetryUtils.Preferences.FirstRun,
+-        true
+-      );
+-    }
+-    return this._isFirstRun;
++    return false;
+   },
+ 
+   /**
+@@ -414,52 +380,6 @@ var TelemetryReportingPolicyImpl = {
+   },
+ 
+   /**
+-   * Determine whether the user should be notified.
+-   */
+-  _shouldNotify() {
+-    if (!this.dataSubmissionEnabled) {
+-      this._log.trace(
+-        "_shouldNotify - Data submission disabled by the policy."
+-      );
+-      return false;
+-    }
+-
+-    const bypassNotification = Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.BypassNotification,
+-      false
+-    );
+-    if (this.isUserNotifiedOfCurrentPolicy || bypassNotification) {
+-      this._log.trace(
+-        "_shouldNotify - User already notified or bypassing the policy."
+-      );
+-      return false;
+-    }
+-
+-    if (this._notificationInProgress) {
+-      this._log.trace(
+-        "_shouldNotify - User not notified, notification already in progress."
+-      );
+-      return false;
+-    }
+-
+-    return true;
+-  },
+-
+-  /**
+-   * Show the data choices infobar if needed.
+-   */
+-  _showInfobar() {
+-    if (!this._shouldNotify()) {
+-      return;
+-    }
+-
+-    this._log.trace("_showInfobar - User not notified, notifying now.");
+-    this._notificationInProgress = true;
+-    let request = new NotifyPolicyRequest(this._log);
+-    Observers.notify("datareporting:notify-data-policy:request", request);
+-  },
+-
+-  /**
+    * Called when the user is notified with the infobar or otherwise.
+    */
+   _userNotified() {
+@@ -479,112 +399,4 @@ var TelemetryReportingPolicyImpl = {
+     // is no longer in progress.
+     this._notificationInProgress = false;
+   },
+-
+-  /**
+-   * Try to open the privacy policy in a background tab instead of showing the infobar.
+-   */
+-  _openFirstRunPage() {
+-    if (!this._shouldNotify()) {
+-      return false;
+-    }
+-
+-    let firstRunPolicyURL = Services.prefs.getStringPref(
+-      TelemetryUtils.Preferences.FirstRunURL,
+-      ""
+-    );
+-    if (!firstRunPolicyURL) {
+-      return false;
+-    }
+-    firstRunPolicyURL = Services.urlFormatter.formatURL(firstRunPolicyURL);
+-
+-    const { BrowserWindowTracker } = ChromeUtils.import(
+-      "resource:///modules/BrowserWindowTracker.jsm"
+-    );
+-    let win = BrowserWindowTracker.getTopWindow();
+-
+-    if (!win) {
+-      this._log.info(
+-        "Couldn't find browser window to open first-run page. Falling back to infobar."
+-      );
+-      return false;
+-    }
+-
+-    // We'll consider the user notified once the privacy policy has been loaded
+-    // in a background tab even if that tab hasn't been selected.
+-    let tab;
+-    let progressListener = {};
+-    progressListener.onStateChange = (
+-      aBrowser,
+-      aWebProgress,
+-      aRequest,
+-      aStateFlags,
+-      aStatus
+-    ) => {
+-      if (
+-        aWebProgress.isTopLevel &&
+-        tab &&
+-        tab.linkedBrowser == aBrowser &&
+-        aStateFlags & Ci.nsIWebProgressListener.STATE_STOP &&
+-        aStateFlags & Ci.nsIWebProgressListener.STATE_IS_NETWORK
+-      ) {
+-        let uri = aBrowser.documentURI;
+-        if (
+-          uri &&
+-          !/^about:(blank|neterror|certerror|blocked)/.test(uri.spec)
+-        ) {
+-          this._userNotified();
+-        } else {
+-          this._log.info(
+-            "Failed to load first-run page. Falling back to infobar."
+-          );
+-          this._showInfobar();
+-        }
+-        removeListeners();
+-      }
+-    };
+-
+-    let removeListeners = () => {
+-      win.removeEventListener("unload", removeListeners);
+-      win.gBrowser.removeTabsProgressListener(progressListener);
+-    };
+-
+-    win.addEventListener("unload", removeListeners);
+-    win.gBrowser.addTabsProgressListener(progressListener);
+-
+-    tab = win.gBrowser.loadOneTab(firstRunPolicyURL, {
+-      inBackground: true,
+-      triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
+-    });
+-    return true;
+-  },
+-
+-  observe(aSubject, aTopic, aData) {
+-    if (aTopic != "sessionstore-windows-restored") {
+-      return;
+-    }
+-
+-    if (this.isFirstRun()) {
+-      // We're performing the first run, flip firstRun preference for subsequent runs.
+-      Services.prefs.setBoolPref(TelemetryUtils.Preferences.FirstRun, false);
+-
+-      try {
+-        if (this._openFirstRunPage()) {
+-          return;
+-        }
+-      } catch (e) {
+-        this._log.error("Failed to open privacy policy tab: " + e);
+-      }
+-    }
+-
+-    // Show the info bar.
+-    const delay = this.isFirstRun()
+-      ? NOTIFICATION_DELAY_FIRST_RUN_MSEC
+-      : NOTIFICATION_DELAY_NEXT_RUNS_MSEC;
+-
+-    this._startupNotificationTimerId = Policy.setShowInfobarTimeout(
+-      // Calling |canUpload| eventually shows the infobar, if needed.
+-      () => this._showInfobar(),
+-      delay
+-    );
+-  },
+ };
+diff --git a/toolkit/components/telemetry/app/TelemetryScheduler.jsm b/toolkit/components/telemetry/app/TelemetryScheduler.jsm
+--- a/toolkit/components/telemetry/app/TelemetryScheduler.jsm
++++ b/toolkit/components/telemetry/app/TelemetryScheduler.jsm
+@@ -20,10 +20,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+ const { clearTimeout, setTimeout } = ChromeUtils.import(
+   "resource://gre/modules/Timer.jsm"
+ );
+-// Other pings
+-const { TelemetryPrioPing } = ChromeUtils.import(
+-  "resource://gre/modules/PrioPing.jsm"
+-);
+ 
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   idleService: ["@mozilla.org/widget/useridleservice;1", "nsIUserIdleService"],
+@@ -222,22 +218,6 @@ var TelemetryScheduler = {
+   },
+ 
+   /**
+-   * Checks if we can send a regular ping or not.
+-   * @param {Object} nowDate A date object.
+-   * @return {Boolean} True if we can send the regular pings, false otherwise.
+-   */
+-  _isPeriodicPingDue(nowDate) {
+-    // The periodic ping is not due if we already sent one today.
+-    if (this._sentPingToday(this._lastPeriodicPingTime, nowDate)) {
+-      this._log.trace("_isPeriodicPingDue - already sent one today");
+-      return false;
+-    }
+-
+-    this._log.trace("_isPeriodicPingDue - is due");
+-    return true;
+-  },
+-
+-  /**
+    * An helper function to save an aborted-session ping.
+    * @param {Number} now The current time, in milliseconds.
+    * @param {Object} [competingPayload=null] If we are coalescing the daily and the
+@@ -364,15 +344,6 @@ var TelemetryScheduler = {
+ 
+     // Check if the daily ping is due.
+     const shouldSendDaily = this._isDailyPingDue(nowDate);
+-    // Check if other regular pings are due.
+-    const shouldSendPeriodic = this._isPeriodicPingDue(nowDate);
+-
+-    if (shouldSendPeriodic) {
+-      this._log.trace("_schedulerTickLogic - Periodic ping due.");
+-      this._lastPeriodicPingTime = now;
+-      // Send other pings.
+-      TelemetryPrioPing.periodicPing();
+-    }
+ 
+     if (shouldSendDaily) {
+       this._log.trace("_schedulerTickLogic - Daily ping due.");
+diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/components/telemetry/app/TelemetrySend.jsm
+--- a/toolkit/components/telemetry/app/TelemetrySend.jsm
++++ b/toolkit/components/telemetry/app/TelemetrySend.jsm
+@@ -59,11 +59,6 @@ XPCOMUtils.defineLazyServiceGetter(
+   "@mozilla.org/base/telemetry;1",
+   "nsITelemetry"
+ );
+-ChromeUtils.defineModuleGetter(
+-  this,
+-  "TelemetryHealthPing",
+-  "resource://gre/modules/HealthPing.jsm"
+-);
+ 
+ const Utils = TelemetryUtils;
+ 
+@@ -244,7 +239,6 @@ var TelemetrySend = {
+    *   2. wanting to be sent using pingsender.
+    */
+   flushPingSenderBatch() {
+-    TelemetrySendImpl.flushPingSenderBatch();
+   },
+ 
+   /**
+@@ -271,7 +265,7 @@ var TelemetrySend = {
+    * @return {Boolean} True if pings can be send to the servers, false otherwise.
+    */
+   sendingEnabled(ping = null) {
+-    return TelemetrySendImpl.sendingEnabled(ping);
++    return false;
+   },
+ 
+   /**
+@@ -329,32 +323,6 @@ var TelemetrySend = {
+   getShutdownState() {
+     return TelemetrySendImpl.getShutdownState();
+   },
+-
+-  /**
+-   * Send a ping using the ping sender.
+-   * This method will not wait for the ping to be sent, instead it will return
+-   * as soon as the pingsender program has been launched.
+-   *
+-   * This method is currently exposed here only for testing purposes as it's
+-   * only used internally.
+-   *
+-   * @param {Array}<Object> pings An array of objects holding url / path pairs
+-   *        for each ping to be sent. The URL represent the telemetry server the
+-   *        ping will be sent to and the path points to the ping data. The ping
+-   *        data files will be deleted if the pings have been submitted
+-   *        successfully.
+-   * @param {callback} observer A function called with parameters
+-   *        (subject, topic, data) and a topic of "process-finished" or
+-   *        "process-failed" after pingsender completion.
+-   *
+-   * @throws NS_ERROR_FAILURE if we couldn't find or run the pingsender
+-   *         executable.
+-   * @throws NS_ERROR_NOT_IMPLEMENTED on Android as the pingsender is not
+-   *         available.
+-   */
+-  testRunPingSender(pings, observer) {
+-    return TelemetrySendImpl.runPingSender(pings, observer);
+-  },
+ };
+ 
+ var CancellableTimeout = {
+@@ -714,11 +682,6 @@ var TelemetrySendImpl = {
+     TOPIC_PROFILE_CHANGE_NET_TEARDOWN,
+   ],
+ 
+-  OBSERVED_PREFERENCES: [
+-    TelemetryUtils.Preferences.TelemetryEnabled,
+-    TelemetryUtils.Preferences.FhrUploadEnabled,
+-  ],
+-
+   // Whether sending pings has been overridden.
+   get _overrideOfficialCheck() {
+     return Services.prefs.getBoolPref(
+@@ -775,14 +738,7 @@ var TelemetrySendImpl = {
+       TelemetryUtils.Preferences.Server,
+       undefined
+     );
+-    this._sendingEnabled = true;
+-
+-    // Annotate crash reports so that crash pings are sent correctly and listen
+-    // to pref changes to adjust the annotations accordingly.
+-    for (let pref of this.OBSERVED_PREFERENCES) {
+-      Services.prefs.addObserver(pref, this, true);
+-    }
+-    this._annotateCrashReport();
++    this._sendingEnabled = false;
+ 
+     // Check the pending pings on disk now.
+     try {
+@@ -860,13 +816,6 @@ var TelemetrySendImpl = {
+   async shutdown() {
+     this._shutdown = true;
+ 
+-    for (let pref of this.OBSERVED_PREFERENCES) {
+-      // FIXME: When running tests this causes errors to be printed out if
+-      // TelemetrySend.shutdown() is called twice in a row without calling
+-      // TelemetrySend.setup() in-between.
+-      Services.prefs.removeObserver(pref, this);
+-    }
+-
+     for (let topic of this.OBSERVER_TOPICS) {
+       try {
+         Services.obs.removeObserver(this, topic);
+@@ -894,16 +843,6 @@ var TelemetrySendImpl = {
+     await this._persistCurrentPings();
+   },
+ 
+-  flushPingSenderBatch() {
+-    if (this._pingSenderBatch.length === 0) {
+-      return;
+-    }
+-    this._log.trace(
+-      `flushPingSenderBatch - Sending ${this._pingSenderBatch.length} pings.`
+-    );
+-    this.runPingSender(this._pingSenderBatch);
+-  },
+-
+   reset() {
+     this._log.trace("reset");
+ 
+@@ -911,7 +850,7 @@ var TelemetrySendImpl = {
+     this._currentPings = new Map();
+     this._tooLateToSend = false;
+     this._isOSShutdown = false;
+-    this._sendingEnabled = true;
++    this._sendingEnabled = false;
+ 
+     const histograms = [
+       "TELEMETRY_SUCCESS",
+@@ -965,96 +904,14 @@ var TelemetrySendImpl = {
+           setOSShutdown();
+         }
+         break;
+-      case PREF_CHANGED_TOPIC:
+-        if (this.OBSERVED_PREFERENCES.includes(data)) {
+-          this._annotateCrashReport();
+-        }
+-        break;
+       case TOPIC_PROFILE_CHANGE_NET_TEARDOWN:
+         this._tooLateToSend = true;
+         break;
+     }
+   },
+ 
+-  /**
+-   * Spawn the PingSender process that sends a ping. This function does
+-   * not return an error or throw, it only logs an error.
+-   *
+-   * Even if the function doesn't fail, it doesn't mean that the ping was
+-   * successfully sent, as we have no control over the spawned process. If it,
+-   * succeeds, the ping is eventually removed from the disk to prevent duplicated
+-   * submissions.
+-   *
+-   * @param {String} pingId The id of the ping to send.
+-   * @param {String} submissionURL The complete Telemetry-compliant URL for the ping.
+-   */
+-  _sendWithPingSender(pingId, submissionURL) {
+-    this._log.trace(
+-      "_sendWithPingSender - sending " + pingId + " to " + submissionURL
+-    );
+-    try {
+-      const pingPath = OS.Path.join(TelemetryStorage.pingDirectoryPath, pingId);
+-      if (this._tooLateToSend) {
+-        // We're in shutdown. Batch pings destined for pingsender.
+-        this._log.trace("_sendWithPingSender - too late to send. Batching.");
+-        this._pingSenderBatch.push({ url: submissionURL, path: pingPath });
+-        return;
+-      }
+-      this.runPingSender([{ url: submissionURL, path: pingPath }]);
+-    } catch (e) {
+-      this._log.error("_sendWithPingSender - failed to submit ping", e);
+-    }
+-  },
+-
+   submitPing(ping, options) {
+-    this._log.trace(
+-      "submitPing - ping id: " +
+-        ping.id +
+-        ", options: " +
+-        JSON.stringify(options)
+-    );
+-
+-    if (!this.sendingEnabled(ping)) {
+-      this._log.trace("submitPing - Telemetry is not allowed to send pings.");
+       return Promise.resolve();
+-    }
+-
+-    // Send the ping using the PingSender, if requested and the user was
+-    // notified of our policy. We don't support the pingsender on Android,
+-    // so ignore this option on that platform (see bug 1335917).
+-    // Moreover, if the OS is shutting down, we don't want to spawn the
+-    // pingsender as it could unnecessarily slow down OS shutdown.
+-    // Additionally, it could be be killed before it can complete its tasks,
+-    // for example after successfully sending the ping but before removing
+-    // the copy from the disk, resulting in receiving duplicate pings when
+-    // Firefox restarts.
+-    if (
+-      options.usePingSender &&
+-      !this._isOSShutdown &&
+-      TelemetryReportingPolicy.canUpload() &&
+-      AppConstants.platform != "android"
+-    ) {
+-      const url = this._buildSubmissionURL(ping);
+-      // Serialize the ping to the disk and then spawn the PingSender.
+-      return savePing(ping).then(() => this._sendWithPingSender(ping.id, url));
+-    }
+-
+-    if (!this.canSendNow) {
+-      // Sending is disabled or throttled, add this to the persisted pending pings.
+-      this._log.trace(
+-        "submitPing - can't send ping now, persisting to disk - " +
+-          "canSendNow: " +
+-          this.canSendNow
+-      );
+-      return savePing(ping);
+-    }
+-
+-    // Let the scheduler trigger sending pings if possible.
+-    // As a safety mechanism, this resets any currently active throttling.
+-    this._log.trace("submitPing - can send pings, trying to send now");
+-    this._currentPings.set(ping.id, ping);
+-    SendScheduler.triggerSendingPings(true);
+-    return Promise.resolve();
+   },
+ 
+   /**
+@@ -1351,8 +1208,6 @@ var TelemetrySendImpl = {
+         failure = XHR_ERROR_TYPE[request.errorCode];
+       }
+ 
+-      TelemetryHealthPing.recordSendFailure(failure);
+-
+       if (this.fallbackHttp) {
+         // only one attempt
+         this.fallbackHttp = false;
+@@ -1468,7 +1323,6 @@ var TelemetrySendImpl = {
+       // We don't need to call |request.abort()| as it was not sent yet.
+       this._pendingPingRequests.delete(id);
+ 
+-      TelemetryHealthPing.recordDiscardedPing(ping.type);
+       return TelemetryStorage.removePendingPing(id);
+     }
+ 
+@@ -1506,30 +1360,7 @@ var TelemetrySendImpl = {
+    * @return {Boolean} True if pings can be send to the servers, false otherwise.
+    */
+   sendingEnabled(ping = null) {
+-    // We only send pings from official builds, but allow overriding this for tests.
+-    if (
+-      !Telemetry.isOfficialTelemetry &&
+-      !this._testMode &&
+-      !this._overrideOfficialCheck
+-    ) {
+       return false;
+-    }
+-
+-    // With unified Telemetry, the FHR upload setting controls whether we can send pings.
+-    // The Telemetry pref enables sending extended data sets instead.
+-    if (IS_UNIFIED_TELEMETRY) {
+-      // "deletion-request" pings are sent once even if the upload is disabled.
+-      if (ping && isDeletionRequestPing(ping)) {
+-        return true;
+-      }
+-      return Services.prefs.getBoolPref(
+-        TelemetryUtils.Preferences.FhrUploadEnabled,
+-        false
+-      );
+-    }
+-
+-    // Without unified Telemetry, the Telemetry enabled pref controls ping sending.
+-    return Utils.isTelemetryEnabled;
+   },
+ 
+   /**
+@@ -1593,25 +1424,4 @@ var TelemetrySendImpl = {
+       schedulerState: SendScheduler.getShutdownState(),
+     };
+   },
+-
+-  runPingSender(pings, observer) {
+-    if (AppConstants.platform === "android") {
+-      throw Components.Exception("", Cr.NS_ERROR_NOT_IMPLEMENTED);
+-    }
+-
+-    const exeName =
+-      AppConstants.platform === "win" ? "pingsender.exe" : "pingsender";
+-
+-    let exe = Services.dirsvc.get("GreBinD", Ci.nsIFile);
+-    exe.append(exeName);
+-
+-    let params = pings.flatMap(ping => [ping.url, ping.path]);
+-    let process = Cc["@mozilla.org/process/util;1"].createInstance(
+-      Ci.nsIProcess
+-    );
+-    process.init(exe);
+-    process.startHidden = true;
+-    process.noShell = true;
+-    process.runAsync(params, params.length, observer);
+-  },
+ };
+diff --git a/toolkit/components/telemetry/app/TelemetryStorage.jsm b/toolkit/components/telemetry/app/TelemetryStorage.jsm
+--- a/toolkit/components/telemetry/app/TelemetryStorage.jsm
++++ b/toolkit/components/telemetry/app/TelemetryStorage.jsm
+@@ -49,11 +49,6 @@ ChromeUtils.defineModuleGetter(
+   "CommonUtils",
+   "resource://services-common/utils.js"
+ );
+-ChromeUtils.defineModuleGetter(
+-  this,
+-  "TelemetryHealthPing",
+-  "resource://gre/modules/HealthPing.jsm"
+-);
+ // Maxmimum time, in milliseconds, archive pings should be retained.
+ const MAX_ARCHIVED_PINGS_RETENTION_MS = 60 * 24 * 60 * 60 * 1000; // 60 days
+ 
+@@ -1536,9 +1531,6 @@ var TelemetryStorageImpl = {
+       ).add(Math.floor(fileSize / 1024 / 1024));
+       Telemetry.getHistogramById("TELEMETRY_PING_SIZE_EXCEEDED_PENDING").add();
+ 
+-      // Currently we don't have the ping type available without loading the ping from disk.
+-      // Bug 1384903 will fix that.
+-      TelemetryHealthPing.recordDiscardedPing("<unknown>");
+       throw new Error(
+         "loadPendingPing - exceeded the maximum ping size: " + fileSize
+       );
+@@ -1848,10 +1840,6 @@ var TelemetryStorageImpl = {
+             Telemetry.getHistogramById(
+               "TELEMETRY_PING_SIZE_EXCEEDED_PENDING"
+             ).add();
+-
+-            // Currently we don't have the ping type available without loading the ping from disk.
+-            // Bug 1384903 will fix that.
+-            TelemetryHealthPing.recordDiscardedPing("<unknown>");
+           }
+           continue;
+         }
+diff --git a/toolkit/components/telemetry/app/TelemetryUtils.jsm b/toolkit/components/telemetry/app/TelemetryUtils.jsm
+--- a/toolkit/components/telemetry/app/TelemetryUtils.jsm
++++ b/toolkit/components/telemetry/app/TelemetryUtils.jsm
+@@ -118,7 +118,7 @@ var TelemetryUtils = {
+    * it correctly evaluates to a boolean type.
+    */
+   get isTelemetryEnabled() {
+-    return TelemetryControllerBase.isTelemetryEnabled;
++    return false;
+   },
+ 
+   /**
+diff --git a/toolkit/components/telemetry/components.conf b/toolkit/components/telemetry/components.conf
+--- a/toolkit/components/telemetry/components.conf
++++ b/toolkit/components/telemetry/components.conf
+@@ -6,13 +6,6 @@
+ 
+ Classes = [
+     {
+-        'cid': '{117b219f-92fe-4bd2-a21b-95a342a9d474}',
+-        'contract_ids': ['@mozilla.org/base/telemetry-startup;1'],
+-        'jsm': 'resource://gre/modules/TelemetryStartup.jsm',
+-        'constructor': 'TelemetryStartup',
+-        'processes': ProcessSelector.MAIN_PROCESS_ONLY,
+-    },
+-    {
+         'cid': '{efc1415c-5708-41cc-8226-82bf1d3bee16}',
+         'contract_ids': ['@mozilla.org/base/telemetry-controller-content;1'],
+         'jsm': 'resource://gre/modules/TelemetryControllerContent.jsm',
+diff --git a/toolkit/components/telemetry/core/Telemetry.cpp b/toolkit/components/telemetry/core/Telemetry.cpp
+--- a/toolkit/components/telemetry/core/Telemetry.cpp
++++ b/toolkit/components/telemetry/core/Telemetry.cpp
+@@ -37,7 +37,6 @@
+ #include "mozilla/Likely.h"
+ #include "mozilla/MathAlgorithms.h"
+ #include "mozilla/MemoryReporting.h"
+-#include "mozilla/MemoryTelemetry.h"
+ #include "mozilla/ModuleUtils.h"
+ #include "mozilla/Mutex.h"
+ #include "mozilla/PoisonIOInterposer.h"
+@@ -1680,20 +1679,16 @@ TelemetryImpl::FlushBatchedChildTelemetr
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::EarlyInit() {
+-  Unused << MemoryTelemetry::Get();
+-
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::DelayedInit() {
+-  MemoryTelemetry::Get().DelayedInit();
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ TelemetryImpl::Shutdown() {
+-  MemoryTelemetry::Get().Shutdown();
+   return NS_OK;
+ }
+ 
+@@ -1705,9 +1700,6 @@ TelemetryImpl::GatherMemory(JSContext* a
+     return rv.StealNSResult();
+   }
+ 
+-  MemoryTelemetry::Get().GatherReports(
+-      [promise]() { promise->MaybeResolve(JS::UndefinedHandleValue); });
+-
+   promise.forget(aResult);
+   return NS_OK;
+ }
+diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemetry/moz.build
+--- a/toolkit/components/telemetry/moz.build
++++ b/toolkit/components/telemetry/moz.build
+@@ -8,10 +8,6 @@ include("/ipc/chromium/chromium-config.m
+ 
+ FINAL_LIBRARY = "xul"
+ 
+-DIRS = [
+-    "pingsender",
+-]
+-
+ DEFINES["MOZ_APP_VERSION"] = '"%s"' % CONFIG["MOZ_APP_VERSION"]
+ 
+ LOCAL_INCLUDES += [
+@@ -89,8 +85,6 @@ XPCOM_MANIFESTS += [
+     "core/components.conf",
+ ]
+ 
+-EXTRA_COMPONENTS += ["TelemetryStartup.manifest"]
+-
+ EXTRA_JS_MODULES += [
+     "app/ClientID.jsm",
+     "app/TelemetryArchive.jsm",
+@@ -105,22 +99,9 @@ EXTRA_JS_MODULES += [
+     "app/TelemetryStorage.jsm",
+     "app/TelemetryTimestamps.jsm",
+     "app/TelemetryUtils.jsm",
+-    "pings/CoveragePing.jsm",
+-    "pings/EventPing.jsm",
+-    "pings/HealthPing.jsm",
+-    "pings/ModulesPing.jsm",
+-    "pings/PrioPing.jsm",
+     "pings/TelemetrySession.jsm",
+-    "pings/UntrustedModulesPing.jsm",
+-    "pings/UpdatePing.jsm",
+-    "TelemetryStartup.jsm",
+ ]
+ 
+-if CONFIG["OS_ARCH"] == "WINNT":
+-    EXTRA_JS_MODULES += [
+-        "pings/UninstallPing.jsm",
+-    ]
+-
+ TESTING_JS_MODULES += [
+     "tests/unit/TelemetryArchiveTesting.jsm",
+     "tests/unit/TelemetryEnvironmentTesting.jsm",
+diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+--- a/toolkit/components/telemetry/pings/TelemetrySession.jsm
++++ b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+@@ -955,95 +955,6 @@ var Impl = {
+     // on all pings to be saved after kicking off their collection.
+     let p = [];
+ 
+-    if (IS_UNIFIED_TELEMETRY) {
+-      let shutdownPayload = this.getSessionPayload(REASON_SHUTDOWN, false);
+-
+-      // Only send the shutdown ping using the pingsender from the second
+-      // browsing session on, to mitigate issues with "bot" profiles (see bug 1354482).
+-      const sendOnThisSession =
+-        Services.prefs.getBoolPref(
+-          Utils.Preferences.ShutdownPingSenderFirstSession,
+-          false
+-        ) || !TelemetryReportingPolicy.isFirstRun();
+-      let sendWithPingsender =
+-        Services.prefs.getBoolPref(
+-          TelemetryUtils.Preferences.ShutdownPingSender,
+-          false
+-        ) && sendOnThisSession;
+-
+-      let options = {
+-        addClientId: true,
+-        addEnvironment: true,
+-        usePingSender: sendWithPingsender,
+-      };
+-      p.push(
+-        TelemetryController.submitExternalPing(
+-          getPingType(shutdownPayload),
+-          shutdownPayload,
+-          options
+-        ).catch(e =>
+-          this._log.error(
+-            "saveShutdownPings - failed to submit shutdown ping",
+-            e
+-          )
+-        )
+-      );
+-
+-      // Send a duplicate of first-shutdown pings as a new ping type, in order to properly
+-      // evaluate first session profiles (see bug 1390095).
+-      const sendFirstShutdownPing =
+-        Services.prefs.getBoolPref(
+-          Utils.Preferences.ShutdownPingSender,
+-          false
+-        ) &&
+-        Services.prefs.getBoolPref(
+-          Utils.Preferences.FirstShutdownPingEnabled,
+-          false
+-        ) &&
+-        TelemetryReportingPolicy.isFirstRun();
+-
+-      if (sendFirstShutdownPing) {
+-        let options = {
+-          addClientId: true,
+-          addEnvironment: true,
+-          usePingSender: true,
+-        };
+-        p.push(
+-          TelemetryController.submitExternalPing(
+-            "first-shutdown",
+-            shutdownPayload,
+-            options
+-          ).catch(e =>
+-            this._log.error(
+-              "saveShutdownPings - failed to submit first shutdown ping",
+-              e
+-            )
+-          )
+-        );
+-      }
+-    }
+-
+-    if (AppConstants.platform == "android" && Telemetry.canRecordExtended) {
+-      let payload = this.getSessionPayload(REASON_SAVED_SESSION, false);
+-
+-      let options = {
+-        addClientId: true,
+-        addEnvironment: true,
+-      };
+-      p.push(
+-        TelemetryController.submitExternalPing(
+-          getPingType(payload),
+-          payload,
+-          options
+-        ).catch(e =>
+-          this._log.error(
+-            "saveShutdownPings - failed to submit saved-session ping",
+-            e
+-          )
+-        )
+-      );
+-    }
+-
+     // Wait on pings to be saved.
+     return Promise.all(p);
+   },
+diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
+--- a/toolkit/content/jar.mn
++++ b/toolkit/content/jar.mn
+@@ -30,9 +30,6 @@ toolkit.jar:
+    content/global/aboutGlean.html
+    content/global/aboutGlean.css
+ #endif
+-   content/global/aboutTelemetry.js
+-   content/global/aboutTelemetry.xhtml
+-   content/global/aboutTelemetry.css
+    content/global/aboutUrlClassifier.js
+    content/global/aboutUrlClassifier.xhtml
+    content/global/aboutUrlClassifier.css
+diff --git a/toolkit/content/moz.build b/toolkit/content/moz.build
+--- a/toolkit/content/moz.build
++++ b/toolkit/content/moz.build
+@@ -232,9 +232,6 @@ with Files("aboutService*"):
+ with Files("aboutSupport*"):
+     BUG_COMPONENT = ("Toolkit", "General")
+ 
+-with Files("aboutTelemetry*"):
+-    BUG_COMPONENT = ("Toolkit", "Telemetry")
+-
+ with Files("autocomplete.css"):
+     BUG_COMPONENT = ("Firefox", "Search")
+ 
+diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
+--- a/toolkit/xre/nsAppRunner.cpp
++++ b/toolkit/xre/nsAppRunner.cpp
+@@ -255,12 +255,6 @@ extern void InstallSignalHandlers(const 
+ #define FILE_INVALIDATE_CACHES ".purgecaches"_ns
+ #define FILE_STARTUP_INCOMPLETE u".startup-incomplete"_ns
+ 
+-#if defined(MOZ_BLOCK_PROFILE_DOWNGRADE) || defined(MOZ_LAUNCHER_PROCESS) || \
+-    defined(MOZ_DEFAULT_BROWSER_AGENT)
+-static const char kPrefHealthReportUploadEnabled[] =
+-    "datareporting.healthreport.uploadEnabled";
+-#endif  // defined(MOZ_BLOCK_PROFILE_DOWNGRADE) || defined(MOZ_LAUNCHER_PROCESS)
+-        // || defined(MOZ_DEFAULT_BROWSER_AGENT)
+ #if defined(MOZ_DEFAULT_BROWSER_AGENT)
+ static const char kPrefDefaultAgentEnabled[] = "default-browser-agent.enabled";
+ 
+@@ -2032,15 +2026,6 @@ static void OnLauncherPrefChanged(const 
+   MOZ_ASSERT(reflectResult.inspect().isOk());
+ }
+ 
+-static void OnLauncherTelemetryPrefChanged(const char* aPref, void* aData) {
+-  bool prefVal = Preferences::GetBool(kPrefHealthReportUploadEnabled, true);
+-
+-  mozilla::LauncherRegistryInfo launcherRegInfo;
+-  mozilla::DebugOnly<mozilla::LauncherVoidResult> reflectResult =
+-      launcherRegInfo.ReflectTelemetryPrefToRegistry(prefVal);
+-  MOZ_ASSERT(reflectResult.inspect().isOk());
+-}
+-
+ static void SetupLauncherProcessPref() {
+   if (gLauncherProcessState) {
+     // We've already successfully run
+@@ -2066,15 +2051,8 @@ static void SetupLauncherProcessPref() {
+             mozilla::LauncherRegistryInfo::EnabledState::ForceDisabled);
+   }
+ 
+-  mozilla::DebugOnly<mozilla::LauncherVoidResult> reflectResult =
+-      launcherRegInfo.ReflectTelemetryPrefToRegistry(
+-          Preferences::GetBool(kPrefHealthReportUploadEnabled, true));
+-  MOZ_ASSERT(reflectResult.inspect().isOk());
+-
+   Preferences::RegisterCallback(&OnLauncherPrefChanged,
+                                 PREF_WIN_LAUNCHER_PROCESS_ENABLED);
+-  Preferences::RegisterCallback(&OnLauncherTelemetryPrefChanged,
+-                                kPrefHealthReportUploadEnabled);
+ }
+ 
+ #  endif  // defined(MOZ_LAUNCHER_PROCESS)
+@@ -2108,9 +2086,7 @@ static nsresult PrependRegistryValueName
+ static void OnDefaultAgentTelemetryPrefChanged(const char* aPref, void* aData) {
+   nsresult rv;
+   nsAutoString valueName;
+-  if (strcmp(aPref, kPrefHealthReportUploadEnabled) == 0) {
+-    valueName.AssignLiteral("DisableTelemetry");
+-  } else if (strcmp(aPref, kPrefDefaultAgentEnabled) == 0) {
++  if (strcmp(aPref, kPrefDefaultAgentEnabled) == 0) {
+     valueName.AssignLiteral("DisableDefaultBrowserAgent");
+   } else {
+     return;
+@@ -2718,184 +2694,6 @@ struct FileWriteFunc : public JSONWriteF
+   }
+ };
+ 
+-static void SubmitDowngradeTelemetry(const nsCString& aLastVersion,
+-                                     bool aHasSync, int32_t aButton) {
+-  nsCOMPtr<nsIPrefService> prefSvc =
+-      do_GetService("@mozilla.org/preferences-service;1");
+-  NS_ENSURE_TRUE_VOID(prefSvc);
+-
+-  nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(prefSvc);
+-  NS_ENSURE_TRUE_VOID(prefBranch);
+-
+-  bool enabled;
+-  nsresult rv =
+-      prefBranch->GetBoolPref(kPrefHealthReportUploadEnabled, &enabled);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  if (!enabled) {
+-    return;
+-  }
+-
+-  nsCString server;
+-  rv = prefBranch->GetCharPref("toolkit.telemetry.server", server);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsCString clientId;
+-  rv = prefBranch->GetCharPref("toolkit.telemetry.cachedClientID", clientId);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  rv = prefSvc->GetDefaultBranch(nullptr, getter_AddRefs(prefBranch));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsCString channel("default");
+-  rv = prefBranch->GetCharPref("app.update.channel", channel);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsID uuid;
+-  nsCOMPtr<nsIUUIDGenerator> uuidGen =
+-      do_GetService("@mozilla.org/uuid-generator;1");
+-  NS_ENSURE_TRUE_VOID(uuidGen);
+-  rv = uuidGen->GenerateUUIDInPlace(&uuid);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  char strid[NSID_LENGTH];
+-  uuid.ToProvidedString(strid);
+-
+-  nsCString arch("null");
+-  nsCOMPtr<nsIPropertyBag2> sysInfo =
+-      do_GetService("@mozilla.org/system-info;1");
+-  NS_ENSURE_TRUE_VOID(sysInfo);
+-  sysInfo->GetPropertyAsACString(u"arch"_ns, arch);
+-
+-  time_t now;
+-  time(&now);
+-  char date[sizeof "YYYY-MM-DDThh:mm:ss.000Z"];
+-  strftime(date, sizeof date, "%FT%T.000Z", gmtime(&now));
+-
+-  // NSID_LENGTH includes the trailing \0 and we also want to strip off the
+-  // surrounding braces so the length becomes NSID_LENGTH - 3.
+-  nsDependentCSubstring pingId(strid + 1, NSID_LENGTH - 3);
+-  constexpr auto pingType = "downgrade"_ns;
+-
+-  int32_t pos = aLastVersion.Find("_");
+-  if (pos == kNotFound) {
+-    return;
+-  }
+-
+-  const nsDependentCSubstring lastVersion = Substring(aLastVersion, 0, pos);
+-  const nsDependentCSubstring lastBuildId =
+-      Substring(aLastVersion, pos + 1, 14);
+-
+-  nsPrintfCString url("%s/submit/telemetry/%s/%s/%s/%s/%s/%s?v=%d",
+-                      server.get(), PromiseFlatCString(pingId).get(),
+-                      pingType.get(), (const char*)gAppData->name,
+-                      (const char*)gAppData->version, channel.get(),
+-                      (const char*)gAppData->buildID,
+-                      TELEMETRY_PING_FORMAT_VERSION);
+-
+-  nsCOMPtr<nsIFile> pingFile;
+-  rv = NS_GetSpecialDirectory(XRE_USER_APP_DATA_DIR, getter_AddRefs(pingFile));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  rv = pingFile->Append(u"Pending Pings"_ns);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  rv = pingFile->Create(nsIFile::DIRECTORY_TYPE, 0755);
+-  if (NS_FAILED(rv) && rv != NS_ERROR_FILE_ALREADY_EXISTS) {
+-    return;
+-  }
+-  rv = pingFile->Append(NS_ConvertUTF8toUTF16(pingId));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  nsCOMPtr<nsIFile> pingSender;
+-  rv = NS_GetSpecialDirectory(NS_GRE_BIN_DIR, getter_AddRefs(pingSender));
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-#  ifdef XP_WIN
+-  pingSender->Append(u"pingsender.exe"_ns);
+-#  else
+-  pingSender->Append(u"pingsender"_ns);
+-#  endif
+-
+-  bool exists;
+-  rv = pingSender->Exists(&exists);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-  if (!exists) {
+-    return;
+-  }
+-
+-  FILE* file;
+-  rv = pingFile->OpenANSIFileDesc("w", &file);
+-  NS_ENSURE_SUCCESS_VOID(rv);
+-
+-  JSONWriter w(MakeUnique<FileWriteFunc>(file));
+-  w.Start();
+-  {
+-    w.StringProperty("type",
+-                     Span<const char>(pingType.Data(), pingType.Length()));
+-    w.StringProperty("id", PromiseFlatCString(pingId));
+-    w.StringProperty("creationDate", MakeStringSpan(date));
+-    w.IntProperty("version", TELEMETRY_PING_FORMAT_VERSION);
+-    w.StringProperty("clientId", clientId);
+-    w.StartObjectProperty("application");
+-    {
+-      w.StringProperty("architecture", arch);
+-      w.StringProperty(
+-          "buildId",
+-          MakeStringSpan(static_cast<const char*>(gAppData->buildID)));
+-      w.StringProperty(
+-          "name", MakeStringSpan(static_cast<const char*>(gAppData->name)));
+-      w.StringProperty(
+-          "version",
+-          MakeStringSpan(static_cast<const char*>(gAppData->version)));
+-      w.StringProperty("displayVersion",
+-                       MOZ_STRINGIFY(MOZ_APP_VERSION_DISPLAY));
+-      w.StringProperty(
+-          "vendor", MakeStringSpan(static_cast<const char*>(gAppData->vendor)));
+-      w.StringProperty("platformVersion", gToolkitVersion);
+-#  ifdef TARGET_XPCOM_ABI
+-      w.StringProperty("xpcomAbi", TARGET_XPCOM_ABI);
+-#  else
+-      w.StringProperty("xpcomAbi", "unknown");
+-#  endif
+-      w.StringProperty("channel", channel);
+-    }
+-    w.EndObject();
+-    w.StartObjectProperty("payload");
+-    {
+-      w.StringProperty("lastVersion", PromiseFlatCString(lastVersion));
+-      w.StringProperty("lastBuildId", PromiseFlatCString(lastBuildId));
+-      w.BoolProperty("hasSync", aHasSync);
+-      w.IntProperty("button", aButton);
+-    }
+-    w.EndObject();
+-  }
+-  w.End();
+-
+-  fclose(file);
+-
+-  PathString filePath = pingFile->NativePath();
+-  const filesystem::Path::value_type* args[2];
+-#  ifdef XP_WIN
+-  nsString urlw = NS_ConvertUTF8toUTF16(url);
+-  args[0] = urlw.get();
+-#  else
+-  args[0] = url.get();
+-#  endif
+-  args[1] = filePath.get();
+-
+-  nsCOMPtr<nsIProcess> process =
+-      do_CreateInstance("@mozilla.org/process/util;1");
+-  NS_ENSURE_TRUE_VOID(process);
+-  process->Init(pingSender);
+-  process->SetStartHidden(true);
+-  process->SetNoShell(true);
+-
+-#  ifdef XP_WIN
+-  process->Runw(false, args, 2);
+-#  else
+-  process->Run(false, args, 2);
+-#  endif
+-}
+-
+-static const char kProfileDowngradeURL[] =
+-    "chrome://mozapps/content/profile/profileDowngrade.xhtml";
+ 
+ static ReturnAbortOnError CheckDowngrade(nsIFile* aProfileDir,
+                                          nsINativeAppSupport* aNative,
+@@ -2919,58 +2717,6 @@ static ReturnAbortOnError CheckDowngrade
+ 
+     rv = xpcom.SetWindowCreator(aNative);
+     NS_ENSURE_SUCCESS(rv, rv);
+-
+-    {  // extra scoping is needed so we release these components before xpcom
+-       // shutdown
+-      bool hasSync = false;
+-      nsCOMPtr<nsIPrefService> prefSvc =
+-          do_GetService("@mozilla.org/preferences-service;1");
+-      NS_ENSURE_TRUE(prefSvc, rv);
+-
+-      nsCOMPtr<nsIFile> prefsFile;
+-      rv = aProfileDir->Clone(getter_AddRefs(prefsFile));
+-      NS_ENSURE_SUCCESS(rv, rv);
+-
+-      rv = prefsFile->Append(u"prefs.js"_ns);
+-      NS_ENSURE_SUCCESS(rv, rv);
+-
+-      rv = prefSvc->ReadUserPrefsFromFile(prefsFile);
+-      if (NS_SUCCEEDED(rv)) {
+-        nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(prefSvc);
+-
+-        rv = prefBranch->PrefHasUserValue("services.sync.username", &hasSync);
+-        NS_ENSURE_SUCCESS(rv, rv);
+-      }
+-
+-      nsCOMPtr<nsIWindowWatcher> windowWatcher =
+-          do_GetService(NS_WINDOWWATCHER_CONTRACTID);
+-      NS_ENSURE_TRUE(windowWatcher, NS_ERROR_ABORT);
+-
+-      nsCOMPtr<nsIAppStartup> appStartup(components::AppStartup::Service());
+-      NS_ENSURE_TRUE(appStartup, NS_ERROR_FAILURE);
+-
+-      nsCOMPtr<nsIDialogParamBlock> paramBlock =
+-          do_CreateInstance(NS_DIALOGPARAMBLOCK_CONTRACTID);
+-      NS_ENSURE_TRUE(paramBlock, NS_ERROR_ABORT);
+-
+-      uint8_t flags = 0;
+-      if (hasSync) {
+-        flags |= nsIToolkitProfileService::hasSync;
+-      }
+-
+-      paramBlock->SetInt(0, flags);
+-
+-      nsCOMPtr<mozIDOMWindowProxy> newWindow;
+-      rv = windowWatcher->OpenWindow(
+-          nullptr, nsDependentCString(kProfileDowngradeURL), "_blank"_ns,
+-          "centerscreen,chrome,modal,titlebar"_ns, paramBlock,
+-          getter_AddRefs(newWindow));
+-      NS_ENSURE_SUCCESS(rv, rv);
+-
+-      paramBlock->GetInt(1, &result);
+-
+-      SubmitDowngradeTelemetry(aLastVersion, hasSync, result);
+-    }
+   }
+ 
+   if (result == nsIToolkitProfileService::createNewProfile) {
+@@ -5096,9 +4842,6 @@ nsresult XREMain::XRE_mainRun() {
+ #    endif  // defined(MOZ_BACKGROUNDTASKS)
+       {
+         Preferences::RegisterCallbackAndCall(
+-            &OnDefaultAgentTelemetryPrefChanged,
+-            kPrefHealthReportUploadEnabled);
+-        Preferences::RegisterCallbackAndCall(
+             &OnDefaultAgentTelemetryPrefChanged, kPrefDefaultAgentEnabled);
+ 
+         Preferences::RegisterCallbackAndCall(
+diff --git a/xpcom/base/AppShutdown.cpp b/xpcom/base/AppShutdown.cpp
+--- a/xpcom/base/AppShutdown.cpp
++++ b/xpcom/base/AppShutdown.cpp
+@@ -31,10 +31,6 @@
+ 
+ #include "AppShutdown.h"
+ 
+-// TODO: understand why on Android we cannot include this and if we should
+-#ifndef ANDROID
+-#  include "nsTerminator.h"
+-#endif
+ #include "prenv.h"
+ 
+ #ifdef MOZ_NEW_XULSTORE
+@@ -66,10 +62,6 @@ const char* sPhaseObserverKeys[] = {
+ static_assert(sizeof(sPhaseObserverKeys) / sizeof(sPhaseObserverKeys[0]) ==
+               (size_t)ShutdownPhase::ShutdownPhase_Length);
+ 
+-#ifndef ANDROID
+-static nsTerminator* sTerminator = nullptr;
+-#endif
+-
+ static ShutdownPhase sFastShutdownPhase = ShutdownPhase::NotInShutdown;
+ static ShutdownPhase sLateWriteChecksPhase = ShutdownPhase::NotInShutdown;
+ static AppShutdownMode sShutdownMode = AppShutdownMode::Normal;
+@@ -183,10 +175,6 @@ void AppShutdown::Init(AppShutdownMode a
+ 
+   sExitCode = aExitCode;
+ 
+-#ifndef ANDROID
+-  sTerminator = new nsTerminator();
+-#endif
+-
+   // Late-write checks needs to find the profile directory, so it has to
+   // be initialized before services::Shutdown or (because of
+   // xpcshell tests replacing the service) modules being unloaded.
+@@ -313,12 +301,6 @@ void AdvanceShutdownPhaseInternal(
+   if (sCurrentShutdownPhase >= aPhase) return;
+   sCurrentShutdownPhase = aPhase;
+ 
+-#ifndef ANDROID
+-  if (sTerminator) {
+-    sTerminator->AdvancePhase(aPhase);
+-  }
+-#endif
+-
+   mozilla::KillClearOnShutdown(aPhase);
+ 
+   AppShutdown::MaybeFastShutdown(aPhase);
+diff --git a/xpcom/base/moz.build b/xpcom/base/moz.build
+--- a/xpcom/base/moz.build
++++ b/xpcom/base/moz.build
+@@ -124,7 +124,6 @@ EXPORTS.mozilla += [
+     "MemoryInfo.h",
+     "MemoryMapping.h",
+     "MemoryReportingProcess.h",
+-    "MemoryTelemetry.h",
+     "nsMemoryInfoDumper.h",
+     "NSPRLogModulesParser.h",
+     "OwningNonNull.h",
+@@ -165,7 +164,6 @@ UNIFIED_SOURCES += [
+     "LogCommandLineHandler.cpp",
+     "Logging.cpp",
+     "LogModulePrefWatcher.cpp",
+-    "MemoryTelemetry.cpp",
+     "nsClassInfoImpl.cpp",
+     "nsCOMPtr.cpp",
+     "nsConsoleMessage.cpp",
+diff --git a/xpcom/build/XPCOMInit.cpp b/xpcom/build/XPCOMInit.cpp
+--- a/xpcom/build/XPCOMInit.cpp
++++ b/xpcom/build/XPCOMInit.cpp
+@@ -18,10 +18,6 @@
+ #include "mozJSComponentLoader.h"
+ #include "nsXULAppAPI.h"
+ 
+-#ifndef ANDROID
+-#  include "nsTerminator.h"
+-#endif
+-
+ #include "nsXPCOMPrivate.h"
+ #include "nsXPCOMCIDInternal.h"
+ 
+@@ -612,10 +608,6 @@ nsresult ShutdownXPCOM(nsIServiceManager
+           do_QueryInterface(mgr));
+     }
+ 
+-#ifndef ANDROID
+-    mozilla::XPCOMShutdownNotified();
+-#endif
+-
+     // This must happen after the shutdown of media and widgets, which
+     // are triggered by the NS_XPCOM_SHUTDOWN_OBSERVER_ID notification.
+     NS_ProcessPendingEvents(thread);

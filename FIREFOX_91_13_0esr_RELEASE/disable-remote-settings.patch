@@ -1,0 +1,640 @@
+diff --git a/security/manager/ssl/RemoteSecuritySettings.jsm b/security/manager/ssl/RemoteSecuritySettings.jsm
+--- a/security/manager/ssl/RemoteSecuritySettings.jsm
++++ b/security/manager/ssl/RemoteSecuritySettings.jsm
+@@ -518,10 +518,6 @@ class IntermediatePreloads {
+     return result;
+   }
+ 
+-  async maybeSync(expectedTimestamp, options) {
+-    return this.client.maybeSync(expectedTimestamp, options);
+-  }
+-
+   async removeCerts(recordsToRemove) {
+     let certStorage = Cc["@mozilla.org/security/certstorage;1"].getService(
+       Ci.nsICertStorage
+diff --git a/services/settings/RemoteSettingsClient.jsm b/services/settings/RemoteSettingsClient.jsm
+--- a/services/settings/RemoteSettingsClient.jsm
++++ b/services/settings/RemoteSettingsClient.jsm
+@@ -366,18 +366,7 @@ class RemoteSettingsClient extends Event
+         // We'll try to avoid returning an empty list.
+         if (!this._importingPromise) {
+           // Prevent parallel loading when .get() is called multiple times.
+-          this._importingPromise = (async () => {
+-            const importedFromDump = gLoadDump
+-              ? await this._importJSONDump()
+-              : -1;
+-            if (importedFromDump < 0) {
+-              // There is no JSON dump to load, force a synchronization from the server.
+-              console.debug(
+-                `${this.identifier} Local DB is empty, pull data from server`
+-              );
+-              await this.sync({ loadDump: false });
+-            }
+-          })();
++          this._importingPromise = this._importJSONDump();
+         } else {
+           console.debug(`${this.identifier} Awaiting existing import.`);
+         }
+@@ -464,7 +453,6 @@ class RemoteSettingsClient extends Event
+       let metadata = await this.db.getMetadata();
+       if (syncIfEmpty && ObjectUtils.isEmpty(metadata)) {
+         // No sync occured yet, may have records from dump but no metadata.
+-        await this.sync({ loadDump: false });
+         metadata = await this.db.getMetadata();
+       }
+       // Will throw MissingSignatureError if no metadata and `syncIfEmpty` is false.
+@@ -484,291 +472,6 @@ class RemoteSettingsClient extends Event
+   }
+ 
+   /**
+-   * Synchronize the local database with the remote server.
+-   *
+-   * @param {Object} options See #maybeSync() options.
+-   */
+-  async sync(options) {
+-    // We want to know which timestamp we are expected to obtain in order to leverage
+-    // cache busting. We don't provide ETag because we don't want a 304.
+-    const { changes } = await Utils.fetchLatestChanges(Utils.SERVER_URL, {
+-      filters: {
+-        collection: this.collectionName,
+-        bucket: this.bucketName,
+-      },
+-    });
+-    if (changes.length === 0) {
+-      throw new RemoteSettingsClient.UnknownCollectionError(this.identifier);
+-    }
+-    // According to API, there will be one only (fail if not).
+-    const [{ last_modified: expectedTimestamp }] = changes;
+-
+-    return this.maybeSync(expectedTimestamp, { ...options, trigger: "forced" });
+-  }
+-
+-  /**
+-   * Synchronize the local database with the remote server, **only if necessary**.
+-   *
+-   * @param {int}    expectedTimestamp the lastModified date (on the server) for the remote collection.
+-   *                                   This will be compared to the local timestamp, and will be used for
+-   *                                   cache busting if local data is out of date.
+-   * @param {Object} options           additional advanced options.
+-   * @param {bool}   options.loadDump  load initial dump from disk on first sync (default: true, unless
+-   *                                   `services.settings.load_dump` says otherwise).
+-   * @param {string} options.trigger   label to identify what triggered this sync (eg. ``"timer"``, default: `"manual"`)
+-   * @return {Promise}                 which rejects on sync or process failure.
+-   */
+-  async maybeSync(expectedTimestamp, options = {}) {
+-    // Should the clients try to load JSON dump? (mainly disabled in tests)
+-    const { loadDump = gLoadDump, trigger = "manual" } = options;
+-
+-    // Make sure we don't run several synchronizations in parallel, mainly
+-    // in order to avoid race conditions in "sync" events listeners.
+-    if (this._syncRunning) {
+-      console.warn(`${this.identifier} sync already running`);
+-      return;
+-    }
+-
+-    // Prevent network requests and IndexedDB calls to be initiated
+-    // during shutdown.
+-    if (Services.startup.shuttingDown) {
+-      console.warn(`${this.identifier} sync interrupted by shutdown`);
+-      return;
+-    }
+-
+-    this._syncRunning = true;
+-
+-    let importedFromDump = [];
+-    const startedAt = new Date();
+-    let reportStatus = null;
+-    let thrownError = null;
+-    try {
+-      // If network is offline, we can't synchronize.
+-      if (Utils.isOffline) {
+-        throw new RemoteSettingsClient.NetworkOfflineError();
+-      }
+-
+-      // Read last timestamp and local data before sync.
+-      let collectionLastModified = await this.db.getLastModified();
+-      const allData = await this.db.list();
+-      // Local data can contain local fields, strip them.
+-      let localRecords = allData.map(r => this._cleanLocalFields(r));
+-      const localMetadata = await this.db.getMetadata();
+-
+-      // If there is no data currently in the collection, attempt to import
+-      // initial data from the application defaults.
+-      // This allows to avoid synchronizing the whole collection content on
+-      // cold start.
+-      if (!collectionLastModified && loadDump) {
+-        try {
+-          const imported = await this._importJSONDump();
+-          // The worker only returns an integer. List the imported records to build the sync event.
+-          if (imported > 0) {
+-            console.debug(
+-              `${this.identifier} ${imported} records loaded from JSON dump`
+-            );
+-            importedFromDump = await this.db.list();
+-            // Local data is the data loaded from dump. We will need this later
+-            // to compute the sync result.
+-            localRecords = importedFromDump;
+-          }
+-          collectionLastModified = await this.db.getLastModified();
+-        } catch (e) {
+-          // Report but go-on.
+-          Cu.reportError(e);
+-        }
+-      }
+-      let syncResult;
+-      try {
+-        // Is local timestamp up to date with the server?
+-        if (expectedTimestamp == collectionLastModified) {
+-          console.debug(`${this.identifier} local data is up-to-date`);
+-          reportStatus = UptakeTelemetry.STATUS.UP_TO_DATE;
+-
+-          // If the data is up-to-date but don't have metadata (records loaded from dump),
+-          // we fetch them and validate the signature immediately.
+-          if (this.verifySignature && ObjectUtils.isEmpty(localMetadata)) {
+-            console.debug(`${this.identifier} pull collection metadata`);
+-            const metadata = await this.httpClient().getData({
+-              query: { _expected: expectedTimestamp },
+-            });
+-            await this.db.importChanges(metadata);
+-            // We don't bother validating the signature if the dump was just loaded. We do
+-            // if the dump was loaded at some other point (eg. from .get()).
+-            if (this.verifySignature && importedFromDump.length == 0) {
+-              console.debug(
+-                `${this.identifier} verify signature of local data`
+-              );
+-              await this._validateCollectionSignature(
+-                localRecords,
+-                collectionLastModified,
+-                metadata
+-              );
+-            }
+-          }
+-
+-          // Since the data is up-to-date, if we didn't load any dump then we're done here.
+-          if (importedFromDump.length == 0) {
+-            return;
+-          }
+-          // Otherwise we want to continue with sending the sync event to notify about the created records.
+-          syncResult = {
+-            current: importedFromDump,
+-            created: importedFromDump,
+-            updated: [],
+-            deleted: [],
+-          };
+-        } else {
+-          // Local data is either outdated or tampered.
+-          // In both cases we will fetch changes from server,
+-          // and make sure we overwrite local data.
+-          const startSyncDB = Cu.now() * 1000;
+-          syncResult = await this._importChanges(
+-            localRecords,
+-            collectionLastModified,
+-            localMetadata,
+-            expectedTimestamp
+-          );
+-          if (gTimingEnabled) {
+-            const endSyncDB = Cu.now() * 1000;
+-            PerformanceCounters.storeExecutionTime(
+-              `remotesettings/${this.identifier}`,
+-              "syncDB",
+-              endSyncDB - startSyncDB,
+-              "duration"
+-            );
+-          }
+-          if (this.hasListeners("sync")) {
+-            // If we have listeners for the "sync" event, then compute the lists of changes.
+-            // The records imported from the dump should be considered as "created" for the
+-            // listeners.
+-            const importedById = importedFromDump.reduce((acc, r) => {
+-              acc.set(r.id, r);
+-              return acc;
+-            }, new Map());
+-            // Deleted records should not appear as created.
+-            syncResult.deleted.forEach(r => importedById.delete(r.id));
+-            // Records from dump that were updated should appear in their newest form.
+-            syncResult.updated.forEach(u => {
+-              if (importedById.has(u.old.id)) {
+-                importedById.set(u.old.id, u.new);
+-              }
+-            });
+-            syncResult.created = syncResult.created.concat(
+-              Array.from(importedById.values())
+-            );
+-          }
+-        }
+-      } catch (e) {
+-        if (e instanceof InvalidSignatureError) {
+-          // Signature verification failed during synchronization.
+-          reportStatus =
+-            e instanceof CorruptedDataError
+-              ? UptakeTelemetry.STATUS.CORRUPTION_ERROR
+-              : UptakeTelemetry.STATUS.SIGNATURE_ERROR;
+-          // If sync fails with a signature error, it's likely that our
+-          // local data has been modified in some way.
+-          // We will attempt to fix this by retrieving the whole
+-          // remote collection.
+-          try {
+-            console.warn(
+-              `${this.identifier} Signature verified failed. Retry from scratch`
+-            );
+-            syncResult = await this._importChanges(
+-              localRecords,
+-              collectionLastModified,
+-              localMetadata,
+-              expectedTimestamp,
+-              { retry: true }
+-            );
+-          } catch (e) {
+-            // If the signature fails again, or if an error occured during wiping out the
+-            // local data, then we report it as a *signature retry* error.
+-            reportStatus = UptakeTelemetry.STATUS.SIGNATURE_RETRY_ERROR;
+-            throw e;
+-          }
+-        } else {
+-          // The sync has thrown for other reason than signature verification.
+-          // Default status for errors at this step is SYNC_ERROR.
+-          reportStatus = this._telemetryFromError(e, {
+-            default: UptakeTelemetry.STATUS.SYNC_ERROR,
+-          });
+-          throw e;
+-        }
+-      }
+-      // Filter the synchronization results using `filterFunc` (ie. JEXL).
+-      const filteredSyncResult = await this._filterSyncResult(syncResult);
+-      // If every changed entry is filtered, we don't even fire the event.
+-      if (filteredSyncResult) {
+-        try {
+-          await this.emit("sync", { data: filteredSyncResult });
+-        } catch (e) {
+-          reportStatus = UptakeTelemetry.STATUS.APPLY_ERROR;
+-          throw e;
+-        }
+-      } else {
+-        console.info(
+-          `All changes are filtered by JEXL expressions for ${this.identifier}`
+-        );
+-      }
+-    } catch (e) {
+-      thrownError = e;
+-      // If browser is shutting down, then we can report a specific status.
+-      // (eg. IndexedDB will abort transactions)
+-      if (Services.startup.shuttingDown) {
+-        reportStatus = UptakeTelemetry.STATUS.SHUTDOWN_ERROR;
+-      }
+-      // If no Telemetry status was determined yet (ie. outside sync step),
+-      // then introspect error, default status at this step is UNKNOWN.
+-      else if (reportStatus == null) {
+-        reportStatus = this._telemetryFromError(e, {
+-          default: UptakeTelemetry.STATUS.UNKNOWN_ERROR,
+-        });
+-      }
+-      throw e;
+-    } finally {
+-      const durationMilliseconds = new Date() - startedAt;
+-      // No error was reported, this is a success!
+-      if (reportStatus === null) {
+-        reportStatus = UptakeTelemetry.STATUS.SUCCESS;
+-      }
+-      // Report success/error status to Telemetry.
+-      let reportArgs = {
+-        source: this.identifier,
+-        trigger,
+-        duration: durationMilliseconds,
+-      };
+-      // In Bug 1617133, we will try to break down specific errors into
+-      // more precise statuses by reporting the JavaScript error name
+-      // ("TypeError", etc.) to Telemetry on Nightly.
+-      const channel = UptakeTelemetry.Policy.getChannel();
+-      if (
+-        thrownError !== null &&
+-        channel == "nightly" &&
+-        [
+-          UptakeTelemetry.STATUS.SYNC_ERROR,
+-          UptakeTelemetry.STATUS.CUSTOM_1_ERROR, // IndexedDB.
+-          UptakeTelemetry.STATUS.UNKNOWN_ERROR,
+-          UptakeTelemetry.STATUS.SHUTDOWN_ERROR,
+-        ].includes(reportStatus)
+-      ) {
+-        // List of possible error names for IndexedDB:
+-        // https://searchfox.org/mozilla-central/rev/49ed791/dom/base/DOMException.cpp#28-53
+-        reportArgs = { ...reportArgs, errorName: thrownError.name };
+-      }
+-
+-      await UptakeTelemetry.report(
+-        TELEMETRY_COMPONENT,
+-        reportStatus,
+-        reportArgs
+-      );
+-
+-      console.debug(`${this.identifier} sync status is ${reportStatus}`);
+-      this._syncRunning = false;
+-    }
+-  }
+-
+-  /**
+    * Determine the Telemetry uptake status based on the specified
+    * error.
+    */
+diff --git a/services/settings/moz.build b/services/settings/moz.build
+--- a/services/settings/moz.build
++++ b/services/settings/moz.build
+@@ -20,17 +20,12 @@ EXTRA_JS_MODULES["services-settings"] +=
+     "IDBHelpers.jsm",
+     "remote-settings.js",
+     "RemoteSettingsClient.jsm",
+-    "RemoteSettingsComponents.jsm",
+     "RemoteSettingsWorker.js",
+     "RemoteSettingsWorker.jsm",
+     "SharedUtils.jsm",
+     "Utils.jsm",
+ ]
+ 
+-XPCOM_MANIFESTS += [
+-    "components.conf",
+-]
+-
+ XPCSHELL_TESTS_MANIFESTS += ["test/unit/xpcshell.ini"]
+ 
+ SPHINX_TREES["/services/settings"] = "docs"
+diff --git a/services/settings/remote-settings.js b/services/settings/remote-settings.js
+--- a/services/settings/remote-settings.js
++++ b/services/settings/remote-settings.js
+@@ -162,267 +162,6 @@ function remoteSettingsFunction() {
+     trigger = "manual",
+     full = false,
+   } = {}) => {
+-    // When running in full mode, we ignore last polling status.
+-    if (full) {
+-      gPrefs.clearUserPref(PREF_SETTINGS_SERVER_BACKOFF);
+-      gPrefs.clearUserPref(PREF_SETTINGS_LAST_UPDATE);
+-      gPrefs.clearUserPref(PREF_SETTINGS_LAST_ETAG);
+-    }
+-
+-    let pollTelemetryArgs = {
+-      source: TELEMETRY_SOURCE_POLL,
+-      trigger,
+-    };
+-
+-    if (Utils.isOffline) {
+-      console.info("Network is offline. Give up.");
+-      await UptakeTelemetry.report(
+-        TELEMETRY_COMPONENT,
+-        UptakeTelemetry.STATUS.NETWORK_OFFLINE_ERROR,
+-        pollTelemetryArgs
+-      );
+-      return;
+-    }
+-
+-    const startedAt = new Date();
+-
+-    // Check if the server backoff time is elapsed.
+-    if (gPrefs.prefHasUserValue(PREF_SETTINGS_SERVER_BACKOFF)) {
+-      const backoffReleaseTime = gPrefs.getCharPref(
+-        PREF_SETTINGS_SERVER_BACKOFF
+-      );
+-      const remainingMilliseconds =
+-        parseInt(backoffReleaseTime, 10) - Date.now();
+-      if (remainingMilliseconds > 0) {
+-        // Backoff time has not elapsed yet.
+-        await UptakeTelemetry.report(
+-          TELEMETRY_COMPONENT,
+-          UptakeTelemetry.STATUS.BACKOFF,
+-          pollTelemetryArgs
+-        );
+-        throw new Error(
+-          `Server is asking clients to back off; retry in ${Math.ceil(
+-            remainingMilliseconds / 1000
+-          )}s.`
+-        );
+-      } else {
+-        gPrefs.clearUserPref(PREF_SETTINGS_SERVER_BACKOFF);
+-      }
+-    }
+-
+-    console.info("Start polling for changes");
+-    Services.obs.notifyObservers(
+-      null,
+-      "remote-settings:changes-poll-start",
+-      JSON.stringify({ expectedTimestamp })
+-    );
+-
+-    // Do we have the latest version already?
+-    // Every time we register a new client, we have to fetch the whole list again.
+-    const lastEtag = _invalidatePolling
+-      ? ""
+-      : gPrefs.getCharPref(PREF_SETTINGS_LAST_ETAG, "");
+-
+-    let pollResult;
+-    try {
+-      pollResult = await Utils.fetchLatestChanges(Utils.SERVER_URL, {
+-        expectedTimestamp,
+-        lastEtag,
+-      });
+-    } catch (e) {
+-      // Report polling error to Uptake Telemetry.
+-      let reportStatus;
+-      if (/JSON\.parse/.test(e.message)) {
+-        reportStatus = UptakeTelemetry.STATUS.PARSE_ERROR;
+-      } else if (/content-type/.test(e.message)) {
+-        reportStatus = UptakeTelemetry.STATUS.CONTENT_ERROR;
+-      } else if (/Server/.test(e.message)) {
+-        reportStatus = UptakeTelemetry.STATUS.SERVER_ERROR;
+-      } else if (/Timeout/.test(e.message)) {
+-        reportStatus = UptakeTelemetry.STATUS.TIMEOUT_ERROR;
+-      } else if (/NetworkError/.test(e.message)) {
+-        reportStatus = UptakeTelemetry.STATUS.NETWORK_ERROR;
+-      } else {
+-        reportStatus = UptakeTelemetry.STATUS.UNKNOWN_ERROR;
+-      }
+-      await UptakeTelemetry.report(
+-        TELEMETRY_COMPONENT,
+-        reportStatus,
+-        pollTelemetryArgs
+-      );
+-      // No need to go further.
+-      throw new Error(`Polling for changes failed: ${e.message}.`);
+-    }
+-
+-    const {
+-      serverTimeMillis,
+-      changes,
+-      currentEtag,
+-      backoffSeconds,
+-      ageSeconds,
+-    } = pollResult;
+-
+-    // Report age of server data in Telemetry.
+-    pollTelemetryArgs = { age: ageSeconds, ...pollTelemetryArgs };
+-
+-    // Report polling success to Uptake Telemetry.
+-    const reportStatus =
+-      changes.length === 0
+-        ? UptakeTelemetry.STATUS.UP_TO_DATE
+-        : UptakeTelemetry.STATUS.SUCCESS;
+-    await UptakeTelemetry.report(
+-      TELEMETRY_COMPONENT,
+-      reportStatus,
+-      pollTelemetryArgs
+-    );
+-
+-    // Check if the server asked the clients to back off (for next poll).
+-    if (backoffSeconds) {
+-      console.info(
+-        "Server asks clients to backoff for ${backoffSeconds} seconds"
+-      );
+-      const backoffReleaseTime = Date.now() + backoffSeconds * 1000;
+-      gPrefs.setCharPref(PREF_SETTINGS_SERVER_BACKOFF, backoffReleaseTime);
+-    }
+-
+-    // Record new update time and the difference between local and server time.
+-    // Negative clockDifference means local time is behind server time
+-    // by the absolute of that value in seconds (positive means it's ahead)
+-    const clockDifference = Math.floor((Date.now() - serverTimeMillis) / 1000);
+-    gPrefs.setIntPref(PREF_SETTINGS_CLOCK_SKEW_SECONDS, clockDifference);
+-    const checkedServerTimeInSeconds = Math.round(serverTimeMillis / 1000);
+-    gPrefs.setIntPref(PREF_SETTINGS_LAST_UPDATE, checkedServerTimeInSeconds);
+-
+-    // Iterate through the collections version info and initiate a synchronization
+-    // on the related remote settings clients.
+-    let firstError;
+-    for (const change of changes) {
+-      const { bucket, collection, last_modified } = change;
+-
+-      const client = await _client(bucket, collection);
+-      if (!client) {
+-        // This collection has no associated client (eg. preview, other platform...)
+-        continue;
+-      }
+-      // Start synchronization! It will be a no-op if the specified `lastModified` equals
+-      // the one in the local database.
+-      try {
+-        await client.maybeSync(last_modified, { trigger });
+-
+-        // Save last time this client was successfully synced.
+-        Services.prefs.setIntPref(
+-          client.lastCheckTimePref,
+-          checkedServerTimeInSeconds
+-        );
+-      } catch (e) {
+-        console.error(e);
+-        if (!firstError) {
+-          firstError = e;
+-          firstError.details = change;
+-        }
+-      }
+-    }
+-
+-    // Polling is done.
+-    _invalidatePolling = false;
+-
+-    // Report total synchronization duration to Telemetry.
+-    const durationMilliseconds = new Date() - startedAt;
+-    const syncTelemetryArgs = {
+-      source: TELEMETRY_SOURCE_SYNC,
+-      duration: durationMilliseconds,
+-      timestamp: `${currentEtag}`,
+-      trigger,
+-    };
+-
+-    if (firstError) {
+-      // Report the global synchronization failure. Individual uptake reports will also have been sent for each collection.
+-      await UptakeTelemetry.report(
+-        TELEMETRY_COMPONENT,
+-        UptakeTelemetry.STATUS.SYNC_ERROR,
+-        syncTelemetryArgs
+-      );
+-      // Rethrow the first observed error
+-      throw firstError;
+-    }
+-
+-    // Save current Etag for next poll.
+-    if (currentEtag) {
+-      gPrefs.setCharPref(PREF_SETTINGS_LAST_ETAG, currentEtag);
+-    }
+-
+-    // Report the global synchronization success.
+-    await UptakeTelemetry.report(
+-      TELEMETRY_COMPONENT,
+-      UptakeTelemetry.STATUS.SUCCESS,
+-      syncTelemetryArgs
+-    );
+-
+-    console.info("Polling for changes done");
+-    Services.obs.notifyObservers(null, "remote-settings:changes-poll-end");
+-  };
+-
+-  /**
+-   * Returns an object with polling status information and the list of
+-   * known remote settings collections.
+-   */
+-  remoteSettings.inspect = async () => {
+-    const {
+-      changes,
+-      currentEtag: serverTimestamp,
+-    } = await Utils.fetchLatestChanges(Utils.SERVER_URL);
+-
+-    const collections = await Promise.all(
+-      changes.map(async change => {
+-        const { bucket, collection, last_modified: serverTimestamp } = change;
+-        const client = await _client(bucket, collection);
+-        if (!client) {
+-          return null;
+-        }
+-        const localTimestamp = await client.getLastModified();
+-        const lastCheck = Services.prefs.getIntPref(
+-          client.lastCheckTimePref,
+-          0
+-        );
+-        return {
+-          bucket,
+-          collection,
+-          localTimestamp,
+-          serverTimestamp,
+-          lastCheck,
+-          signerName: client.signerName,
+-        };
+-      })
+-    );
+-
+-    return {
+-      serverURL: Utils.SERVER_URL,
+-      pollingEndpoint: Utils.SERVER_URL + Utils.CHANGES_PATH,
+-      serverTimestamp,
+-      localTimestamp: gPrefs.getCharPref(PREF_SETTINGS_LAST_ETAG, null),
+-      lastCheck: gPrefs.getIntPref(PREF_SETTINGS_LAST_UPDATE, 0),
+-      mainBucket: Services.prefs.getCharPref(PREF_SETTINGS_DEFAULT_BUCKET),
+-      defaultSigner: DEFAULT_SIGNER,
+-      collections: collections.filter(c => !!c),
+-    };
+-  };
+-
+-  /**
+-   * Delete all local data, of every collection.
+-   */
+-  remoteSettings.clearAll = async () => {
+-    const { collections } = await remoteSettings.inspect();
+-    await Promise.all(
+-      collections.map(async ({ collection }) => {
+-        const client = RemoteSettings(collection);
+-        // Delete all potential attachments.
+-        await client.attachments.deleteAll();
+-        // Delete local data.
+-        await client.db.clear();
+-        // Remove status pref.
+-        Services.prefs.clearUserPref(client.lastCheckTimePref);
+-      })
+-    );
+   };
+ 
+   /**
+diff --git a/services/settings/servicesSettings.manifest b/services/settings/servicesSettings.manifest
+--- a/services/settings/servicesSettings.manifest
++++ b/services/settings/servicesSettings.manifest
+@@ -1,7 +1,2 @@
+ # Register resource aliases
+ resource services-settings resource://gre/modules/services-settings/
+-
+-# Schedule polling of remote settings changes
+-# (default 24H, max 72H)
+-# see syntax https://searchfox.org/mozilla-central/rev/cc280c4be94ff8cf64a27cc9b3d6831ffa49fa45/toolkit/components/timermanager/UpdateTimerManager.jsm#155
+-category update-timer RemoteSettingsComponents @mozilla.org/services/settings;1,getService,services-settings-poll-changes,services.settings.poll_interval,86400,259200

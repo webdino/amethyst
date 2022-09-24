@@ -1,0 +1,40 @@
+diff --git a/browser/actors/FormValidationParent.jsm b/browser/actors/FormValidationParent.jsm
+--- a/browser/actors/FormValidationParent.jsm
++++ b/browser/actors/FormValidationParent.jsm
+@@ -128,10 +128,10 @@ class FormValidationParent extends JSWin
+   _onPopupHiding(aEvent) {
+     aEvent.originalTarget.removeEventListener("popuphiding", this, true);
+     Services.obs.removeObserver(this._obs, "popup-shown");
+-    let tabBrowser = aEvent.originalTarget.ownerGlobal.gBrowser;
+-    tabBrowser.selectedBrowser.removeEventListener("scroll", this, true);
+-    tabBrowser.selectedBrowser.removeEventListener("FullZoomChange", this);
+-    tabBrowser.selectedBrowser.removeEventListener("TextZoomChange", this);
++    let selectedBrowser = aEvent.originalTarget.ownerGlobal.getSelectedBrowser();
++    selectedBrowser.removeEventListener("scroll", this, true);
++    selectedBrowser.removeEventListener("FullZoomChange", this);
++    selectedBrowser.removeEventListener("TextZoomChange", this);
+ 
+     this._obs = null;
+     this._panel = null;
+@@ -155,7 +155,7 @@ class FormValidationParent extends JSWin
+     let browser = this.browsingContext.top.embedderElement;
+     let window = browser.ownerGlobal;
+ 
+-    let tabBrowser = window.gBrowser;
++    let selectedBrowser = window.getSelectedBrowser();
+ 
+     // Display the panel if it isn't already visible.
+     if (!previouslyShown) {
+@@ -166,9 +166,9 @@ class FormValidationParent extends JSWin
+       Services.obs.addObserver(this._obs, "popup-shown", true);
+ 
+       // Hide if the user scrolls the page
+-      tabBrowser.selectedBrowser.addEventListener("scroll", this, true);
+-      tabBrowser.selectedBrowser.addEventListener("FullZoomChange", this);
+-      tabBrowser.selectedBrowser.addEventListener("TextZoomChange", this);
++      selectedBrowser.addEventListener("scroll", this, true);
++      selectedBrowser.addEventListener("FullZoomChange", this);
++      selectedBrowser.addEventListener("TextZoomChange", this);
+ 
+       // Open the popup
+       let rect = aPanelData.screenRect;

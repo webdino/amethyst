@@ -1,0 +1,678 @@
+diff --git a/browser/components/attribution/AttributionCode.jsm b/browser/components/attribution/AttributionCode.jsm
+--- a/browser/components/attribution/AttributionCode.jsm
++++ b/browser/components/attribution/AttributionCode.jsm
+@@ -27,11 +27,6 @@ ChromeUtils.defineModuleGetter(
+   "Services",
+   "resource://gre/modules/Services.jsm"
+ );
+-ChromeUtils.defineModuleGetter(
+-  this,
+-  "MacAttribution",
+-  "resource:///modules/MacAttribution.jsm"
+-);
+ XPCOMUtils.defineLazyGetter(this, "log", () => {
+   let { ConsoleAPI } = ChromeUtils.import("resource://gre/modules/Console.jsm");
+   let consoleOptions = {
+@@ -72,61 +67,10 @@ let gCachedAttrData = null;
+ 
+ var AttributionCode = {
+   /**
+-   * Returns a platform-specific nsIFile for the file containing the attribution
+-   * data, or null if the current platform does not support (caching)
+-   * attribution data.
+-   */
+-  get attributionFile() {
+-    if (AppConstants.platform == "win") {
+-      let file = Services.dirsvc.get("GreD", Ci.nsIFile);
+-      file.append("postSigningData");
+-      return file;
+-    } else if (AppConstants.platform == "macosx") {
+-      // There's no `UpdRootD` in xpcshell tests.  Some existing tests override
+-      // it, which is onerous and difficult to share across tests.  When testing,
+-      // if it's not defined, fallback to a nested subdirectory of the xpcshell
+-      // temp directory.  Nesting more closely replicates the situation where the
+-      // update directory does not (yet) exist, testing a scenario witnessed in
+-      // development.
+-      let file;
+-      try {
+-        file = Services.dirsvc.get("UpdRootD", Ci.nsIFile);
+-      } catch (ex) {
+-        let env = Cc["@mozilla.org/process/environment;1"].getService(
+-          Ci.nsIEnvironment
+-        );
+-        // It's most common to test for the profile dir, even though we actually
+-        // are using the temp dir.
+-        if (
+-          ex instanceof Ci.nsIException &&
+-          ex.result == Cr.NS_ERROR_FAILURE &&
+-          env.exists("XPCSHELL_TEST_PROFILE_DIR")
+-        ) {
+-          let path = env.get("XPCSHELL_TEST_TEMP_DIR");
+-          file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+-          file.initWithPath(path);
+-          file.append("nested_UpdRootD_1");
+-          file.append("nested_UpdRootD_2");
+-        } else {
+-          throw ex;
+-        }
+-      }
+-      file.append("macAttributionData");
+-      return file;
+-    }
+-
+-    return null;
+-  },
+-
+-  /**
+    * Write the given attribution code to the attribution file.
+    * @param {String} code to write.
+    */
+   async writeAttributionFile(code) {
+-    let file = AttributionCode.attributionFile;
+-    await IOUtils.makeDirectory(file.parent.path);
+-    let bytes = new TextEncoder().encode(code);
+-    await AttributionIOUtils.write(file.path, bytes);
+   },
+ 
+   /**
+@@ -137,111 +81,6 @@ var AttributionCode = {
+   },
+ 
+   /**
+-   * Returns an object containing a key-value pair for each piece of attribution
+-   * data included in the passed-in attribution code string.
+-   * If the string isn't a valid attribution code, returns an empty object.
+-   */
+-  parseAttributionCode(code) {
+-    if (code.length > ATTR_CODE_MAX_LENGTH) {
+-      return {};
+-    }
+-
+-    let isValid = true;
+-    let parsed = {};
+-    for (let param of code.split(ATTR_CODE_FIELD_SEPARATOR)) {
+-      let [key, value] = param.split(ATTR_CODE_KEY_VALUE_SEPARATOR, 2);
+-      if (key && ATTR_CODE_KEYS.includes(key)) {
+-        if (value && ATTR_CODE_VALUE_REGEX.test(value)) {
+-          if (key === "msstoresignedin") {
+-            if (value === "true") {
+-              parsed[key] = true;
+-            } else if (value === "false") {
+-              parsed[key] = false;
+-            } else {
+-              throw new Error("Couldn't parse msstoresignedin");
+-            }
+-          } else {
+-            parsed[key] = value;
+-          }
+-        }
+-      } else {
+-        log.debug(
+-          `parseAttributionCode: "${code}" => isValid = false: "${key}", "${value}"`
+-        );
+-        isValid = false;
+-        break;
+-      }
+-    }
+-
+-    if (isValid) {
+-      return parsed;
+-    }
+-
+-    Services.telemetry
+-      .getHistogramById("BROWSER_ATTRIBUTION_ERRORS")
+-      .add("decode_error");
+-
+-    return {};
+-  },
+-
+-  /**
+-   * Returns an object containing a key-value pair for each piece of attribution
+-   * data included in the passed-in URL containing a query string encoding an
+-   * attribution code.
+-   *
+-   * We have less control of the attribution codes on macOS so we accept more
+-   * URLs than we accept attribution codes on Windows.
+-   *
+-   * If the URL is empty, returns an empty object.
+-   *
+-   * If the URL doesn't parse, throws.
+-   */
+-  parseAttributionCodeFromUrl(url) {
+-    if (!url) {
+-      return {};
+-    }
+-
+-    let parsed = {};
+-
+-    let params = new URL(url).searchParams;
+-    for (let key of ATTR_CODE_KEYS) {
+-      // We support the key prefixed with utm_ or not, but intentionally
+-      // choose non-utm params over utm params.
+-      for (let paramKey of [`utm_${key}`, `funnel_${key}`, key]) {
+-        if (params.has(paramKey)) {
+-          // We expect URI-encoded components in our attribution codes.
+-          let value = encodeURIComponent(params.get(paramKey));
+-          if (value && ATTR_CODE_VALUE_REGEX.test(value)) {
+-            parsed[key] = value;
+-          }
+-        }
+-      }
+-    }
+-
+-    return parsed;
+-  },
+-
+-  /**
+-   * Returns a string serializing the given attribution data.
+-   *
+-   * It is expected that the given values are already URL-encoded.
+-   */
+-  serializeAttributionData(data) {
+-    // Iterating in this way makes the order deterministic.
+-    let s = "";
+-    for (let key of ATTR_CODE_KEYS) {
+-      if (key in data) {
+-        let value = data[key];
+-        if (s) {
+-          s += ATTR_CODE_FIELD_SEPARATOR; // URL-encoded &
+-        }
+-        s += `${key}${ATTR_CODE_KEY_VALUE_SEPARATOR}${value}`; // URL-encoded =
+-      }
+-    }
+-    return s;
+-  },
+-
+-  /**
+    * Reads the attribution code, either from disk or a cached version.
+    * Returns a promise that fulfills with an object containing the parsed
+    * attribution data if the code could be read and is valid,
+@@ -252,154 +91,7 @@ var AttributionCode = {
+    * strip "utm_" while retrieving the params.
+    */
+   async getAttrDataAsync() {
+-    if (gCachedAttrData != null) {
+-      log.debug(
+-        `getAttrDataAsync: attribution is cached: ${JSON.stringify(
+-          gCachedAttrData
+-        )}`
+-      );
+-      return gCachedAttrData;
+-    }
+-
+     gCachedAttrData = {};
+-    let attributionFile = this.attributionFile;
+-    if (!attributionFile) {
+-      // This platform doesn't support attribution.
+-      log.debug(`getAttrDataAsync: no attribution (attributionFile is null)`);
+-      return gCachedAttrData;
+-    }
+-
+-    if (
+-      AppConstants.platform == "macosx" &&
+-      !(await AttributionIOUtils.exists(attributionFile.path))
+-    ) {
+-      log.debug(
+-        `getAttrDataAsync: macOS && !exists("${attributionFile.path}")`
+-      );
+-
+-      // On macOS, we fish the attribution data from the system quarantine DB.
+-      try {
+-        let referrer = await MacAttribution.getReferrerUrl();
+-        log.debug(
+-          `getAttrDataAsync: macOS attribution getReferrerUrl: "${referrer}"`
+-        );
+-
+-        gCachedAttrData = this.parseAttributionCodeFromUrl(referrer);
+-      } catch (ex) {
+-        // Avoid partial attribution data.
+-        gCachedAttrData = {};
+-
+-        // No attributions.  Just `warn` 'cuz this isn't necessarily an error.
+-        log.warn("Caught exception fetching macOS attribution codes!", ex);
+-
+-        if (
+-          ex instanceof Ci.nsIException &&
+-          ex.result == Cr.NS_ERROR_UNEXPECTED
+-        ) {
+-          // Bad quarantine data.
+-          Services.telemetry
+-            .getHistogramById("BROWSER_ATTRIBUTION_ERRORS")
+-            .add("quarantine_error");
+-        }
+-      }
+-
+-      log.debug(`macOS attribution data is ${JSON.stringify(gCachedAttrData)}`);
+-
+-      // We only want to try to fetch the referrer from the quarantine
+-      // database once on macOS.
+-      try {
+-        let code = this.serializeAttributionData(gCachedAttrData);
+-        log.debug(`macOS attribution data serializes as "${code}"`);
+-        await this.writeAttributionFile(code);
+-      } catch (ex) {
+-        log.debug(`Caught exception writing "${attributionFile.path}"`, ex);
+-        Services.telemetry
+-          .getHistogramById("BROWSER_ATTRIBUTION_ERRORS")
+-          .add("write_error");
+-        return gCachedAttrData;
+-      }
+-
+-      log.debug(
+-        `Returning after successfully writing "${attributionFile.path}"`
+-      );
+-      return gCachedAttrData;
+-    }
+-
+-    log.debug(`getAttrDataAsync: !macOS || !exists("${attributionFile.path}")`);
+-
+-    let bytes;
+-    try {
+-      if (
+-        AppConstants.platform === "win" &&
+-        Services.sysinfo.getProperty("hasWinPackageId")
+-      ) {
+-        // This comes out of windows-package-manager _not_ URL encoded or in an ArrayBuffer,
+-        // but the parsing code wants it that way. It's easier to just provide that
+-        // than have the parsing code support both.
+-        log.debug(
+-          `winPackageFamilyName is: ${Services.sysinfo.getProperty(
+-            "winPackageFamilyName"
+-          )}`
+-        );
+-        let encoder = new TextEncoder();
+-        bytes = encoder.encode(
+-          encodeURIComponent(
+-            Cc["@mozilla.org/windows-package-manager;1"]
+-              .createInstance(Ci.nsIWindowsPackageManager)
+-              .getCampaignId()
+-          )
+-        );
+-      } else {
+-        bytes = await AttributionIOUtils.read(attributionFile.path);
+-      }
+-    } catch (ex) {
+-      if (DOMException.isInstance(ex) && ex.name == "NotFoundError") {
+-        log.debug(
+-          `getAttrDataAsync: !exists("${
+-            attributionFile.path
+-          }"), returning ${JSON.stringify(gCachedAttrData)}`
+-        );
+-        return gCachedAttrData;
+-      }
+-      log.debug(
+-        `other error trying to read attribution data:
+-          attributionFile.path is: ${attributionFile.path}`
+-      );
+-      log.debug("Full exception is:");
+-      log.debug(ex);
+-
+-      Services.telemetry
+-        .getHistogramById("BROWSER_ATTRIBUTION_ERRORS")
+-        .add("read_error");
+-    }
+-    if (bytes) {
+-      try {
+-        let decoder = new TextDecoder();
+-        let code = decoder.decode(bytes);
+-        log.debug(
+-          `getAttrDataAsync: attribution bytes deserializes to ${code}`
+-        );
+-        if (AppConstants.platform == "macosx" && !code) {
+-          // On macOS, an empty attribution code is fine.  (On Windows, that
+-          // means the stub/full installer has been incorrectly attributed,
+-          // which is an error.)
+-          return gCachedAttrData;
+-        }
+-
+-        gCachedAttrData = this.parseAttributionCode(code);
+-        log.debug(
+-          `getAttrDataAsync: ${code} parses to ${JSON.stringify(
+-            gCachedAttrData
+-          )}`
+-        );
+-      } catch (ex) {
+-        // TextDecoder can throw an error
+-        Services.telemetry
+-          .getHistogramById("BROWSER_ATTRIBUTION_ERRORS")
+-          .add("decode_error");
+-      }
+-    }
+-
+     return gCachedAttrData;
+   },
+ 
+@@ -419,13 +111,6 @@ var AttributionCode = {
+    * or if the file couldn't be deleted (the promise is never rejected).
+    */
+   async deleteFileAsync() {
+-    try {
+-      await IOUtils.remove(this.attributionFile.path);
+-    } catch (ex) {
+-      // The attribution file may already have been deleted,
+-      // or it may have never been installed at all;
+-      // failure to delete it isn't an error.
+-    }
+   },
+ 
+   /**
+diff --git a/browser/components/moz.build b/browser/components/moz.build
+--- a/browser/components/moz.build
++++ b/browser/components/moz.build
+@@ -29,7 +29,6 @@ with Files("controlcenter/**"):
+ DIRS += [
+     "about",
+     "aboutlogins",
+-    "attribution",
+     "contextualidentity",
+     "customizableui",
+     "doh",
+diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+--- a/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
++++ b/browser/components/newtab/aboutwelcome/AboutWelcomeChild.jsm
+@@ -217,16 +217,6 @@ class AboutWelcomeChild extends JSWindow
+    * Send initial data to page including experiment information
+    */
+   async getAWContent() {
+-    let attributionData = await this.sendQuery("AWPage:GET_ATTRIBUTION_DATA");
+-
+-    // Return to AMO gets returned early.
+-    if (attributionData?.template) {
+-      log.debug("Loading about:welcome with RTAMO attribution data");
+-      return Cu.cloneInto(attributionData, this.contentWindow);
+-    } else if (attributionData?.ua) {
+-      log.debug("Loading about:welcome with UA attribution");
+-    }
+-
+     let experimentMetadata =
+       ExperimentAPI.getExperimentMetaData({
+         featureId: "aboutwelcome",
+@@ -251,7 +241,6 @@ class AboutWelcomeChild extends JSWindow
+     // override the default with `null`
+     return Cu.cloneInto(
+       await AboutWelcomeDefaults.prepareContentForReact({
+-        ...attributionData,
+         ...experimentMetadata,
+         ...defaults,
+         ...featureConfig,
+diff --git a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+--- a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
++++ b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+@@ -12,7 +12,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AddonRepository: "resource://gre/modules/addons/AddonRepository.jsm",
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+-  AttributionCode: "resource:///modules/AttributionCode.jsm",
+   Services: "resource://gre/modules/Services.jsm",
+ });
+ 
+@@ -291,25 +290,6 @@ async function getAddonInfo(attrbObj) {
+   return null;
+ }
+ 
+-async function getAttributionContent() {
+-  let attribution = await AttributionCode.getAttrDataAsync();
+-  if (attribution?.source === "addons.mozilla.org") {
+-    let addonInfo = await getAddonInfo(attribution);
+-    if (addonInfo) {
+-      return {
+-        ...addonInfo,
+-        template: "return_to_amo",
+-      };
+-    }
+-  }
+-  if (attribution?.ua) {
+-    return {
+-      ua: decodeURIComponent(attribution.ua),
+-    };
+-  }
+-  return null;
+-}
+-
+ // Return default multistage welcome content
+ function getDefaults() {
+   return Cu.cloneInto(DEFAULT_WELCOME_CONTENT, {});
+@@ -459,5 +439,4 @@ async function prepareContentForReact(co
+ const AboutWelcomeDefaults = {
+   prepareContentForReact,
+   getDefaults,
+-  getAttributionContent,
+ };
+diff --git a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm
+--- a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm
++++ b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeTelemetry.jsm
+@@ -13,7 +13,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   ClientID: "resource://gre/modules/ClientID.jsm",
+   Services: "resource://gre/modules/Services.jsm",
+   TelemetrySession: "resource://gre/modules/TelemetrySession.jsm",
+-  AttributionCode: "resource:///modules/AttributionCode.jsm",
+ });
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+@@ -76,10 +75,6 @@ class AboutWelcomeTelemetry {
+    * read the cached results for the most if not all of the pings.
+    */
+   _maybeAttachAttribution(ping) {
+-    const attribution = AttributionCode.getCachedAttributionData();
+-    if (attribution && Object.keys(attribution).length) {
+-      ping.attribution = attribution;
+-    }
+     return ping;
+   }
+ 
+diff --git a/browser/components/newtab/lib/ASRouter.jsm b/browser/components/newtab/lib/ASRouter.jsm
+--- a/browser/components/newtab/lib/ASRouter.jsm
++++ b/browser/components/newtab/lib/ASRouter.jsm
+@@ -34,7 +34,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   SpecialMessageActions:
+     "resource://messaging-system/lib/SpecialMessageActions.jsm",
+   TargetingContext: "resource://messaging-system/targeting/Targeting.jsm",
+-  MacAttribution: "resource:///modules/MacAttribution.jsm",
+ });
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   BrowserHandler: ["@mozilla.org/browser/clh;1", "nsIBrowserHandler"],
+@@ -55,9 +54,6 @@ const { RemoteSettings } = ChromeUtils.i
+ const { CFRPageActions } = ChromeUtils.import(
+   "resource://activity-stream/lib/CFRPageActions.jsm"
+ );
+-const { AttributionCode } = ChromeUtils.import(
+-  "resource:///modules/AttributionCode.jsm"
+-);
+ 
+ // List of hosts for endpoints that serve router messages.
+ // Key is allowed host, value is a name for the endpoint host.
+@@ -1575,52 +1571,6 @@ class _ASRouter {
+     return Promise.resolve();
+   }
+ 
+-  /**
+-   * forceAttribution - this function should only be called from within about:newtab#asrouter.
+-   * It forces the browser attribution to be set to something specified in asrouter admin
+-   * tools, and reloads the providers in order to get messages that are dependant on this
+-   * attribution data (see Return to AMO flow in bug 1475354 for example). Note - OSX and Windows only
+-   * @param {data} Object an object containing the attribtion data that came from asrouter admin page
+-   */
+-  async forceAttribution(data) {
+-    // Extract the parameters from data that will make up the referrer url
+-    const attributionData = AttributionCode.allowedCodeKeys
+-      .map(key => `${key}=${encodeURIComponent(data[key] || "")}`)
+-      .join("&");
+-    if (AppConstants.platform === "win") {
+-      // The whole attribution data is encoded (again) for windows
+-      await AttributionCode.writeAttributionFile(
+-        encodeURIComponent(attributionData)
+-      );
+-    } else if (AppConstants.platform === "macosx") {
+-      let appPath = MacAttribution.applicationPath;
+-      let attributionSvc = Cc["@mozilla.org/mac-attribution;1"].getService(
+-        Ci.nsIMacAttributionService
+-      );
+-
+-      // The attribution data is treated as a url query for mac
+-      let referrer = `https://www.mozilla.org/anything/?${attributionData}`;
+-
+-      // This sets the Attribution to be the referrer
+-      attributionSvc.setReferrerUrl(appPath, referrer, true);
+-
+-      // Delete attribution data file
+-      await AttributionCode.deleteFileAsync();
+-    }
+-
+-    // Clear cache call is only possible in a testing environment
+-    let env = Cc["@mozilla.org/process/environment;1"].getService(
+-      Ci.nsIEnvironment
+-    );
+-    env.set("XPCSHELL_TEST_PROFILE_DIR", "testing");
+-
+-    // Clear and refresh Attribution, and then fetch the messages again to update
+-    AttributionCode._clearCache();
+-    await AttributionCode.getAttrDataAsync();
+-    await this._updateMessageProviders();
+-    return this.loadMessagesFromAllProviders();
+-  }
+-
+   async sendPBNewTabMessage({ tabId, hideDefault }) {
+     let message = null;
+ 
+diff --git a/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm b/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm
+--- a/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm
++++ b/browser/components/newtab/lib/ASRouterParentProcessMessageHandler.jsm
+@@ -133,9 +133,6 @@ class ASRouterParentProcessMessageHandle
+         this._queryCache.expireAll();
+         return Promise.resolve();
+       }
+-      case msg.FORCE_ATTRIBUTION: {
+-        return this._router.forceAttribution(data);
+-      }
+       case msg.FORCE_WHATSNEW_PANEL: {
+         return this._router.forceWNPanel(browser);
+       }
+diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
+--- a/browser/components/newtab/lib/ASRouterTargeting.jsm
++++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
+@@ -20,7 +20,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   ShellService: "resource:///modules/ShellService.jsm",
+   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.jsm",
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+-  AttributionCode: "resource:///modules/AttributionCode.jsm",
+   TargetingContext: "resource://messaging-system/targeting/Targeting.jsm",
+   fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   Region: "resource://gre/modules/Region.jsm",
+@@ -399,10 +398,6 @@ const TargetingGetters = {
+       update: settings.update,
+     };
+   },
+-  get attributionData() {
+-    // Attribution is determined at startup - so we can use the cached attribution at this point
+-    return AttributionCode.getCachedAttributionData();
+-  },
+   get currentDate() {
+     return new Date();
+   },
+diff --git a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+--- a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
++++ b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+@@ -26,11 +26,6 @@ const { AddonManager, AddonManagerPrivat
+ 
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "AttributionCode",
+-  "resource:///modules/AttributionCode.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "ProfileAge",
+   "resource://gre/modules/ProfileAge.jsm"
+ );
+@@ -974,9 +969,6 @@ function EnvironmentCache() {
+ 
+   this._currentEnvironment.profile = {};
+   p.push(this._updateProfile());
+-  if (AppConstants.MOZ_BUILD_APP == "browser") {
+-    p.push(this._loadAttributionAsync());
+-  }
+   p.push(this._loadAsyncUpdateSettings());
+   p.push(this._loadIntlData());
+ 
+@@ -1619,9 +1611,6 @@ EnvironmentCache.prototype = {
+     this._currentEnvironment.settings.addonCompatibilityCheckEnabled =
+       AddonManager.checkCompatibility;
+ 
+-    if (AppConstants.MOZ_BUILD_APP == "browser") {
+-      this._updateAttribution();
+-    }
+     this._updateDefaultBrowser();
+     this._updateSearchEngine();
+     this._loadAsyncUpdateSettingsFromCache();
+@@ -1674,49 +1663,6 @@ EnvironmentCache.prototype = {
+   },
+ 
+   /**
+-   * Load the attribution data object and updates the environment.
+-   * @returns Promise<> resolved when the I/O is complete.
+-   */
+-  async _loadAttributionAsync() {
+-    try {
+-      await AttributionCode.getAttrDataAsync();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-      return;
+-    }
+-    this._updateAttribution();
+-  },
+-
+-  /**
+-   * Update the environment with the cached attribution data.
+-   */
+-  _updateAttribution() {
+-    let data = null;
+-    try {
+-      data = AttributionCode.getCachedAttributionData();
+-    } catch (e) {
+-      // The AttributionCode.jsm module might not be always available
+-      // (e.g. tests). Gracefully handle this.
+-    }
+-
+-    if (!data || !Object.keys(data).length) {
+-      return;
+-    }
+-
+-    let attributionData = {};
+-    for (let key in data) {
+-      attributionData[key] =
+-        // At least one of these may be boolean, and limitStringToLength
+-        // returns null for non-string inputs.
+-        typeof data[key] === "string"
+-          ? limitStringToLength(data[key], MAX_ATTRIBUTION_STRING_LENGTH)
+-          : data[key];
+-    }
+-    this._currentEnvironment.settings.attribution = attributionData;
+-  },
+-
+-  /**
+    * Load the per-installation update settings, cache them, and add them to the
+    * environment.
+    */
+diff --git a/toolkit/components/utils/ClientEnvironment.jsm b/toolkit/components/utils/ClientEnvironment.jsm
+--- a/toolkit/components/utils/ClientEnvironment.jsm
++++ b/toolkit/components/utils/ClientEnvironment.jsm
+@@ -13,7 +13,6 @@ ChromeUtils.defineModuleGetter(this, "Te
+ ChromeUtils.defineModuleGetter(this, "TelemetryController", "resource://gre/modules/TelemetryController.jsm");
+ ChromeUtils.defineModuleGetter(this, "UpdateUtils", "resource://gre/modules/UpdateUtils.jsm");
+ ChromeUtils.defineModuleGetter(this, "AppConstants", "resource://gre/modules/AppConstants.jsm");
+-ChromeUtils.defineModuleGetter(this, "AttributionCode", "resource:///modules/AttributionCode.jsm");
+ ChromeUtils.defineModuleGetter(this, "WindowsVersionInfo", "resource://gre/modules/components-utils/WindowsVersionInfo.jsm");
+ ChromeUtils.defineModuleGetter(this, "NormandyUtils", "resource://normandy/lib/NormandyUtils.jsm");
+ /* eslint-enable prettier/prettier */
+@@ -255,10 +254,6 @@ class ClientEnvironmentBase {
+     return osInfo;
+   }
+ 
+-  static get attribution() {
+-    return AttributionCode.getAttrDataAsync();
+-  }
+-
+   static get appinfo() {
+     Services.appinfo.QueryInterface(Ci.nsIXULAppInfo);
+     Services.appinfo.QueryInterface(Ci.nsIPlatformInfo);

@@ -1,0 +1,498 @@
+diff --git a/browser/base/content/browser-sync.js b/browser/base/content/browser-sync.js
+--- a/browser/base/content/browser-sync.js
++++ b/browser/base/content/browser-sync.js
+@@ -431,13 +431,7 @@ var gSync = {
+     return targets.sort((a, b) => b.lastAccessTime - a.lastAccessTime);
+   },
+ 
+-  _definePrefGetters() {
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "FXA_ENABLED",
+-      "identity.fxaccounts.enabled"
+-    );
+-  },
++  FXA_ENABLED: false,
+ 
+   maybeUpdateUIState() {
+     // Update the UI.
+@@ -456,8 +450,6 @@ var gSync = {
+       return;
+     }
+ 
+-    this._definePrefGetters();
+-
+     if (!this.FXA_ENABLED) {
+       this.onFxaDisabled();
+       return;
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -674,45 +674,8 @@ var gNavigatorBundle = {
+ };
+ 
+ function updateFxaToolbarMenu(enable, isInitialUpdate = false) {
+-  // We only show the Firefox Account toolbar menu if the feature is enabled and
+-  // if sync is enabled.
+-  const syncEnabled = Services.prefs.getBoolPref(
+-    "identity.fxaccounts.enabled",
+-    false
+-  );
+-
+   const mainWindowEl = document.documentElement;
+-  const fxaPanelEl = PanelMultiView.getViewNode(document, "PanelUI-fxa");
+-
+-  // To minimize the toolbar button flickering or appearing/disappearing during startup,
+-  // we use this pref to anticipate the likely FxA status.
+-  const statusGuess = !!Services.prefs.getStringPref(
+-    "identity.fxaccounts.account.device.name",
+-    ""
+-  );
+-  mainWindowEl.setAttribute(
+-    "fxastatus",
+-    statusGuess ? "signed_in" : "not_configured"
+-  );
+-
+-  fxaPanelEl.addEventListener("ViewShowing", gSync.updateSendToDeviceTitle);
+-
+-  Services.telemetry.setEventRecordingEnabled("fxa_app_menu", true);
+-
+-  if (enable && syncEnabled) {
+-    mainWindowEl.setAttribute("fxatoolbarmenu", "visible");
+-
+-    // We have to manually update the sync state UI when toggling the FxA toolbar
+-    // because it could show an invalid icon if the user is logged in and no sync
+-    // event was performed yet.
+-    if (!isInitialUpdate) {
+-      gSync.maybeUpdateUIState();
+-    }
+-
+-    Services.telemetry.setEventRecordingEnabled("fxa_avatar_menu", true);
+-  } else {
+     mainWindowEl.removeAttribute("fxatoolbarmenu");
+-  }
+ }
+ 
+ function UpdateBackForwardCommands(aWebNavigation) {
+diff --git a/browser/components/aboutlogins/AboutLoginsParent.jsm b/browser/components/aboutlogins/AboutLoginsParent.jsm
+--- a/browser/components/aboutlogins/AboutLoginsParent.jsm
++++ b/browser/components/aboutlogins/AboutLoginsParent.jsm
+@@ -39,12 +39,6 @@ XPCOMUtils.defineLazyPreferenceGetter(
+ );
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+-  "FXA_ENABLED",
+-  "identity.fxaccounts.enabled",
+-  false
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+   "OS_AUTH_ENABLED",
+   "signon.management.page.os-auth.enabled",
+   true
+@@ -871,7 +865,7 @@ class AboutLoginsInternal {
+       loggedIn,
+       email: state.email,
+       avatarURL: state.avatarURL,
+-      fxAccountsEnabled: FXA_ENABLED,
++      fxAccountsEnabled: false,
+       passwordSyncEnabled,
+     };
+   }
+diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
+--- a/browser/components/customizableui/CustomizableWidgets.jsm
++++ b/browser/components/customizableui/CustomizableWidgets.jsm
+@@ -504,38 +504,6 @@ const CustomizableWidgets = [
+   },
+ ];
+ 
+-if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+-  CustomizableWidgets.push({
+-    id: "sync-button",
+-    l10nId: "toolbar-button-synced-tabs",
+-    type: "view",
+-    viewId: "PanelUI-remotetabs",
+-    onViewShowing(aEvent) {
+-      let panelview = aEvent.target;
+-      let doc = panelview.ownerDocument;
+-
+-      let syncNowBtn = panelview.querySelector(".syncnow-label");
+-      let l10nId = syncNowBtn.getAttribute(
+-        panelview.ownerGlobal.gSync._isCurrentlySyncing
+-          ? "syncing-data-l10n-id"
+-          : "sync-now-data-l10n-id"
+-      );
+-      syncNowBtn.setAttribute("data-l10n-id", l10nId);
+-
+-      let SyncedTabsPanelList = doc.defaultView.SyncedTabsPanelList;
+-      panelview.syncedTabsPanelList = new SyncedTabsPanelList(
+-        panelview,
+-        PanelMultiView.getViewNode(doc, "PanelUI-remotetabs-deck"),
+-        PanelMultiView.getViewNode(doc, "PanelUI-remotetabs-tabslist")
+-      );
+-    },
+-    onViewHiding(aEvent) {
+-      aEvent.target.syncedTabsPanelList.destroy();
+-      aEvent.target.syncedTabsPanelList = null;
+-    },
+-  });
+-}
+-
+ if (!screenshotsDisabled) {
+   CustomizableWidgets.push({
+     id: "screenshot-button",
+diff --git a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+--- a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
++++ b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+@@ -414,14 +414,12 @@ async function prepareContentForReact(co
+   }
+ 
+   // Remove Firefox Accounts related UI and prevent related metrics.
+-  if (!Services.prefs.getBoolPref("identity.fxaccounts.enabled", false)) {
+     delete content.screens?.find(
+       screen =>
+         screen.content?.secondary_button_top?.action?.type ===
+         "SHOW_FIREFOX_ACCOUNTS"
+     )?.content.secondary_button_top;
+     content.skipFxA = true;
+-  }
+ 
+   // Remove the English-only image caption.
+   if (Services.locale.appLocaleAsBCP47.split("-")[0] !== "en") {
+diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
+--- a/browser/components/newtab/lib/ASRouterTargeting.jsm
++++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
+@@ -2,7 +2,6 @@
+  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+  * You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+-const FXA_ENABLED_PREF = "identity.fxaccounts.enabled";
+ const DISTRIBUTION_ID_PREF = "distribution.id";
+ const DISTRIBUTION_ID_CHINA_REPACK = "MozillaOnline";
+ 
+@@ -80,12 +79,6 @@ XPCOMUtils.defineLazyPreferenceGetter(
+ );
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+-  "isFxAEnabled",
+-  FXA_ENABLED_PREF,
+-  true
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+   "isXPIInstallEnabled",
+   "xpinstall.enabled",
+   true
+@@ -416,7 +409,7 @@ const TargetingGetters = {
+     return Services.prefs.prefHasUserValue(FXA_USERNAME_PREF);
+   },
+   get isFxAEnabled() {
+-    return isFxAEnabled;
++    return false;
+   },
+   get sync() {
+     return {
+diff --git a/browser/components/newtab/lib/SectionsManager.jsm b/browser/components/newtab/lib/SectionsManager.jsm
+--- a/browser/components/newtab/lib/SectionsManager.jsm
++++ b/browser/components/newtab/lib/SectionsManager.jsm
+@@ -74,7 +74,6 @@ const BUILT_IN_SECTIONS = () => ({
+     maxRows: 4,
+     availableLinkMenuOptions: [
+       "CheckBookmarkOrArchive",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+@@ -116,10 +115,7 @@ const BUILT_IN_SECTIONS = () => ({
+         {
+           name: "section.highlights.includePocket",
+           titleString: "home-prefs-highlights-option-saved-to-pocket",
+-          hidden: !Services.prefs.getBoolPref(
+-            "extensions.pocket.enabled",
+-            true
+-          ),
++          hidden: true,
+         },
+       ],
+     },
+@@ -142,11 +138,10 @@ const BUILT_IN_SECTIONS = () => ({
+ 
+ const SectionsManager = {
+   ACTIONS_TO_PROXY: ["WEBEXT_CLICK", "WEBEXT_DISMISS"],
+-  CONTEXT_MENU_PREFS: { CheckSavedToPocket: "extensions.pocket.enabled" },
++  CONTEXT_MENU_PREFS: {},
+   CONTEXT_MENU_OPTIONS_FOR_HIGHLIGHT_TYPES: {
+     history: [
+       "CheckBookmark",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+@@ -156,7 +151,6 @@ const SectionsManager = {
+     ],
+     bookmark: [
+       "CheckBookmark",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+@@ -166,7 +160,6 @@ const SectionsManager = {
+     ],
+     pocket: [
+       "ArchiveFromPocket",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+diff --git a/browser/components/pocket/content/SaveToPocket.jsm b/browser/components/pocket/content/SaveToPocket.jsm
+--- a/browser/components/pocket/content/SaveToPocket.jsm
++++ b/browser/components/pocket/content/SaveToPocket.jsm
+@@ -87,23 +87,7 @@ function browserWindows() {
+ 
+ var SaveToPocket = {
+   init() {
+-    // migrate enabled pref
+-    if (Services.prefs.prefHasUserValue("browser.pocket.enabled")) {
+-      Services.prefs.setBoolPref(
+-        "extensions.pocket.enabled",
+-        Services.prefs.getBoolPref("browser.pocket.enabled")
+-      );
+-      Services.prefs.clearUserPref("browser.pocket.enabled");
+-    }
+-    // Only define the pref getter now, so we don't get notified for the
+-    // migrated pref above.
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "prefEnabled",
+-      "extensions.pocket.enabled",
+-      true,
+-      this.onPrefChange.bind(this)
+-    );
++    this.prefEnabled = false;
+     if (this.prefEnabled) {
+       PocketOverlay.startup();
+     } else {
+diff --git a/browser/components/preferences/dialogs/jar.mn b/browser/components/preferences/dialogs/jar.mn
+--- a/browser/components/preferences/dialogs/jar.mn
++++ b/browser/components/preferences/dialogs/jar.mn
+@@ -39,7 +39,5 @@ browser.jar:
+    content/browser/preferences/dialogs/siteDataSettings.js
+ *  content/browser/preferences/dialogs/siteDataRemoveSelected.xhtml
+    content/browser/preferences/dialogs/siteDataRemoveSelected.js
+-   content/browser/preferences/dialogs/syncChooseWhatToSync.xhtml
+-   content/browser/preferences/dialogs/syncChooseWhatToSync.js
+    content/browser/preferences/dialogs/translation.xhtml
+    content/browser/preferences/dialogs/translation.js
+diff --git a/browser/components/preferences/jar.mn b/browser/components/preferences/jar.mn
+--- a/browser/components/preferences/jar.mn
++++ b/browser/components/preferences/jar.mn
+@@ -12,11 +12,8 @@ browser.jar:
+    content/browser/preferences/search.js
+    content/browser/preferences/privacy.js
+    content/browser/preferences/containers.js
+-   content/browser/preferences/sync.js
+    content/browser/preferences/experimental.js
+    content/browser/preferences/moreFromMozilla.js
+-   content/browser/preferences/fxaPairDevice.xhtml
+-   content/browser/preferences/fxaPairDevice.js
+    content/browser/preferences/findInPage.js
+    content/browser/preferences/more-from-mozilla-qr-code-simple.svg
+    content/browser/preferences/more-from-mozilla-qr-code-simple-cn.svg
+diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
+--- a/browser/components/preferences/main.js
++++ b/browser/components/preferences/main.js
+@@ -885,24 +885,6 @@ var gMainPane = {
+   },
+ 
+   async onGetStarted(aEvent) {
+-    if (!AppConstants.MOZ_DEV_EDITION) {
+-      return;
+-    }
+-    const win = Services.wm.getMostRecentWindow("navigator:browser");
+-    if (!win) {
+-      return;
+-    }
+-    const user = await fxAccounts.getSignedInUser();
+-    if (user) {
+-      // We have a user, open Sync preferences in the same tab
+-      win.openTrustedLinkIn("about:preferences#sync", "current");
+-      return;
+-    }
+-    let url = await FxAccounts.config.promiseConnectAccountURI(
+-      "dev-edition-setup"
+-    );
+-    let accountsTab = win.gBrowser.addWebTab(url);
+-    win.gBrowser.selectedTab = accountsTab;
+   },
+ 
+   // HOME PAGE
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -211,13 +211,6 @@ function init_all() {
+     );
+     register_module("paneMoreFromMozilla", gMoreFromMozillaPane);
+   }
+-  // The Sync category needs to be the last of the "real" categories
+-  // registered and inititalized since many tests wait for the
+-  // "sync-pane-loaded" observer notification before starting the test.
+-  if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+-    document.getElementById("category-sync").hidden = false;
+-    register_module("paneSync", gSyncPane);
+-  }
+   register_module("paneSearchResults", gSearchResultsPane);
+   gSearchResultsPane.init();
+   gMainPane.preInit();
+diff --git a/browser/components/preferences/preferences.xhtml b/browser/components/preferences/preferences.xhtml
+--- a/browser/components/preferences/preferences.xhtml
++++ b/browser/components/preferences/preferences.xhtml
+@@ -129,18 +129,6 @@
+           <label class="category-name" flex="1" data-l10n-id="pane-privacy-title"></label>
+         </richlistitem>
+ 
+-        <richlistitem id="category-sync"
+-                      class="category"
+-                      hidden="true"
+-                      value="paneSync"
+-                      helpTopic="prefs-weave"
+-                      data-l10n-id="category-sync3"
+-                      data-l10n-attrs="tooltiptext"
+-                      align="center">
+-          <image class="category-icon"/>
+-          <label class="category-name" flex="1" data-l10n-id="pane-sync-title3"></label>
+-        </richlistitem>
+-
+         <richlistitem id="category-experimental"
+                       class="category"
+                       hidden="true"
+@@ -208,7 +196,6 @@
+ #include search.inc.xhtml
+ #include privacy.inc.xhtml
+ #include containers.inc.xhtml
+-#include sync.inc.xhtml
+ #include experimental.inc.xhtml
+ #include moreFromMozilla.inc.xhtml
+         </vbox>
+diff --git a/services/fxaccounts/FxAccounts.jsm b/services/fxaccounts/FxAccounts.jsm
+--- a/services/fxaccounts/FxAccounts.jsm
++++ b/services/fxaccounts/FxAccounts.jsm
+@@ -92,12 +92,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   Preferences: "resource://gre/modules/Preferences.jsm",
+ });
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "FXA_ENABLED",
+-  "identity.fxaccounts.enabled",
+-  true
+-);
++const FXA_ENABLED = false;
+ 
+ // An AccountState object holds all state related to one specific account.
+ // It is considered "private" to the FxAccounts modules.
+diff --git a/services/sync/Weave.jsm b/services/sync/Weave.jsm
+--- a/services/sync/Weave.jsm
++++ b/services/sync/Weave.jsm
+@@ -101,33 +101,6 @@ WeaveService.prototype = {
+   },
+ 
+   init() {
+-    // Force Weave service to load if it hasn't triggered from overlays
+-    this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+-    this.timer.initWithCallback(
+-      {
+-        notify: () => {
+-          let isConfigured = false;
+-          // We only load more if it looks like Sync is configured.
+-          if (this.enabled) {
+-            // We have an associated FxAccount. So, do a more thorough check.
+-            // This will import a number of modules and thus increase memory
+-            // accordingly. We could potentially copy code performed by
+-            // this check into this file if our above code is yielding too
+-            // many false positives.
+-            var { Weave } = ChromeUtils.import(
+-              "resource://services-sync/main.js"
+-            );
+-            isConfigured =
+-              Weave.Status.checkSetup() != Weave.CLIENT_NOT_CONFIGURED;
+-          }
+-          if (isConfigured) {
+-            this.ensureLoaded();
+-          }
+-        },
+-      },
+-      10000,
+-      Ci.nsITimer.TYPE_ONE_SHOT
+-    );
+   },
+ 
+   /**
+@@ -139,10 +112,7 @@ WeaveService.prototype = {
+    * For that, you'll want to check Weave.Status.checkSetup().
+    */
+   get enabled() {
+-    return (
+-      !!syncUsername &&
+-      Services.prefs.getBoolPref("identity.fxaccounts.enabled")
+-    );
++    return false;
+   },
+ };
+ 
+diff --git a/toolkit/components/extensions/ExtensionStorageSync.jsm b/toolkit/components/extensions/ExtensionStorageSync.jsm
+--- a/toolkit/components/extensions/ExtensionStorageSync.jsm
++++ b/toolkit/components/extensions/ExtensionStorageSync.jsm
+@@ -20,13 +20,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   ExtensionUtils: "resource://gre/modules/ExtensionUtils.jsm",
+ });
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "prefPermitsStorageSync",
+-  STORAGE_SYNC_ENABLED_PREF,
+-  true
+-);
+-
+ // This xpcom service implements a "bridge" from the JS world to the Rust world.
+ // It sets up the database and implements a callback-based version of the
+ // browser.storage API.
+@@ -96,11 +89,9 @@ class ExtensionStorageSync {
+   // * Turns the callback API into a promise API.
+   async _promisify(fnName, extension, context, ...args) {
+     let extId = extension.id;
+-    if (prefPermitsStorageSync !== true) {
+       throw new ExtensionUtils.ExtensionError(
+         `Please set ${STORAGE_SYNC_ENABLED_PREF} to true in about:config`
+       );
+-    }
+ 
+     if (this.migrationOk) {
+       // We can call ours.
+diff --git a/toolkit/components/extensions/ExtensionStorageSyncKinto.jsm b/toolkit/components/extensions/ExtensionStorageSyncKinto.jsm
+--- a/toolkit/components/extensions/ExtensionStorageSyncKinto.jsm
++++ b/toolkit/components/extensions/ExtensionStorageSyncKinto.jsm
+@@ -63,12 +63,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+ 
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+-  "prefPermitsStorageSync",
+-  STORAGE_SYNC_ENABLED_PREF,
+-  true
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+   "prefStorageSyncServerURL",
+   STORAGE_SYNC_SERVER_URL_PREF,
+   KINTO_DEFAULT_SERVER_URL
+@@ -1207,11 +1201,9 @@ class ExtensionStorageSync {
+    * @returns {Promise<Collection>}
+    */
+   getCollection(extension, context) {
+-    if (prefPermitsStorageSync !== true) {
+       return Promise.reject({
+         message: `Please set ${STORAGE_SYNC_ENABLED_PREF} to true in about:config`,
+       });
+-    }
+     this.registerInUse(extension, context);
+     return openCollection(extension);
+   }

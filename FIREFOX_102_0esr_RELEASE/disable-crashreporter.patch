@@ -1,0 +1,713 @@
+diff --git a/build/appini_header.py b/build/appini_header.py
+--- a/build/appini_header.py
++++ b/build/appini_header.py
+@@ -18,11 +18,6 @@ def main(output, file):
+             flags.add("NS_XRE_ENABLE_PROFILE_MIGRATOR")
+     except Exception:
+         pass
+-    try:
+-        if config.getint("Crash Reporter", "Enabled") == 1:
+-            flags.add("NS_XRE_ENABLE_CRASH_REPORTER")
+-    except Exception:
+-        pass
+     appdata = dict(
+         ("%s:%s" % (s, o), config.get(s, o))
+         for s in config.sections()
+diff --git a/js/xpconnect/src/XPCShellImpl.cpp b/js/xpconnect/src/XPCShellImpl.cpp
+--- a/js/xpconnect/src/XPCShellImpl.cpp
++++ b/js/xpconnect/src/XPCShellImpl.cpp
+@@ -1211,16 +1211,6 @@ int XRE_XPCShellMain(int argc, char** ar
+       argv += 2;
+     }
+ 
+-    const char* val = getenv("MOZ_CRASHREPORTER");
+-    if (val && *val && !CrashReporter::IsDummy()) {
+-      rv = CrashReporter::SetExceptionHandler(greDir, true);
+-      if (NS_FAILED(rv)) {
+-        printf("CrashReporter::SetExceptionHandler failed!\n");
+-        return 1;
+-      }
+-      MOZ_ASSERT(CrashReporter::GetEnabled());
+-    }
+-
+     if (argc > 1 && !strcmp(argv[1], "--greomni")) {
+       nsCOMPtr<nsIFile> greOmni;
+       XRE_GetFileFromPath(argv[2], getter_AddRefs(greOmni));
+@@ -1434,12 +1424,6 @@ int XRE_XPCShellMain(int argc, char** ar
+   rv = NS_ShutdownXPCOM(nullptr);
+   MOZ_ASSERT(NS_SUCCEEDED(rv), "NS_ShutdownXPCOM failed");
+ 
+-  // Shut down the crashreporter service to prevent leaking some strings it
+-  // holds.
+-  if (CrashReporter::GetEnabled()) {
+-    CrashReporter::UnsetExceptionHandler();
+-  }
+-
+   // This must precede NS_LogTerm(), otherwise xpcshell return non-zero
+   // during some tests, which causes failures.
+   profiler_shutdown();
+diff --git a/toolkit/crashreporter/nsExceptionHandler.cpp b/toolkit/crashreporter/nsExceptionHandler.cpp
+--- a/toolkit/crashreporter/nsExceptionHandler.cpp
++++ b/toolkit/crashreporter/nsExceptionHandler.cpp
+@@ -1988,200 +1988,6 @@ static void RegisterRuntimeExceptionModu
+ #endif  // XP_WIN
+ }
+ 
+-nsresult SetExceptionHandler(nsIFile* aXREDirectory, bool force /*=false*/) {
+-  if (gExceptionHandler) return NS_ERROR_ALREADY_INITIALIZED;
+-
+-#if defined(DEBUG)
+-  // In debug builds, disable the crash reporter by default, and allow to
+-  // enable it with the MOZ_CRASHREPORTER environment variable.
+-  const char* envvar = PR_GetEnv("MOZ_CRASHREPORTER");
+-  if ((!envvar || !*envvar) && !force) return NS_OK;
+-#else
+-  // In other builds, enable the crash reporter by default, and allow
+-  // disabling it with the MOZ_CRASHREPORTER_DISABLE environment variable.
+-  const char* envvar = PR_GetEnv("MOZ_CRASHREPORTER_DISABLE");
+-  if (envvar && *envvar && !force) return NS_OK;
+-#endif
+-
+-  // this environment variable prevents us from launching
+-  // the crash reporter client
+-  doReport = ShouldReport();
+-
+-  RegisterRuntimeExceptionModule();
+-  InitializeAnnotationFacilities();
+-
+-#if !defined(MOZ_WIDGET_ANDROID)
+-  // Locate the crash reporter executable
+-  nsAutoString crashReporterPath_temp;
+-  nsresult rv =
+-      LocateExecutable(aXREDirectory, nsLiteralCString(CRASH_REPORTER_FILENAME),
+-                       crashReporterPath_temp);
+-  if (NS_WARN_IF(NS_FAILED(rv))) {
+-    return rv;
+-  }
+-
+-#  ifdef XP_MACOSX
+-  nsCOMPtr<nsIFile> libPath;
+-  rv = aXREDirectory->Clone(getter_AddRefs(libPath));
+-  if (NS_WARN_IF(NS_FAILED(rv))) {
+-    return rv;
+-  }
+-
+-  nsAutoString libraryPath_temp;
+-  rv = libPath->GetPath(libraryPath_temp);
+-  if (NS_WARN_IF(NS_FAILED(rv))) {
+-    return rv;
+-  }
+-#  endif  // XP_MACOSX
+-
+-#  ifdef XP_WIN
+-  crashReporterPath = xpstring(crashReporterPath_temp.get());
+-#  else
+-  crashReporterPath =
+-      xpstring(NS_ConvertUTF16toUTF8(crashReporterPath_temp).get());
+-#    ifdef XP_MACOSX
+-  libraryPath = xpstring(NS_ConvertUTF16toUTF8(libraryPath_temp).get());
+-#    endif
+-#  endif  // XP_WIN
+-#else
+-  // On Android, we launch a service defined via MOZ_ANDROID_CRASH_HANDLER
+-  const char* androidCrashHandler = PR_GetEnv("MOZ_ANDROID_CRASH_HANDLER");
+-  if (androidCrashHandler) {
+-    crashReporterPath = xpstring(androidCrashHandler);
+-  } else {
+-    NS_WARNING("No Android crash handler set");
+-  }
+-
+-  const char* deviceAndroidVersion =
+-      PR_GetEnv("MOZ_ANDROID_DEVICE_SDK_VERSION");
+-  if (deviceAndroidVersion != nullptr) {
+-    const int deviceSdkVersion = atol(deviceAndroidVersion);
+-    if (deviceSdkVersion >= 26) {
+-      androidStartServiceCommand = (char*)"start-foreground-service";
+-    } else {
+-      androidStartServiceCommand = (char*)"startservice";
+-    }
+-  }
+-#endif  // !defined(MOZ_WIDGET_ANDROID)
+-
+-  // get temp path to use for minidump path
+-#if defined(XP_WIN)
+-  nsString tempPath;
+-#else
+-  nsCString tempPath;
+-#endif
+-  if (!BuildTempPath(tempPath)) {
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-#ifdef XP_WIN
+-  ReserveBreakpadVM();
+-
+-  // Pre-load psapi.dll to prevent it from being loaded during exception
+-  // handling.
+-  ::LoadLibraryW(L"psapi.dll");
+-#endif  // XP_WIN
+-
+-#ifdef MOZ_WIDGET_ANDROID
+-  androidUserSerial = getenv("MOZ_ANDROID_USER_SERIAL_NUMBER");
+-#endif
+-
+-  // Initialize the flag and mutex used to avoid dump processing
+-  // once browser termination has begun.
+-  NS_ASSERTION(!dumpSafetyLock, "Shouldn't have a lock yet");
+-  // Do not deallocate this lock while it is still possible for
+-  // isSafeToDump to be tested on another thread.
+-  dumpSafetyLock = new Mutex("dumpSafetyLock");
+-  MutexAutoLock lock(*dumpSafetyLock);
+-  isSafeToDump = true;
+-
+-  // now set the exception handler
+-#ifdef XP_LINUX
+-  MinidumpDescriptor descriptor(tempPath.get());
+-#endif
+-
+-#ifdef XP_WIN
+-  previousUnhandledExceptionFilter = GetUnhandledExceptionFilter();
+-#endif
+-
+-  gExceptionHandler = new google_breakpad::ExceptionHandler(
+-#ifdef XP_LINUX
+-      descriptor,
+-#elif defined(XP_WIN)
+-      std::wstring(tempPath.get()),
+-#else
+-                     tempPath.get(),
+-#endif
+-
+-      Filter, MinidumpCallback, nullptr,
+-#ifdef XP_WIN
+-      google_breakpad::ExceptionHandler::HANDLER_ALL, GetMinidumpType(),
+-      (const wchar_t*)nullptr, nullptr);
+-#else
+-      true
+-#  ifdef XP_MACOSX
+-      ,
+-      nullptr
+-#  endif
+-#  ifdef XP_LINUX
+-      ,
+-      -1
+-#  endif
+-  );
+-#endif  // XP_WIN
+-
+-  if (!gExceptionHandler) return NS_ERROR_OUT_OF_MEMORY;
+-
+-#ifdef XP_WIN
+-  gExceptionHandler->set_handle_debug_exceptions(true);
+-
+-  // Initially set sIncludeContextHeap to true for debugging startup crashes
+-  // even if the controlling pref value is false.
+-  SetIncludeContextHeap(true);
+-#  if defined(HAVE_64BIT_BUILD)
+-  // Tell JS about the new filter before we disable SetUnhandledExceptionFilter
+-  SetJitExceptionHandler();
+-#  endif
+-
+-  RecordMainThreadId();
+-
+-  // protect the crash reporter from being unloaded
+-  gBlockUnhandledExceptionFilter = true;
+-  gKernel32Intercept.Init("kernel32.dll");
+-  DebugOnly<bool> ok = stub_SetUnhandledExceptionFilter.Set(
+-      gKernel32Intercept, "SetUnhandledExceptionFilter",
+-      &patched_SetUnhandledExceptionFilter);
+-
+-#  ifdef DEBUG
+-  if (!ok)
+-    printf_stderr(
+-        "SetUnhandledExceptionFilter hook failed; crash reporter is "
+-        "vulnerable.\n");
+-#  endif
+-#endif
+-
+-  // store application start time
+-  char timeString[32];
+-  time_t startupTime = time(nullptr);
+-  XP_TTOA(startupTime, timeString);
+-  AnnotateCrashReport(Annotation::StartupTime, nsDependentCString(timeString));
+-
+-#if defined(XP_MACOSX)
+-  // On OS X, many testers like to see the OS crash reporting dialog
+-  // since it offers immediate stack traces.  We allow them to set
+-  // a default to pass exceptions to the OS handler.
+-  Boolean keyExistsAndHasValidFormat = false;
+-  Boolean prefValue = ::CFPreferencesGetAppBooleanValue(
+-      CFSTR("OSCrashReporter"), kCFPreferencesCurrentApplication,
+-      &keyExistsAndHasValidFormat);
+-  if (keyExistsAndHasValidFormat) showOSCrashReporter = prefValue;
+-#endif
+-
+-  oldTerminateHandler = std::set_terminate(&TerminateHandler);
+-
+-  return NS_OK;
+-}
+-
+ bool GetEnabled() { return gExceptionHandler != nullptr; }
+ 
+ bool GetMinidumpPath(nsAString& aPath) {
+@@ -2407,35 +2213,6 @@ nsresult SetupExtraData(nsIFile* aAppDat
+ 
+ static void OOPDeinit();
+ 
+-nsresult UnsetExceptionHandler() {
+-  if (isSafeToDump) {
+-    MutexAutoLock lock(*dumpSafetyLock);
+-    isSafeToDump = false;
+-  }
+-
+-#ifdef XP_WIN
+-  // allow SetUnhandledExceptionFilter
+-  gBlockUnhandledExceptionFilter = false;
+-#endif
+-
+-  delete gExceptionHandler;
+-
+-  TeardownAnnotationFacilities();
+-
+-  if (!gExceptionHandler) return NS_ERROR_NOT_INITIALIZED;
+-
+-  gExceptionHandler = nullptr;
+-
+-  OOPDeinit();
+-
+-  delete dumpSafetyLock;
+-  dumpSafetyLock = nullptr;
+-
+-  std::set_terminate(oldTerminateHandler);
+-
+-  return NS_OK;
+-}
+-
+ nsresult AnnotateCrashReport(Annotation key, bool data) {
+   return AnnotateCrashReport(key, data ? "1"_ns : "0"_ns);
+ }
+@@ -3559,49 +3336,6 @@ bool CreateNotificationPipeForChild(int*
+ 
+ #endif  // defined(XP_LINUX)
+ 
+-bool SetRemoteExceptionHandler(const char* aCrashPipe,
+-                               FileHandle aCrashTimeAnnotationFile) {
+-  MOZ_ASSERT(!gExceptionHandler, "crash client already init'd");
+-  RegisterRuntimeExceptionModule(XRE_GetProcessType());
+-  InitializeAnnotationFacilities();
+-
+-#if defined(XP_WIN)
+-  gChildCrashAnnotationReportFd = aCrashTimeAnnotationFile;
+-  gExceptionHandler = new google_breakpad::ExceptionHandler(
+-      L"", ChildFilter, ChildMinidumpCallback,
+-      nullptr,  // no callback context
+-      google_breakpad::ExceptionHandler::HANDLER_ALL, GetMinidumpType(),
+-      NS_ConvertASCIItoUTF16(aCrashPipe).get(), nullptr);
+-  gExceptionHandler->set_handle_debug_exceptions(true);
+-
+-#  if defined(HAVE_64BIT_BUILD)
+-  SetJitExceptionHandler();
+-#  endif
+-#elif defined(XP_LINUX)
+-  // MinidumpDescriptor requires a non-empty path.
+-  google_breakpad::MinidumpDescriptor path(".");
+-
+-  gExceptionHandler = new google_breakpad::ExceptionHandler(
+-      path, ChildFilter, ChildMinidumpCallback,
+-      nullptr,  // no callback context
+-      true,     // install signal handlers
+-      gMagicChildCrashReportFd);
+-#elif defined(XP_MACOSX)
+-  gExceptionHandler = new google_breakpad::ExceptionHandler(
+-      "", ChildFilter, ChildMinidumpCallback,
+-      nullptr,  // no callback context
+-      true,     // install signal handlers
+-      aCrashPipe);
+-#endif
+-
+-  RecordMainThreadId();
+-
+-  oldTerminateHandler = std::set_terminate(&TerminateHandler);
+-
+-  // we either do remote or nothing, no fallback to regular crash reporting
+-  return gExceptionHandler->IsOutOfProcess();
+-}
+-
+ void GetAnnotation(uint32_t childPid, Annotation annotation,
+                    nsACString& outStr) {
+   if (!GetEnabled()) {
+@@ -3896,20 +3630,6 @@ bool CreateMinidumpsAndPair(ProcessHandl
+   return true;
+ }
+ 
+-bool UnsetRemoteExceptionHandler() {
+-  // On Linux we don't unset breakpad's exception handler if the sandbox is
+-  // enabled because it requires invoking `sigaltstack` and we don't want to
+-  // allow that syscall in the sandbox. See bug 1622452.
+-#if !defined(XP_LINUX) || !defined(MOZ_SANDBOX)
+-  std::set_terminate(oldTerminateHandler);
+-  delete gExceptionHandler;
+-  gExceptionHandler = nullptr;
+-#endif
+-  TeardownAnnotationFacilities();
+-
+-  return true;
+-}
+-
+ #if defined(MOZ_WIDGET_ANDROID)
+ void SetNotificationPipeForChild(int childCrashFd) {
+   gMagicChildCrashReportFd = childCrashFd;
+diff --git a/toolkit/crashreporter/nsExceptionHandler.h b/toolkit/crashreporter/nsExceptionHandler.h
+--- a/toolkit/crashreporter/nsExceptionHandler.h
++++ b/toolkit/crashreporter/nsExceptionHandler.h
+@@ -54,9 +54,6 @@ static inline bool IsDummy() {
+ #endif
+ }
+ 
+-nsresult SetExceptionHandler(nsIFile* aXREDirectory, bool force = false);
+-nsresult UnsetExceptionHandler();
+-
+ /**
+  * Tell the crash reporter to recalculate where crash events files should go.
+  * SetCrashEventsDir is used before XPCOM is initialized from the startup
+@@ -316,12 +313,6 @@ bool CreateNotificationPipeForChild(int*
+ DWORD WINAPI WerNotifyProc(LPVOID aParameter);
+ #endif
+ 
+-// Child-side API
+-bool SetRemoteExceptionHandler(
+-    const char* aCrashPipe = nullptr,
+-    FileHandle aCrashTimeAnnotationFile = kInvalidFileHandle);
+-bool UnsetRemoteExceptionHandler();
+-
+ #if defined(MOZ_WIDGET_ANDROID)
+ // Android creates child process as services so we must explicitly set
+ // the handle for the pipe since it can't get remapped to a default value.
+diff --git a/toolkit/moz.configure b/toolkit/moz.configure
+--- a/toolkit/moz.configure
++++ b/toolkit/moz.configure
+@@ -2818,49 +2818,6 @@ with only_when(compile_environment):
+     set_config("MOZ_SYSTEM_LIBEVENT", True, when="--with-system-libevent")
+ 
+ 
+-# Crash reporting
+-# ==============================================================
+-@depends(target, developer_options, artifact_builds)
+-def crashreporter_default(target, developer_options, artifacts):
+-    if target.kernel in ("WINNT", "Darwin"):
+-        return True
+-    if target.kernel == "Linux" and target.cpu in ("x86", "x86_64", "arm", "aarch64"):
+-        # The crash reporter prevents crash stacktraces to be logged in the
+-        # logs on Android, so we leave it out by default in developer builds.
+-        return target.os != "Android" or not developer_options or artifacts
+-
+-
+-option(
+-    "--enable-crashreporter",
+-    default=crashreporter_default,
+-    help="{Enable|Disable} crash reporting",
+-)
+-
+-
+-set_config("MOZ_CRASHREPORTER", True, when="--enable-crashreporter")
+-set_define("MOZ_CRASHREPORTER", True, when="--enable-crashreporter")
+-add_old_configure_assignment("MOZ_CRASHREPORTER", True, when="--enable-crashreporter")
+-
+-with only_when(compile_environment):
+-    with only_when("--enable-crashreporter"):
+-        pkg_check_modules(
+-            "MOZ_GTHREAD",
+-            "gthread-2.0",
+-            when=depends(target)(lambda t: t.os == "GNU" and t.kernel == "Linux"),
+-        )
+-
+-        set_config(
+-            "MOZ_CRASHREPORTER_INJECTOR",
+-            True,
+-            when=depends(target)(lambda t: t.os == "WINNT" and t.bitness == 32),
+-        )
+-        set_define(
+-            "MOZ_CRASHREPORTER_INJECTOR",
+-            True,
+-            when=depends(target)(lambda t: t.os == "WINNT" and t.bitness == 32),
+-        )
+-
+-
+ # Gtk+
+ # ==============================================================
+ with only_when(toolkit_gtk):
+diff --git a/toolkit/xre/CreateAppData.cpp b/toolkit/xre/CreateAppData.cpp
+--- a/toolkit/xre/CreateAppData.cpp
++++ b/toolkit/xre/CreateAppData.cpp
+@@ -70,8 +70,6 @@ nsresult XRE_ParseAppData(nsIFile* aINIF
+   ReadString(parser, "AppUpdate", "URL", aAppData.updateURL);
+   ReadFlag(parser, "XRE", "EnableProfileMigrator",
+            NS_XRE_ENABLE_PROFILE_MIGRATOR, aAppData.flags);
+-  ReadFlag(parser, "Crash Reporter", "Enabled", NS_XRE_ENABLE_CRASH_REPORTER,
+-           aAppData.flags);
+ 
+   return NS_OK;
+ }
+diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
+--- a/toolkit/xre/nsAppRunner.cpp
++++ b/toolkit/xre/nsAppRunner.cpp
+@@ -1771,42 +1771,6 @@ nsXULAppInfo::GetUserCanElevate(bool* aU
+ #endif
+ 
+ NS_IMETHODIMP
+-nsXULAppInfo::GetEnabled(bool* aEnabled) {
+-  *aEnabled = CrashReporter::GetEnabled();
+-  return NS_OK;
+-}
+-
+-NS_IMETHODIMP
+-nsXULAppInfo::SetEnabled(bool aEnabled) {
+-  if (aEnabled) {
+-    if (CrashReporter::GetEnabled()) {
+-      // no point in erroring for double-enabling
+-      return NS_OK;
+-    }
+-
+-    nsCOMPtr<nsIFile> greBinDir;
+-    NS_GetSpecialDirectory(NS_GRE_BIN_DIR, getter_AddRefs(greBinDir));
+-    if (!greBinDir) {
+-      return NS_ERROR_FAILURE;
+-    }
+-
+-    nsCOMPtr<nsIFile> xreBinDirectory = greBinDir;
+-    if (!xreBinDirectory) {
+-      return NS_ERROR_FAILURE;
+-    }
+-
+-    return CrashReporter::SetExceptionHandler(xreBinDirectory, true);
+-  }
+-
+-  if (!CrashReporter::GetEnabled()) {
+-    // no point in erroring for double-disabling
+-    return NS_OK;
+-  }
+-
+-  return CrashReporter::UnsetExceptionHandler();
+-}
+-
+-NS_IMETHODIMP
+ nsXULAppInfo::GetServerURL(nsIURL** aServerURL) {
+   NS_ENSURE_ARG_POINTER(aServerURL);
+   if (!CrashReporter::GetEnabled()) return NS_ERROR_NOT_INITIALIZED;
+@@ -4121,115 +4085,6 @@ int XREMain::XRE_mainInit(bool* aExitFla
+   rv = mDirProvider.Initialize(mAppData->directory, mAppData->xreDirectory);
+   if (NS_FAILED(rv)) return 1;
+ 
+-  if (EnvHasValue("MOZ_CRASHREPORTER")) {
+-    mAppData->flags |= NS_XRE_ENABLE_CRASH_REPORTER;
+-  }
+-
+-  nsCOMPtr<nsIFile> xreBinDirectory;
+-  xreBinDirectory = mDirProvider.GetGREBinDir();
+-
+-  if ((mAppData->flags & NS_XRE_ENABLE_CRASH_REPORTER) &&
+-      NS_SUCCEEDED(CrashReporter::SetExceptionHandler(xreBinDirectory))) {
+-    nsCOMPtr<nsIFile> file;
+-    rv = nsXREDirProvider::GetUserAppDataDirectory(getter_AddRefs(file));
+-    if (NS_SUCCEEDED(rv)) {
+-      CrashReporter::SetUserAppDataDirectory(file);
+-    }
+-    if (mAppData->crashReporterURL)
+-      CrashReporter::SetServerURL(
+-          nsDependentCString(mAppData->crashReporterURL));
+-
+-    // We overwrite this once we finish starting up.
+-    CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::StartupCrash,
+-                                       true);
+-
+-    // pass some basic info from the app data
+-    if (mAppData->vendor)
+-      CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::Vendor,
+-                                         nsDependentCString(mAppData->vendor));
+-    if (mAppData->name)
+-      CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::ProductName,
+-                                         nsDependentCString(mAppData->name));
+-    if (mAppData->ID)
+-      CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::ProductID,
+-                                         nsDependentCString(mAppData->ID));
+-    if (mAppData->version)
+-      CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::Version,
+-                                         nsDependentCString(mAppData->version));
+-    if (mAppData->buildID)
+-      CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::BuildID,
+-                                         nsDependentCString(mAppData->buildID));
+-
+-    nsDependentCString releaseChannel(MOZ_STRINGIFY(MOZ_UPDATE_CHANNEL));
+-    CrashReporter::AnnotateCrashReport(
+-        CrashReporter::Annotation::ReleaseChannel, releaseChannel);
+-#ifdef MOZ_LINKER
+-    CrashReporter::AnnotateCrashReport(
+-        CrashReporter::Annotation::CrashAddressLikelyWrong,
+-        IsSignalHandlingBroken());
+-#endif
+-
+-#ifdef XP_WIN
+-    nsAutoString appInitDLLs;
+-    if (widget::WinUtils::GetAppInitDLLs(appInitDLLs)) {
+-      CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::AppInitDLLs,
+-                                         NS_ConvertUTF16toUTF8(appInitDLLs));
+-    }
+-
+-    nsString packageFamilyName = widget::WinUtils::GetPackageFamilyName();
+-    if (StringBeginsWith(packageFamilyName, u"Mozilla."_ns) ||
+-        StringBeginsWith(packageFamilyName, u"MozillaCorporation."_ns)) {
+-      CrashReporter::AnnotateCrashReport(
+-          CrashReporter::Annotation::WindowsPackageFamilyName,
+-          NS_ConvertUTF16toUTF8(packageFamilyName));
+-    }
+-#endif
+-
+-    bool isBackgroundTaskMode = false;
+-#ifdef MOZ_BACKGROUNDTASKS
+-    Maybe<nsCString> backgroundTasks = BackgroundTasks::GetBackgroundTasks();
+-    if (backgroundTasks.isSome()) {
+-      isBackgroundTaskMode = true;
+-      CrashReporter::AnnotateCrashReport(
+-          CrashReporter::Annotation::BackgroundTaskName, backgroundTasks.ref());
+-    }
+-#endif
+-    CrashReporter::AnnotateCrashReport(
+-        CrashReporter::Annotation::BackgroundTaskMode, isBackgroundTaskMode);
+-
+-    CrashReporter::AnnotateCrashReport(CrashReporter::Annotation::HeadlessMode,
+-                                       gfxPlatform::IsHeadless());
+-
+-    CrashReporter::SetRestartArgs(gArgc, gArgv);
+-
+-    // annotate other data (user id etc)
+-    nsCOMPtr<nsIFile> userAppDataDir;
+-    if (NS_SUCCEEDED(mDirProvider.GetUserAppDataDirectory(
+-            getter_AddRefs(userAppDataDir)))) {
+-      CrashReporter::SetupExtraData(userAppDataDir,
+-                                    nsDependentCString(mAppData->buildID));
+-
+-      // see if we have a crashreporter-override.ini in the application
+-      // directory
+-      nsCOMPtr<nsIFile> overrideini;
+-      if (NS_SUCCEEDED(
+-              mDirProvider.GetAppDir()->Clone(getter_AddRefs(overrideini))) &&
+-          NS_SUCCEEDED(
+-              overrideini->AppendNative("crashreporter-override.ini"_ns))) {
+-#ifdef XP_WIN
+-        nsAutoString overridePathW;
+-        overrideini->GetPath(overridePathW);
+-        NS_ConvertUTF16toUTF8 overridePath(overridePathW);
+-#else
+-        nsAutoCString overridePath;
+-        overrideini->GetNativePath(overridePath);
+-#endif
+-
+-        SaveWordToEnv("MOZ_CRASHREPORTER_STRINGS_OVERRIDE", overridePath);
+-      }
+-    }
+-  }
+-
+ #if defined(MOZ_SANDBOX) && defined(XP_WIN)
+   if (mAppData->sandboxBrokerServices) {
+     SandboxBroker::Initialize(mAppData->sandboxBrokerServices);
+@@ -5895,8 +5750,6 @@ int XREMain::XRE_main(int argc, char* ar
+   // detect hangs -- they show up as crashes.  We do this as late as possible.
+   // In particular, after ProcessRuntime is destroyed on Windows.
+   auto unsetExceptionHandler = MakeScopeExit([&] {
+-    if (mAppData->flags & NS_XRE_ENABLE_CRASH_REPORTER)
+-      return CrashReporter::UnsetExceptionHandler();
+     return NS_OK;
+   });
+ 
+diff --git a/toolkit/xre/nsEmbedFunctions.cpp b/toolkit/xre/nsEmbedFunctions.cpp
+--- a/toolkit/xre/nsEmbedFunctions.cpp
++++ b/toolkit/xre/nsEmbedFunctions.cpp
+@@ -325,17 +325,6 @@ int GetDebugChildPauseTime() {
+ #endif
+ }
+ 
+-static bool IsCrashReporterEnabled(const char* aArg) {
+-  // on windows and mac, |aArg| is the named pipe on which the server is
+-  // listening for requests, or "-" if crash reporting is disabled.
+-#if defined(XP_MACOSX) || defined(XP_WIN)
+-  return 0 != strcmp("-", aArg);
+-#else
+-  // on POSIX, |aArg| is "true" if crash reporting is enabled, false otherwise
+-  return 0 != strcmp("false", aArg);
+-#endif
+-}
+-
+ }  // namespace
+ 
+ nsresult XRE_InitChildProcess(int aArgc, char* aArgv[],
+@@ -466,37 +455,6 @@ nsresult XRE_InitChildProcess(int aArgc,
+ 
+   SetupErrorHandling(aArgv[0]);
+ 
+-  bool exceptionHandlerIsSet = false;
+-  if (!CrashReporter::IsDummy()) {
+-    CrashReporter::FileHandle crashTimeAnnotationFile =
+-        CrashReporter::kInvalidFileHandle;
+-#if defined(XP_WIN)
+-    if (aArgc < 1) {
+-      return NS_ERROR_FAILURE;
+-    }
+-    // Pop the first argument, this is used by the WER runtime exception module
+-    // which reads it from the command-line so we can just discard it here.
+-    --aArgc;
+-
+-    const char* const crashTimeAnnotationArg = aArgv[--aArgc];
+-    crashTimeAnnotationFile = reinterpret_cast<CrashReporter::FileHandle>(
+-        std::stoul(std::string(crashTimeAnnotationArg)));
+-#endif
+-
+-    if (aArgc < 1) return NS_ERROR_FAILURE;
+-    const char* const crashReporterArg = aArgv[--aArgc];
+-
+-    if (IsCrashReporterEnabled(crashReporterArg)) {
+-      exceptionHandlerIsSet = CrashReporter::SetRemoteExceptionHandler(
+-          crashReporterArg, crashTimeAnnotationFile);
+-
+-      if (!exceptionHandlerIsSet) {
+-        // Bug 684322 will add better visibility into this condition
+-        NS_WARNING("Could not setup crash reporting\n");
+-      }
+-    }
+-  }
+-
+   gArgv = aArgv;
+   gArgc = aArgc;
+ 
+@@ -740,10 +698,6 @@ nsresult XRE_InitChildProcess(int aArgc,
+     }
+   }
+ 
+-  if (exceptionHandlerIsSet) {
+-    CrashReporter::UnsetRemoteExceptionHandler();
+-  }
+-
+   return XRE_DeinitCommandLine();
+ }
+ 
+diff --git a/xpcom/system/nsICrashReporter.idl b/xpcom/system/nsICrashReporter.idl
+--- a/xpcom/system/nsICrashReporter.idl
++++ b/xpcom/system/nsICrashReporter.idl
+@@ -18,18 +18,6 @@ interface nsIURL;
+ interface nsICrashReporter : nsISupports
+ {
+   /**
+-   * Get the enabled status of the crash reporter.
+-   */
+-  readonly attribute boolean enabled;
+-
+-  /**
+-   * Enable or disable crash reporting at runtime. Not available to script
+-   * because the JS engine relies on proper exception handler chaining.
+-   */
+-  [noscript]
+-  void setEnabled(in bool enabled);
+-
+-  /**
+    * Get or set the URL to which crash reports will be submitted.
+    * Only https and http URLs are allowed, as the submission is handled
+    * by OS-native networking libraries.

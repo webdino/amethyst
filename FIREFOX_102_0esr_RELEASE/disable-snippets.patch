@@ -1,0 +1,92 @@
+diff --git a/browser/components/newtab/lib/ASRouter.jsm b/browser/components/newtab/lib/ASRouter.jsm
+--- a/browser/components/newtab/lib/ASRouter.jsm
++++ b/browser/components/newtab/lib/ASRouter.jsm
+@@ -157,88 +157,6 @@ const MessageLoaderUtils = {
+    */
+   async _remoteLoader(provider, options) {
+     let remoteMessages = [];
+-    if (provider.url) {
+-      const allCached = await MessageLoaderUtils._remoteLoaderCache(
+-        options.storage
+-      );
+-      const cached = allCached[provider.id];
+-      let etag;
+-
+-      if (
+-        cached &&
+-        cached.url === provider.url &&
+-        cached.version === STARTPAGE_VERSION
+-      ) {
+-        const { lastFetched, messages } = cached;
+-        if (
+-          !MessageLoaderUtils.shouldProviderUpdate({
+-            ...provider,
+-            lastUpdated: lastFetched,
+-          })
+-        ) {
+-          // Cached messages haven't expired, return early.
+-          return messages;
+-        }
+-        etag = cached.etag;
+-        remoteMessages = messages;
+-      }
+-
+-      let headers = new Headers();
+-      if (etag) {
+-        headers.set("If-None-Match", etag);
+-      }
+-
+-      let response;
+-      try {
+-        response = await fetch(provider.url, { headers, credentials: "omit" });
+-      } catch (e) {
+-        MessageLoaderUtils.reportError(e);
+-      }
+-      if (
+-        response &&
+-        response.ok &&
+-        response.status >= 200 &&
+-        response.status < 400
+-      ) {
+-        let jsonResponse;
+-        try {
+-          jsonResponse = await response.json();
+-        } catch (e) {
+-          MessageLoaderUtils.reportError(e);
+-          return remoteMessages;
+-        }
+-        if (jsonResponse && jsonResponse.messages) {
+-          remoteMessages = jsonResponse.messages.map(msg => ({
+-            ...msg,
+-            provider_url: provider.url,
+-          }));
+-
+-          // Cache the results if this isn't a preview URL.
+-          if (provider.updateCycleInMs > 0) {
+-            etag = response.headers.get("ETag");
+-            const cacheInfo = {
+-              messages: remoteMessages,
+-              etag,
+-              lastFetched: Date.now(),
+-              version: STARTPAGE_VERSION,
+-            };
+-
+-            options.storage.set(MessageLoaderUtils.REMOTE_LOADER_CACHE_KEY, {
+-              ...allCached,
+-              [provider.id]: cacheInfo,
+-            });
+-          }
+-        } else {
+-          MessageLoaderUtils.reportError(
+-            `No messages returned from ${provider.url}.`
+-          );
+-        }
+-      } else if (response) {
+-        MessageLoaderUtils.reportError(
+-          `Invalid response status ${response.status} from ${provider.url}.`
+-        );
+-      }
+-    }
+     return remoteMessages;
+   },
+ 

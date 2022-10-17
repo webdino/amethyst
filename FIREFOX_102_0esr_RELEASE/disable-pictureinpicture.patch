@@ -76,6 +76,17 @@ diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browse
      <key data-l10n-id="nav-reload-shortcut" command="Browser:Reload" modifiers="accel" id="key_reload"/>
      <key data-l10n-id="nav-reload-shortcut" command="Browser:ReloadSkipCache" modifiers="accel,shift" id="key_reload_skip_cache"/>
      <key id="key_viewSource" data-l10n-id="page-source-shortcut" command="View:PageSource" modifiers="accel"/>
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -52,7 +52,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PageThumbs: "resource://gre/modules/PageThumbs.jsm",
+   PanelMultiView: "resource:///modules/PanelMultiView.jsm",
+   PanelView: "resource:///modules/PanelMultiView.jsm",
+-  PictureInPicture: "resource://gre/modules/PictureInPicture.jsm",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
+   PlacesUIUtils: "resource:///modules/PlacesUIUtils.jsm",
+   PlacesTransactions: "resource://gre/modules/PlacesTransactions.jsm",
 diff --git a/browser/base/content/main-popupset.inc.xhtml b/browser/base/content/main-popupset.inc.xhtml
 --- a/browser/base/content/main-popupset.inc.xhtml
 +++ b/browser/base/content/main-popupset.inc.xhtml
@@ -116,6 +127,86 @@ diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsCont
      this.showItem("context-media-eme-learnmore", this.onDRMMedia);
  
      // Disable them when there isn't a valid media source loaded.
+diff --git a/browser/base/content/tabbrowser.js b/browser/base/content/tabbrowser.js
+--- a/browser/base/content/tabbrowser.js
++++ b/browser/base/content/tabbrowser.js
+@@ -63,7 +63,6 @@
+ 
+       XPCOMUtils.defineLazyModuleGetters(this, {
+         E10SUtils: "resource://gre/modules/E10SUtils.jsm",
+-        PictureInPicture: "resource://gre/modules/PictureInPicture.jsm",
+       });
+       XPCOMUtils.defineLazyServiceGetters(this, {
+         MacSharingService: [
+@@ -4372,15 +4371,6 @@
+         aOurTab._sharingState = aOtherTab._sharingState;
+         webrtcUI.swapBrowserForNotification(otherBrowser, ourBrowser);
+       }
+-      if (aOtherTab.hasAttribute("pictureinpicture")) {
+-        aOurTab.setAttribute("pictureinpicture", true);
+-        modifiedAttrs.push("pictureinpicture");
+-
+-        let event = new CustomEvent("TabSwapPictureInPicture", {
+-          detail: aOurTab,
+-        });
+-        aOtherTab.dispatchEvent(event);
+-      }
+ 
+       SitePermissions.copyTemporaryPermissions(otherBrowser, ourBrowser);
+ 
+@@ -5316,8 +5306,7 @@
+         (aBrowser == this.selectedBrowser &&
+           window.windowState != window.STATE_MINIMIZED &&
+           !window.isFullyOccluded) ||
+-        this._printPreviewBrowsers.has(aBrowser) ||
+-        this.PictureInPicture.isOriginatingBrowser(aBrowser)
++        this._printPreviewBrowsers.has(aBrowser)
+       );
+     },
+ 
+diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
+--- a/browser/extensions/moz.build
++++ b/browser/extensions/moz.build
+@@ -10,6 +10,5 @@ DIRS += [
+     "screenshots",
+     "webcompat",
+     "report-site-issue",
+-    "pictureinpicture",
+     "search-detection",
+ ]
+diff --git a/browser/modules/AsyncTabSwitcher.jsm b/browser/modules/AsyncTabSwitcher.jsm
+--- a/browser/modules/AsyncTabSwitcher.jsm
++++ b/browser/modules/AsyncTabSwitcher.jsm
+@@ -12,7 +12,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+ );
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+-  PictureInPicture: "resource://gre/modules/PictureInPicture.jsm",
+   Services: "resource://gre/modules/Services.jsm",
+ });
+ 
+@@ -924,10 +923,7 @@ class AsyncTabSwitcher {
+    * @returns false if a print preview or PiP browser else true
+    */
+   shouldDeactivateDocShell(browser) {
+-    return !(
+-      this.tabbrowser._printPreviewBrowsers.has(browser) ||
+-      PictureInPicture.isOriginatingBrowser(browser)
+-    );
++    return !this.tabbrowser._printPreviewBrowsers.has(browser);
+   }
+ 
+   shouldActivateDocShell(browser) {
+@@ -1235,8 +1231,7 @@ class AsyncTabSwitcher {
+       let linkedBrowser = tab.linkedBrowser;
+       let isActive = linkedBrowser && linkedBrowser.docShellIsActive;
+       let isRendered = linkedBrowser && linkedBrowser.renderLayers;
+-      let isPiP =
+-        linkedBrowser && PictureInPicture.isOriginatingBrowser(linkedBrowser);
++      let isPiP = false;
+ 
+       if (tab === this.lastVisibleTab) {
+         tabString += "V";
 diff --git a/toolkit/actors/UAWidgetsChild.jsm b/toolkit/actors/UAWidgetsChild.jsm
 --- a/toolkit/actors/UAWidgetsChild.jsm
 +++ b/toolkit/actors/UAWidgetsChild.jsm

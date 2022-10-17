@@ -362,7 +362,7 @@ diff --git a/services/settings/moz.build b/services/settings/moz.build
 diff --git a/services/settings/remote-settings.js b/services/settings/remote-settings.js
 --- a/services/settings/remote-settings.js
 +++ b/services/settings/remote-settings.js
-@@ -199,237 +199,6 @@ function remoteSettingsFunction() {
+@@ -199,322 +199,6 @@ function remoteSettingsFunction() {
      trigger = "manual",
      full = false,
    } = {}) => {
@@ -597,21 +597,23 @@ diff --git a/services/settings/remote-settings.js b/services/settings/remote-set
 -
 -    console.info("Polling for changes done");
 -    Services.obs.notifyObservers(null, "remote-settings:changes-poll-end");
-   };
- 
-   /**
-@@ -439,6 +208,7 @@ function remoteSettingsFunction() {
-    * the `*-preview` buckets. This allows developers and QA to test their
-    * changes before publishing them for all clients.
-    */
-+/*
-   remoteSettings.enablePreviewMode = enabled => {
-     // Set the flag for future clients.
-     Utils.enablePreviewMode(enabled);
-@@ -447,75 +217,7 @@ function remoteSettingsFunction() {
-       client.refreshBucketName();
-     }
-   };
+-  };
+-
+-  /**
+-   * Enables or disables preview mode.
+-   *
+-   * When enabled, all existing and future clients will pull data from
+-   * the `*-preview` buckets. This allows developers and QA to test their
+-   * changes before publishing them for all clients.
+-   */
+-  remoteSettings.enablePreviewMode = enabled => {
+-    // Set the flag for future clients.
+-    Utils.enablePreviewMode(enabled);
+-    // Enable it on existing clients.
+-    for (const client of _clients.values()) {
+-      client.refreshBucketName();
+-    }
+-  };
 -
 -  /**
 -   * Returns an object with polling status information and the list of
@@ -680,11 +682,9 @@ diff --git a/services/settings/remote-settings.js b/services/settings/remote-set
 -        Services.prefs.clearUserPref(client.lastCheckTimePref);
 -      })
 -    );
--  };
-+*/
+   };
  
    /**
-    * Startup function called from nsBrowserGlue.
 diff --git a/services/settings/servicesSettings.manifest b/services/settings/servicesSettings.manifest
 --- a/services/settings/servicesSettings.manifest
 +++ b/services/settings/servicesSettings.manifest

@@ -843,7 +843,36 @@ diff --git a/toolkit/components/normandy/Normandy.jsm b/toolkit/components/norma
    TelemetryUtils: "resource://gre/modules/TelemetryUtils.jsm",
    TelemetryEvents: "resource://normandy/lib/TelemetryEvents.jsm",
    ExperimentManager: "resource://nimbus/lib/ExperimentManager.jsm",
-@@ -163,12 +162,6 @@ var Normandy = {
+@@ -57,12 +56,6 @@ var Normandy = {
+     // await, to avoid missing it.
+     Services.obs.addObserver(this, UI_AVAILABLE_NOTIFICATION);
+ 
+-    // Listen for when Telemetry is disabled or re-enabled.
+-    Services.obs.addObserver(
+-      this,
+-      TelemetryUtils.TELEMETRY_UPLOAD_DISABLED_TOPIC
+-    );
+-
+     // It is important this happens before the first `await`. Note that this
+     // also happens before migrations are applied.
+     this.rolloutPrefsChanged = this.applyStartupPrefs(
+@@ -96,15 +89,6 @@ var Normandy = {
+     if (topic === UI_AVAILABLE_NOTIFICATION) {
+       Services.obs.removeObserver(this, UI_AVAILABLE_NOTIFICATION);
+       this.uiAvailableNotificationObserved.resolve();
+-    } else if (topic === TelemetryUtils.TELEMETRY_UPLOAD_DISABLED_TOPIC) {
+-      await Promise.all(
+-        [
+-          PreferenceExperiments,
+-          PreferenceRollouts,
+-          AddonStudies,
+-          AddonRollouts,
+-        ].map(service => service.onTelemetryDisabled())
+-      );
+     }
+   },
+ 
+@@ -163,12 +147,6 @@ var Normandy = {
        log.error("Failed to initialize preference experiments:", err);
      }
  
@@ -856,6 +885,14 @@ diff --git a/toolkit/components/normandy/Normandy.jsm b/toolkit/components/norma
      await RecipeRunner.init();
      Services.obs.notifyObservers(null, SHIELD_INIT_NOTIFICATION);
    },
+@@ -179,7 +157,6 @@ var Normandy = {
+     // oppositely ordered parameters.
+     Services.prefs.removeObserver(PREF_LOGGING_LEVEL, LogManager.configure);
+     for (const topic of [
+-      TelemetryUtils.TELEMETRY_UPLOAD_DISABLED_TOPIC,
+       UI_AVAILABLE_NOTIFICATION,
+     ]) {
+       try {
 diff --git a/toolkit/components/normandy/NormandyMigrations.jsm b/toolkit/components/normandy/NormandyMigrations.jsm
 --- a/toolkit/components/normandy/NormandyMigrations.jsm
 +++ b/toolkit/components/normandy/NormandyMigrations.jsm
@@ -1954,7 +1991,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
  };
  
  var CancellableTimeout = {
-@@ -742,11 +710,6 @@ var TelemetrySendImpl = {
+@@ -742,19 +710,6 @@ var TelemetrySendImpl = {
      TOPIC_PROFILE_CHANGE_NET_TEARDOWN,
    ],
  
@@ -1963,10 +2000,18 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
 -    TelemetryUtils.Preferences.FhrUploadEnabled,
 -  ],
 -
-   // Whether sending pings has been overridden.
-   get _overrideOfficialCheck() {
-     return Services.prefs.getBoolPref(
-@@ -803,14 +766,7 @@ var TelemetrySendImpl = {
+-  // Whether sending pings has been overridden.
+-  get _overrideOfficialCheck() {
+-    return Services.prefs.getBoolPref(
+-      TelemetryUtils.Preferences.OverrideOfficialCheck,
+-      false
+-    );
+-  },
+-
+   get _log() {
+     if (!this._logger) {
+       this._logger = Log.repository.getLoggerWithMessagePrefix(
+@@ -803,14 +758,7 @@ var TelemetrySendImpl = {
        TelemetryUtils.Preferences.Server,
        undefined
      );
@@ -1982,7 +2027,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
  
      // Check the pending pings on disk now.
      try {
-@@ -890,13 +846,6 @@ var TelemetrySendImpl = {
+@@ -890,13 +838,6 @@ var TelemetrySendImpl = {
    async shutdown() {
      this._shutdown = true;
  
@@ -1996,7 +2041,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
      for (let topic of this.OBSERVER_TOPICS) {
        try {
          Services.obs.removeObserver(this, topic);
-@@ -924,16 +873,6 @@ var TelemetrySendImpl = {
+@@ -924,16 +865,6 @@ var TelemetrySendImpl = {
      await this._persistCurrentPings();
    },
  
@@ -2013,7 +2058,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
    reset() {
      this._log.trace("reset");
  
-@@ -941,7 +880,7 @@ var TelemetrySendImpl = {
+@@ -941,7 +872,7 @@ var TelemetrySendImpl = {
      this._currentPings = new Map();
      this._tooLateToSend = false;
      this._isOSShutdown = false;
@@ -2022,7 +2067,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
  
      const histograms = [
        "TELEMETRY_SUCCESS",
-@@ -997,96 +936,14 @@ var TelemetrySendImpl = {
+@@ -997,96 +928,14 @@ var TelemetrySendImpl = {
            setOSShutdown();
          }
          break;
@@ -2119,7 +2164,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
    },
  
    /**
-@@ -1363,7 +1220,6 @@ var TelemetrySendImpl = {
+@@ -1363,7 +1212,6 @@ var TelemetrySendImpl = {
        // We don't need to call |request.abort()| as it was not sent yet.
        this._pendingPingRequests.delete(id);
  
@@ -2127,7 +2172,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
        return { promise: TelemetryStorage.removePendingPing(id) };
      }
  
-@@ -1472,8 +1328,6 @@ var TelemetrySendImpl = {
+@@ -1472,8 +1320,6 @@ var TelemetrySendImpl = {
          failure = XHR_ERROR_TYPE[request.errorCode];
        }
  
@@ -2136,7 +2181,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
        Services.telemetry
          .getHistogramById("TELEMETRY_SEND_FAILURE_TYPE")
          .add(failure);
-@@ -1579,30 +1433,7 @@ var TelemetrySendImpl = {
+@@ -1579,30 +1425,7 @@ var TelemetrySendImpl = {
     * @return {Boolean} True if pings can be send to the servers, false otherwise.
     */
    sendingEnabled(ping = null) {
@@ -2167,7 +2212,7 @@ diff --git a/toolkit/components/telemetry/app/TelemetrySend.jsm b/toolkit/compon
    },
  
    /**
-@@ -1666,34 +1497,4 @@ var TelemetrySendImpl = {
+@@ -1666,34 +1489,4 @@ var TelemetrySendImpl = {
        schedulerState: SendScheduler.getShutdownState(),
      };
    },
@@ -2332,7 +2377,7 @@ diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemet
  EXTRA_JS_MODULES += [
      "app/ClientID.jsm",
      "app/TelemetryArchive.jsm",
-@@ -106,26 +100,14 @@ EXTRA_JS_MODULES += [
+@@ -106,26 +100,9 @@ EXTRA_JS_MODULES += [
      "app/TelemetryStorage.jsm",
      "app/TelemetryTimestamps.jsm",
      "app/TelemetryUtils.jsm",
@@ -2340,17 +2385,17 @@ diff --git a/toolkit/components/telemetry/moz.build b/toolkit/components/telemet
 -    "pings/EventPing.jsm",
 -    "pings/HealthPing.jsm",
 -    "pings/ModulesPing.jsm",
-     "pings/PrioPing.jsm",
+-    "pings/PrioPing.jsm",
      "pings/TelemetrySession.jsm",
 -    "pings/UntrustedModulesPing.jsm",
 -    "pings/UpdatePing.jsm",
 -    "TelemetryStartup.jsm",
  ]
  
- EXTRA_JS_MODULES.backgroundtasks += [
-     "pings/BackgroundTask_pingsender.jsm",
- ]
- 
+-EXTRA_JS_MODULES.backgroundtasks += [
+-    "pings/BackgroundTask_pingsender.jsm",
+-]
+-
 -if CONFIG["OS_ARCH"] == "WINNT":
 -    EXTRA_JS_MODULES += [
 -        "pings/UninstallPing.jsm",

@@ -2623,7 +2623,7 @@ diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm b/bro
 diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
 --- a/browser/components/newtab/lib/ASRouterTargeting.jsm
 +++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
-@@ -13,7 +13,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+@@ -13,14 +13,12 @@ const { XPCOMUtils } = ChromeUtils.impor
  XPCOMUtils.defineLazyModuleGetters(this, {
    ASRouterPreferences: "resource://activity-stream/lib/ASRouterPreferences.jsm",
    AddonManager: "resource://gre/modules/AddonManager.jsm",
@@ -2631,7 +2631,22 @@ diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/compo
    NewTabUtils: "resource://gre/modules/NewTabUtils.jsm",
    ProfileAge: "resource://gre/modules/ProfileAge.jsm",
    ShellService: "resource:///modules/ShellService.jsm",
-@@ -141,32 +140,6 @@ function CachedTargetingGetter(
+   TelemetryEnvironment: "resource://gre/modules/TelemetryEnvironment.jsm",
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+   TargetingContext: "resource://messaging-system/targeting/Targeting.jsm",
+-  fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   Region: "resource://gre/modules/Region.jsm",
+   TelemetrySession: "resource://gre/modules/TelemetrySession.jsm",
+   HomePage: "resource:///modules/HomePage.jsm",
+@@ -101,7 +99,6 @@ const FXA_USERNAME_PREF = "services.sync
+ 
+ const { activityStreamProvider: asProvider } = NewTabUtils;
+ 
+-const FXA_ATTACHED_CLIENTS_UPDATE_INTERVAL = 4 * 60 * 60 * 1000; // Four hours
+ const FRECENT_SITES_UPDATE_INTERVAL = 6 * 60 * 60 * 1000; // Six hours
+ const FRECENT_SITES_IGNORE_BLOCKED = false;
+ const FRECENT_SITES_NUM_ITEMS = 25;
+@@ -141,32 +138,6 @@ function CachedTargetingGetter(
    };
  }
  
@@ -2664,7 +2679,7 @@ diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/compo
  function CheckBrowserNeedsUpdate(
    updateInterval = FRECENT_SITES_UPDATE_INTERVAL
  ) {
-@@ -240,7 +213,6 @@ const QueryCache = {
+@@ -240,7 +211,6 @@ const QueryCache = {
      TotalBookmarksCount: new CachedTargetingGetter("getTotalBookmarksCount"),
      CheckBrowserNeedsUpdate: new CheckBrowserNeedsUpdate(),
      RecentBookmarks: new CachedTargetingGetter("getRecentBookmarks"),
@@ -2672,7 +2687,7 @@ diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/compo
      UserMonthlyActivity: new CachedTargetingGetter("getUserMonthlyActivity"),
    },
    getters: {
-@@ -561,9 +533,7 @@ const TargetingGetters = {
+@@ -561,9 +531,7 @@ const TargetingGetters = {
      );
    },
    get attachedFxAOAuthClients() {
@@ -2683,7 +2698,7 @@ diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/compo
    },
    get platformName() {
      return AppConstants.platform;
-@@ -576,9 +546,6 @@ const TargetingGetters = {
+@@ -576,9 +544,6 @@ const TargetingGetters = {
        DISTRIBUTION_ID_CHINA_REPACK
      );
    },
@@ -3068,10 +3083,20 @@ diff --git a/browser/components/urlbar/UrlbarController.jsm b/browser/components
    FormHistory: "resource://gre/modules/FormHistory.jsm",
    PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
    UrlbarPrefs: "resource:///modules/UrlbarPrefs.jsm",
-@@ -517,19 +516,6 @@ class UrlbarController {
-    */
-   recordSelectedResult(event, result) {
-     let resultIndex = result ? result.rowIndex : -1;
+@@ -507,86 +506,6 @@ class UrlbarController {
+   }
+ 
+   /**
+-   * Records details of the selected result in telemetry. We only record the
+-   * selection behavior, type and index.
+-   *
+-   * @param {Event} event
+-   *   The event which triggered the result to be selected.
+-   * @param {UrlbarResult} result
+-   *   The selected result.
+-   */
+-  recordSelectedResult(event, result) {
+-    let resultIndex = result ? result.rowIndex : -1;
 -    let selectedResult = -1;
 -    if (resultIndex >= 0) {
 -      // Except for the history popup, the urlbar always has a selection.  The
@@ -3085,9 +3110,257 @@ diff --git a/browser/components/urlbar/UrlbarController.jsm b/browser/components
 -      selectedResult,
 -      this._userSelectionBehavior
 -    );
+-
+-    if (!result) {
+-      return;
+-    }
+-
+-    // Do not modify existing telemetry types.  To add a new type:
+-    //
+-    // * Set telemetryType appropriately. Since telemetryType is used as the
+-    //   probe name, it must be alphanumeric with optional underscores.
+-    // * Add a new keyed scalar probe into the urlbar.picked category for the
+-    //   newly added telemetryType.
+-    // * Add a test named browser_UsageTelemetry_urlbar_newType.js to
+-    //   browser/modules/test/browser.
+-    // * Add the telemetryType to UrlbarUtils.SELECTED_RESULT_TYPES, which is
+-    //   used by the histograms below. These histograms are deprecated, but the
+-    //   code below logs an error if telemetryType is not in
+-    //   SELECTED_RESULT_TYPES.
+-    //
+-    // The "topsite" type overrides the other ones, because it starts from a
+-    // unique user interaction, that we want to count apart. We do this here
+-    // rather than in telemetryTypeFromResult because other consumers, like
+-    // events telemetry, are reporting this information separately.
+-    let telemetryType =
+-      result.providerName == "UrlbarProviderTopSites"
+-        ? "topsite"
+-        : UrlbarUtils.telemetryTypeFromResult(result);
+-    Services.telemetry.keyedScalarAdd(
+-      `urlbar.picked.${telemetryType}`,
+-      resultIndex,
+-      1
+-    );
+-    if (this.input.searchMode && !this.input.searchMode.isPreview) {
+-      Services.telemetry.keyedScalarAdd(
+-        `urlbar.picked.searchmode.${this.input.searchMode.entry}`,
+-        resultIndex,
+-        1
+-      );
+-    }
+-
+-    // These histograms should be removed after a deprecation time where we'll
+-    // confirm goodness of the new scalar above.
+-    if (!(telemetryType in UrlbarUtils.SELECTED_RESULT_TYPES)) {
+-      Cu.reportError(`Unsupported telemetry type ${telemetryType}`);
+-      return;
+-    }
+-    Services.telemetry
+-      .getHistogramById("FX_URLBAR_SELECTED_RESULT_INDEX")
+-      .add(resultIndex);
+-    Services.telemetry
+-      .getHistogramById("FX_URLBAR_SELECTED_RESULT_TYPE_2")
+-      .add(UrlbarUtils.SELECTED_RESULT_TYPES[telemetryType]);
+-    Services.telemetry
+-      .getKeyedHistogramById("FX_URLBAR_SELECTED_RESULT_INDEX_BY_TYPE_2")
+-      .add(telemetryType, resultIndex);
+-  }
+-
+-  /**
+    * Handles deletion of results from the last query context and the view. There
+    * are two kinds of results that can be deleted:
+    *
+@@ -750,54 +669,6 @@ class TelemetryEvent {
+     ) {
+       this._startEventInfo.interactionType = "restarted";
+     }
+-
+-    // start is invoked on a user-generated event, but we only count the first
+-    // one.  Once an engagement or abandoment happens, we clear _startEventInfo.
+-    if (!this._category || this._startEventInfo) {
+-      return;
+-    }
+-    if (!event) {
+-      Cu.reportError("Must always provide an event");
+-      return;
+-    }
+-    const validEvents = [
+-      "click",
+-      "command",
+-      "drop",
+-      "input",
+-      "keydown",
+-      "mousedown",
+-      "tabswitch",
+-      "focus",
+-    ];
+-    if (!validEvents.includes(event.type)) {
+-      Cu.reportError("Can't start recording from event type: " + event.type);
+-      return;
+-    }
+-
+-    let interactionType = "topsites";
+-    if (event.interactionType) {
+-      interactionType = event.interactionType;
+-    } else if (event.type == "input") {
+-      interactionType = UrlbarUtils.isPasteEvent(event) ? "pasted" : "typed";
+-    } else if (event.type == "drop") {
+-      interactionType = "dropped";
+-    } else if (searchString) {
+-      interactionType = "typed";
+-    }
+-
+-    this._startEventInfo = {
+-      timeStamp: event.timeStamp || Cu.now(),
+-      interactionType,
+-      searchString,
+-    };
+-
+-    let { queryContext } = this._controller._lastQueryContextWrapper || {};
+-    this._controller.manager.notifyEngagementChange(
+-      this._isPrivate,
+-      "start",
+-      queryContext
+-    );
+   }
  
-     if (!result) {
-       return;
+   /**
+@@ -823,112 +694,8 @@ class TelemetryEvent {
+    *       If there's no _startEventInfo this is a no-op.
+    */
+   record(event, details) {
+-    // This should never throw, or it may break the urlbar.
+-    try {
+-      this._internalRecord(event, details);
+-    } catch (ex) {
+-      Cu.reportError("Could not record event: " + ex);
+-    } finally {
+       this._startEventInfo = null;
+       this._discarded = false;
+-    }
+-  }
+-
+-  _internalRecord(event, details) {
+-    if (!this._category || !this._startEventInfo) {
+-      if (this._discarded && this._category) {
+-        let { queryContext } = this._controller._lastQueryContextWrapper || {};
+-        this._controller.manager.notifyEngagementChange(
+-          this._isPrivate,
+-          "discard",
+-          queryContext
+-        );
+-      }
+-      return;
+-    }
+-    if (
+-      !event &&
+-      this._startEventInfo.interactionType != "pasted" &&
+-      this._startEventInfo.interactionType != "dropped"
+-    ) {
+-      // If no event is passed, we must be executing either paste&go or drop&go.
+-      throw new Error("Event must be defined, unless input was pasted/dropped");
+-    }
+-    if (!details) {
+-      throw new Error("Invalid event details: " + details);
+-    }
+-
+-    let endTime = (event && event.timeStamp) || Cu.now();
+-    let startTime = this._startEventInfo.timeStamp || endTime;
+-    // Synthesized events in tests may have a bogus timeStamp, causing a
+-    // subtraction between monotonic and non-monotonic timestamps; that's why
+-    // abs is necessary here. It should only happen in tests, anyway.
+-    let elapsed = Math.abs(Math.round(endTime - startTime));
+-
+-    let action;
+-    if (!event) {
+-      action =
+-        this._startEventInfo.interactionType == "dropped"
+-          ? "drop_go"
+-          : "paste_go";
+-    } else if (event.type == "blur") {
+-      action = "blur";
+-    } else {
+-      action = MouseEvent.isInstance(event) ? "click" : "enter";
+-    }
+-    let method = action == "blur" ? "abandonment" : "engagement";
+-    let value = this._startEventInfo.interactionType;
+-
+-    // Rather than listening to the pref, just update status when we record an
+-    // event, if the pref changed from the last time.
+-    let recordingEnabled = UrlbarPrefs.get("eventTelemetry.enabled");
+-    if (this._eventRecordingEnabled != recordingEnabled) {
+-      this._eventRecordingEnabled = recordingEnabled;
+-      Services.telemetry.setEventRecordingEnabled("urlbar", recordingEnabled);
+-    }
+-
+-    // numWords is not a perfect measurement, since it will return an incorrect
+-    // value for languages that do not use spaces or URLs containing spaces in
+-    // its query parameters, for example.
+-    let extra = {
+-      elapsed: elapsed.toString(),
+-      numChars: details.searchString.length.toString(),
+-      numWords: details.searchString
+-        .trim()
+-        .split(UrlbarTokenizer.REGEXP_SPACES)
+-        .filter(t => t)
+-        .length.toString(),
+-    };
+-    if (method == "engagement") {
+-      extra.selIndex = details.selIndex.toString();
+-      extra.selType = details.selType;
+-      extra.provider = details.provider || "";
+-    }
+-
+-    // We invoke recordEvent regardless, if recording is disabled this won't
+-    // report the events remotely, but will count it in the event_counts scalar.
+-    Services.telemetry.recordEvent(
+-      this._category,
+-      method,
+-      action,
+-      value,
+-      extra
+-    );
+-
+-    Services.telemetry.scalarAdd(
+-      method == "engagement"
+-        ? TELEMETRY_SCALAR_ENGAGEMENT
+-        : TELEMETRY_SCALAR_ABANDONMENT,
+-      1
+-    );
+-
+-    let { queryContext } = this._controller._lastQueryContextWrapper || {};
+-    this._controller.manager.notifyEngagementChange(
+-      this._isPrivate,
+-      method,
+-      queryContext,
+-      details
+-    );
+   }
+ 
+   /**
+@@ -949,22 +716,6 @@ class TelemetryEvent {
+    * @returns {string} a string type for the telemetry event.
+    */
+   typeFromElement(element) {
+-    if (!element) {
+       return "none";
+-    }
+-    let row = element.closest(".urlbarView-row");
+-    if (row.result && row.result.providerName != "UrlbarProviderTopSites") {
+-      // Element handlers go here.
+-      if (element.classList.contains("urlbarView-button-help")) {
+-        return row.result.type == UrlbarUtils.RESULT_TYPE.TIP
+-          ? "tiphelp"
+-          : "help";
+-      }
+-      if (element.classList.contains("urlbarView-button-block")) {
+-        return "block";
+-      }
+-    }
+-    // Now handle the result.
+-    return UrlbarUtils.telemetryTypeFromResult(row.result);
+   }
+ }
 diff --git a/browser/components/urlbar/UrlbarInput.jsm b/browser/components/urlbar/UrlbarInput.jsm
 --- a/browser/components/urlbar/UrlbarInput.jsm
 +++ b/browser/components/urlbar/UrlbarInput.jsm
@@ -3107,7 +3380,24 @@ diff --git a/browser/components/urlbar/UrlbarInput.jsm b/browser/components/urlb
  
        UrlbarUtils.addToFormHistory(
          this,
-@@ -948,14 +946,7 @@ class UrlbarInput {
+@@ -616,7 +614,6 @@ class UrlbarInput {
+     }
+ 
+     let selectedResult = result || this.view.selectedResult;
+-    this.controller.recordSelectedResult(event, selectedResult);
+ 
+     let where = oneOffParams?.openWhere || this._whereToOpen(event);
+     if (selectedPrivateResult) {
+@@ -811,8 +808,6 @@ class UrlbarInput {
+       this.view.close({ elementPicked: true });
+     }
+ 
+-    this.controller.recordSelectedResult(event, result);
+-
+     if (isCanonized) {
+       this.controller.engagementEvent.record(event, {
+         searchString: this._lastSearchString,
+@@ -948,14 +943,7 @@ class UrlbarInput {
            openParams.private = true;
          }
  
@@ -3122,7 +3412,7 @@ diff --git a/browser/components/urlbar/UrlbarInput.jsm b/browser/components/urlb
  
          if (!result.payload.inPrivateWindow) {
            UrlbarUtils.addToFormHistory(
-@@ -1651,13 +1642,6 @@ class UrlbarInput {
+@@ -1651,13 +1639,6 @@ class UrlbarInput {
          // when switching back to the current tab and across sessions.
          this.window.gBrowser.userTypedValue = this.untrimmedValue;
          this.valueIsTyped = true;
@@ -3136,7 +3426,7 @@ diff --git a/browser/components/urlbar/UrlbarInput.jsm b/browser/components/urlb
        }
      }
    }
-@@ -2301,48 +2285,6 @@ class UrlbarInput {
+@@ -2301,48 +2282,6 @@ class UrlbarInput {
    }
  
    /**
@@ -3669,6 +3959,365 @@ diff --git a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm b/toolkit
  
    /**
     * Updates environment data related to Firefox Suggest.
+diff --git a/toolkit/components/telemetry/core/Stopwatch.cpp b/toolkit/components/telemetry/core/Stopwatch.cpp
+--- a/toolkit/components/telemetry/core/Stopwatch.cpp
++++ b/toolkit/components/telemetry/core/Stopwatch.cpp
+@@ -238,67 +238,16 @@ Timers::~Timers() {
+ 
+ JSObject* Timers::Get(JSContext* aCx, const nsAString& aHistogram,
+                       bool aCreate) {
+-  JSAutoRealm ar(aCx, mTimers);
+-
+-  JS::RootedValue histogram(aCx);
+-  JS::RootedValue objs(aCx);
+-
+-  if (!xpc::NonVoidStringToJsval(aCx, aHistogram, &histogram) ||
+-      !JS::MapGet(aCx, mTimers, histogram, &objs)) {
+     return nullptr;
+-  }
+-  if (!objs.isObject()) {
+-    if (aCreate) {
+-      objs = JS::ObjectOrNullValue(JS::NewWeakMapObject(aCx));
+-    }
+-    if (!objs.isObject() || !JS::MapSet(aCx, mTimers, histogram, objs)) {
+-      return nullptr;
+-    }
+-  }
+-
+-  return &objs.toObject();
+ }
+ 
+ TimerKeys* Timers::Get(JSContext* aCx, const nsAString& aHistogram,
+                        JS::HandleObject aObj, bool aCreate) {
+-  JSAutoRealm ar(aCx, mTimers);
+-
+-  JS::RootedObject objs(aCx, Get(aCx, aHistogram, aCreate));
+-  if (!objs) {
+     return nullptr;
+-  }
+-
+-  // If no object is passed, use mTimers as a stand-in for a null object
+-  // (which cannot be used as a weak map key).
+-  JS::RootedObject obj(aCx, aObj ? aObj : mTimers);
+-  if (!JS_WrapObject(aCx, &obj)) {
+-    return nullptr;
+-  }
+-
+-  RefPtr<TimerKeys> keys;
+-  JS::RootedValue keysObj(aCx);
+-  if (!JS::GetWeakMapEntry(aCx, objs, obj, &keysObj)) {
+-    return nullptr;
+-  }
+-  if (!keysObj.isObject()) {
+-    if (aCreate) {
+-      keys = new TimerKeys();
+-      Unused << nsContentUtils::WrapNative(aCx, keys, &keysObj);
+-    }
+-    if (!keysObj.isObject() || !JS::SetWeakMapEntry(aCx, objs, obj, keysObj)) {
+-      return nullptr;
+-    }
+-  }
+-
+-  keys = do_QueryReflector(keysObj);
+-  return keys;
+ }
+ 
+ Timer* Timers::Get(JSContext* aCx, const nsAString& aHistogram,
+                    JS::HandleObject aObj, const nsAString& aKey, bool aCreate) {
+-  if (RefPtr<TimerKeys> keys = Get(aCx, aHistogram, aObj, aCreate)) {
+-    return keys->Get(aKey, aCreate);
+-  }
+   return nullptr;
+ }
+ 
+@@ -306,100 +255,30 @@ already_AddRefed<Timer> Timers::GetAndDe
+                                              const nsAString& aHistogram,
+                                              JS::HandleObject aObj,
+                                              const nsAString& aKey) {
+-  if (RefPtr<TimerKeys> keys = Get(aCx, aHistogram, aObj, false)) {
+-    return keys->GetAndDelete(aKey);
+-  }
+   return nullptr;
+ }
+ 
+ bool Timers::Delete(JSContext* aCx, const nsAString& aHistogram,
+                     JS::HandleObject aObj, const nsAString& aKey) {
+-  if (RefPtr<TimerKeys> keys = Get(aCx, aHistogram, aObj, false)) {
+-    return keys->Delete(aKey);
+-  }
+   return false;
+ }
+ 
+ int32_t Timers::TimeElapsed(JSContext* aCx, const nsAString& aHistogram,
+                             JS::HandleObject aObj, const nsAString& aKey,
+                             bool aCanceledOkay) {
+-  RefPtr<Timer> timer = Get(aCx, aHistogram, aObj, aKey, false);
+-  if (!timer) {
+-    if (!aCanceledOkay && !mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "TelemetryStopwatch: requesting elapsed time for "
+-                        "nonexisting stopwatch. Histogram: \"%s\", key: \"%s\"",
+-                        NS_ConvertUTF16toUTF8(aHistogram).get(),
+-                        NS_ConvertUTF16toUTF8(aKey).get()));
+-    }
+     return -1;
+-  }
+-
+-  return timer->Elapsed();
+ }
+ 
+ bool Timers::Start(JSContext* aCx, const nsAString& aHistogram,
+                    JS::HandleObject aObj, const nsAString& aKey,
+                    bool aInSeconds) {
+-  if (RefPtr<Timer> timer = Get(aCx, aHistogram, aObj, aKey)) {
+-    if (timer->Started()) {
+-      if (!mSuppressErrors) {
+-        LogError(aCx,
+-                 nsPrintfCString(
+-                     "TelemetryStopwatch: key \"%s\" was already initialized",
+-                     NS_ConvertUTF16toUTF8(aHistogram).get()));
+-      }
+-      Delete(aCx, aHistogram, aObj, aKey);
+-    } else {
+-      timer->Start(aInSeconds);
+-      return true;
+-    }
+-  }
+   return false;
+ }
+ 
+ int32_t Timers::Finish(JSContext* aCx, const nsAString& aHistogram,
+                        JS::HandleObject aObj, const nsAString& aKey,
+                        bool aCanceledOkay) {
+-  RefPtr<Timer> timer = GetAndDelete(aCx, aHistogram, aObj, aKey);
+-  if (!timer) {
+-    if (!aCanceledOkay && !mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "TelemetryStopwatch: finishing nonexisting stopwatch. "
+-                        "Histogram: \"%s\", key: \"%s\"",
+-                        NS_ConvertUTF16toUTF8(aHistogram).get(),
+-                        NS_ConvertUTF16toUTF8(aKey).get()));
+-    }
+     return -1;
+-  }
+-
+-  int32_t delta = timer->Elapsed();
+-  NS_ConvertUTF16toUTF8 histogram(aHistogram);
+-  nsresult rv;
+-  if (!aKey.IsVoid()) {
+-    NS_ConvertUTF16toUTF8 key(aKey);
+-    rv = TelemetryHistogram::Accumulate(histogram.get(), key, delta);
+-  } else {
+-    rv = TelemetryHistogram::Accumulate(histogram.get(), delta);
+-  }
+-  if (profiler_thread_is_being_profiled_for_markers()) {
+-    nsCString markerText = histogram;
+-    if (!aKey.IsVoid()) {
+-      markerText.AppendLiteral(":");
+-      markerText.Append(NS_ConvertUTF16toUTF8(aKey));
+-    }
+-    PROFILER_MARKER_TEXT("TelemetryStopwatch", OTHER,
+-                         MarkerTiming::IntervalUntilNowFrom(timer->StartTime()),
+-                         markerText);
+-  }
+-  if (NS_FAILED(rv) && rv != NS_ERROR_NOT_AVAILABLE && !mSuppressErrors) {
+-    LogError(aCx, nsPrintfCString(
+-                      "TelemetryStopwatch: failed to update the Histogram "
+-                      "\"%s\", using key: \"%s\"",
+-                      NS_ConvertUTF16toUTF8(aHistogram).get(),
+-                      NS_ConvertUTF16toUTF8(aKey).get()));
+-  }
+-  return NS_SUCCEEDED(rv) ? delta : -1;
+ }
+ 
+ bool Timers::StartUserInteraction(JSContext* aCx,
+@@ -408,65 +287,12 @@ bool Timers::StartUserInteraction(JSCont
+                                   JS::HandleObject aObj) {
+   MOZ_ASSERT(NS_IsMainThread());
+ 
+-  // Ensure that this ID maps to a UserInteraction that can be recorded
+-  // for this product.
+-  if (!TelemetryUserInteraction::CanRecord(aUserInteraction)) {
+-    if (!mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "UserInteraction with name \"%s\" cannot be recorded.",
+-                        NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-    }
+-    return false;
+-  }
+-
+-  if (aValue.Length() > USER_INTERACTION_VALUE_MAX_LENGTH) {
+-    if (!mSuppressErrors) {
+-      LogError(aCx,
+-               nsPrintfCString(
+-                   "UserInteraction with name \"%s\" cannot be recorded with"
+-                   "a value of length greater than %d (%s)",
+-                   NS_ConvertUTF16toUTF8(aUserInteraction).get(),
+-                   USER_INTERACTION_VALUE_MAX_LENGTH,
+-                   PromiseFlatCString(aValue).get()));
+-    }
+-    return false;
+-  }
+-
+-  if (RefPtr<Timer> timer = Get(aCx, aUserInteraction, aObj, VoidString())) {
+-    auto annotationTimers = mBHRAnnotationTimers.Lock();
+-
+-    if (timer->Started()) {
+-      if (!mSuppressErrors) {
+-        LogError(aCx,
+-                 nsPrintfCString(
+-                     "UserInteraction with name \"%s\" was already initialized",
+-                     NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-      }
+-      timer->removeFrom(*annotationTimers);
+-      Delete(aCx, aUserInteraction, aObj, VoidString());
+-      timer = Get(aCx, aUserInteraction, aObj, VoidString());
+-
+-      nsAutoString clobberText(aUserInteraction);
+-      clobberText.AppendLiteral(u" (clobbered)");
+-      timer->SetBHRAnnotation(clobberText, aValue);
+-    } else {
+-      timer->SetBHRAnnotation(aUserInteraction, aValue);
+-    }
+-
+-    annotationTimers->insertBack(timer);
+-    timer->Start(false);
+-    return true;
+-  }
+   return false;
+ }
+ 
+ bool Timers::RunningUserInteraction(JSContext* aCx,
+                                     const nsAString& aUserInteraction,
+                                     JS::HandleObject aObj) {
+-  if (RefPtr<Timer> timer =
+-          Get(aCx, aUserInteraction, aObj, VoidString(), false /* aCreate */)) {
+-    return timer->Started();
+-  }
+   return false;
+ }
+ 
+@@ -476,30 +302,6 @@ bool Timers::UpdateUserInteraction(JSCon
+                                    JS::HandleObject aObj) {
+   MOZ_ASSERT(NS_IsMainThread());
+ 
+-  // Ensure that this ID maps to a UserInteraction that can be recorded
+-  // for this product.
+-  if (!TelemetryUserInteraction::CanRecord(aUserInteraction)) {
+-    if (!mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "UserInteraction with name \"%s\" cannot be recorded.",
+-                        NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-    }
+-    return false;
+-  }
+-
+-  auto lock = mBHRAnnotationTimers.Lock();
+-  if (RefPtr<Timer> timer = Get(aCx, aUserInteraction, aObj, VoidString())) {
+-    if (!timer->Started()) {
+-      if (!mSuppressErrors) {
+-        LogError(aCx, nsPrintfCString(
+-                          "UserInteraction with id \"%s\" was not initialized",
+-                          NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-      }
+-      return false;
+-    }
+-    timer->SetBHRAnnotation(aUserInteraction, aValue);
+-    return true;
+-  }
+   return false;
+ }
+ 
+@@ -508,50 +310,7 @@ bool Timers::FinishUserInteraction(
+     const dom::Optional<nsACString>& aAdditionalText) {
+   MOZ_ASSERT(NS_IsMainThread());
+ 
+-  // Ensure that this ID maps to a UserInteraction that can be recorded
+-  // for this product.
+-  if (!TelemetryUserInteraction::CanRecord(aUserInteraction)) {
+-    if (!mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "UserInteraction with id \"%s\" cannot be recorded.",
+-                        NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-    }
+     return false;
+-  }
+-
+-  RefPtr<Timer> timer = GetAndDelete(aCx, aUserInteraction, aObj, VoidString());
+-  if (!timer) {
+-    if (!mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "UserInteraction: finishing nonexisting stopwatch. "
+-                        "name: \"%s\"",
+-                        NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-    }
+-    return false;
+-  }
+-
+-  if (profiler_thread_is_being_profiled_for_markers()) {
+-    nsAutoCString markerText(timer->GetBHRAnnotationValue());
+-    if (aAdditionalText.WasPassed()) {
+-      markerText.Append(",");
+-      markerText.Append(aAdditionalText.Value());
+-    }
+-
+-    PROFILER_MARKER_TEXT(NS_ConvertUTF16toUTF8(aUserInteraction), OTHER,
+-                         MarkerTiming::IntervalUntilNowFrom(timer->StartTime()),
+-                         markerText);
+-  }
+-
+-  // The Timer will be held alive by the RefPtr that's still in the LinkedList,
+-  // so the automatic removal from the LinkedList from the LinkedListElement
+-  // destructor will not occur. We must remove it manually from the LinkedList
+-  // instead.
+-  {
+-    auto annotationTimers = mBHRAnnotationTimers.Lock();
+-    timer->removeFrom(*annotationTimers);
+-  }
+-
+-  return true;
+ }
+ 
+ bool Timers::CancelUserInteraction(JSContext* aCx,
+@@ -559,38 +318,7 @@ bool Timers::CancelUserInteraction(JSCon
+                                    JS::HandleObject aObj) {
+   MOZ_ASSERT(NS_IsMainThread());
+ 
+-  // Ensure that this ID maps to a UserInteraction that can be recorded
+-  // for this product.
+-  if (!TelemetryUserInteraction::CanRecord(aUserInteraction)) {
+-    if (!mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "UserInteraction with id \"%s\" cannot be recorded.",
+-                        NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-    }
+     return false;
+-  }
+-
+-  RefPtr<Timer> timer = GetAndDelete(aCx, aUserInteraction, aObj, VoidString());
+-  if (!timer) {
+-    if (!mSuppressErrors) {
+-      LogError(aCx, nsPrintfCString(
+-                        "UserInteraction: cancelling nonexisting stopwatch. "
+-                        "name: \"%s\"",
+-                        NS_ConvertUTF16toUTF8(aUserInteraction).get()));
+-    }
+-    return false;
+-  }
+-
+-  // The Timer will be held alive by the RefPtr that's still in the LinkedList,
+-  // so the automatic removal from the LinkedList from the LinkedListElement
+-  // destructor will not occur. We must remove it manually from the LinkedList
+-  // instead.
+-  {
+-    auto annotationTimers = mBHRAnnotationTimers.Lock();
+-    timer->removeFrom(*annotationTimers);
+-  }
+-
+-  return true;
+ }
+ 
+ void Timers::AnnotateHang(mozilla::BackgroundHangAnnotations& aAnnotations) {
 diff --git a/toolkit/components/utils/ClientEnvironment.jsm b/toolkit/components/utils/ClientEnvironment.jsm
 --- a/toolkit/components/utils/ClientEnvironment.jsm
 +++ b/toolkit/components/utils/ClientEnvironment.jsm

@@ -1,0 +1,725 @@
+diff --git a/browser/actors/AboutReaderParent.jsm b/browser/actors/AboutReaderParent.jsm
+--- a/browser/actors/AboutReaderParent.jsm
++++ b/browser/actors/AboutReaderParent.jsm
+@@ -19,11 +19,6 @@ ChromeUtils.defineModuleGetter(
+   "ReaderMode",
+   "resource://gre/modules/ReaderMode.jsm"
+ );
+-ChromeUtils.defineModuleGetter(
+-  this,
+-  "pktApi",
+-  "chrome://pocket/content/pktApi.jsm"
+-);
+ 
+ const gStringBundle = Services.strings.createBundle(
+   "chrome://global/locale/aboutReader.properties"
+@@ -114,45 +109,6 @@ class AboutReaderParent extends JSWindow
+         gCachedArticles.delete(message.data.url);
+         return cachedArticle;
+       }
+-      case "Reader:PocketLoginStatusRequest": {
+-        return pktApi.isUserLoggedIn();
+-      }
+-      case "Reader:PocketGetArticleInfo": {
+-        return new Promise(resolve => {
+-          pktApi.getArticleInfo(message.data.url, {
+-            success: data => {
+-              resolve(data);
+-            },
+-            error: error => {
+-              resolve(null);
+-            },
+-          });
+-        });
+-      }
+-      case "Reader:PocketGetArticleRecs": {
+-        return new Promise(resolve => {
+-          pktApi.getRecsForItem(message.data.itemID, {
+-            success: data => {
+-              resolve(data);
+-            },
+-            error: error => {
+-              resolve(null);
+-            },
+-          });
+-        });
+-      }
+-      case "Reader:PocketSaveArticle": {
+-        return new Promise(resolve => {
+-          pktApi.addLink(message.data.url, {
+-            success: data => {
+-              resolve(data);
+-            },
+-            error: error => {
+-              resolve(null);
+-            },
+-          });
+-        });
+-      }
+       case "Reader:FaviconRequest": {
+         try {
+           let preferredWidth = message.data.preferredWidth || 0;
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -57,7 +57,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PlacesUIUtils: "resource:///modules/PlacesUIUtils.jsm",
+   PlacesTransactions: "resource://gre/modules/PlacesTransactions.jsm",
+   PluralForm: "resource://gre/modules/PluralForm.jsm",
+-  Pocket: "chrome://pocket/content/Pocket.jsm",
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+   ProcessHangMonitor: "resource:///modules/ProcessHangMonitor.jsm",
+   PromiseUtils: "resource://gre/modules/PromiseUtils.jsm",
+@@ -67,7 +66,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   RFPHelper: "resource://gre/modules/RFPHelper.jsm",
+   SafeBrowsing: "resource://gre/modules/SafeBrowsing.jsm",
+   Sanitizer: "resource:///modules/Sanitizer.jsm",
+-  SaveToPocket: "chrome://pocket/content/SaveToPocket.jsm",
+   ScreenshotsUtils: "resource:///modules/ScreenshotsUtils.jsm",
+   SessionStartup: "resource:///modules/sessionstore/SessionStartup.jsm",
+   SessionStore: "resource:///modules/sessionstore/SessionStore.jsm",
+@@ -5418,8 +5416,6 @@ var XULBrowserWindow = {
+ 
+     SafeBrowsingNotificationBox.onLocationChange(aLocationURI);
+ 
+-    SaveToPocket.onLocationChange(window);
+-
+     UrlbarProviderSearchTips.onLocationChange(
+       window,
+       aLocationURI,
+diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
+--- a/browser/base/content/nsContextMenu.js
++++ b/browser/base/content/nsContextMenu.js
+@@ -762,46 +762,9 @@ class nsContextMenu {
+   }
+ 
+   initPocketItems() {
+-    const pocketEnabled = Services.prefs.getBoolPref(
+-      "extensions.pocket.enabled"
+-    );
+     let showSaveCurrentPageToPocket = false;
+     let showSaveLinkToPocket = false;
+ 
+-    // We can skip all this is Pocket is not enabled.
+-    if (pocketEnabled) {
+-      let targetURL, targetURI;
+-      // If the context menu is opened over a link, we target the link,
+-      // if not, we target the page.
+-      if (this.onLink) {
+-        targetURL = this.linkURL;
+-        // linkURI may be null if the URL is invalid.
+-        targetURI = this.linkURI;
+-      } else {
+-        targetURL = this.browser?.currentURI?.spec;
+-        targetURI = Services.io.newURI(targetURL);
+-      }
+-
+-      const canPocket =
+-        targetURI?.schemeIs("http") ||
+-        targetURI?.schemeIs("https") ||
+-        (targetURI?.schemeIs("about") && ReaderMode?.getOriginalUrl(targetURL));
+-
+-      // If the target is valid, decide which menu item to enable.
+-      if (canPocket) {
+-        showSaveLinkToPocket = this.onLink;
+-        showSaveCurrentPageToPocket = !(
+-          this.onTextInput ||
+-          this.onLink ||
+-          this.isContentSelected ||
+-          this.onImage ||
+-          this.onCanvas ||
+-          this.onVideo ||
+-          this.onAudio
+-        );
+-      }
+-    }
+-
+     this.showItem("context-pocket", showSaveCurrentPageToPocket);
+     this.showItem("context-savelinktopocket", showSaveLinkToPocket);
+   }
+diff --git a/browser/components/BrowserGlue.jsm b/browser/components/BrowserGlue.jsm
+--- a/browser/components/BrowserGlue.jsm
++++ b/browser/components/BrowserGlue.jsm
+@@ -263,26 +263,6 @@ let JSWINDOWACTORS = {
+     matches: ["about:plugins"],
+   },
+ 
+-  AboutPocket: {
+-    parent: {
+-      moduleURI: "resource:///actors/AboutPocketParent.jsm",
+-    },
+-    child: {
+-      moduleURI: "resource:///actors/AboutPocketChild.jsm",
+-
+-      events: {
+-        DOMDocElementInserted: { capture: true },
+-      },
+-    },
+-
+-    matches: [
+-      "about:pocket-saved*",
+-      "about:pocket-signup*",
+-      "about:pocket-home*",
+-      "about:pocket-style-guide*",
+-    ],
+-  },
+-
+   AboutPrivateBrowsing: {
+     parent: {
+       moduleURI: "resource:///actors/AboutPrivateBrowsingParent.jsm",
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -106,22 +106,6 @@ static const RedirEntry kRedirMap[] = {
+          nsIAboutModule::URI_CAN_LOAD_IN_PRIVILEGEDABOUT_PROCESS |
+          nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+          nsIAboutModule::ALLOW_SCRIPT},
+-    {"pocket-saved", "chrome://pocket/content/panels/saved.html",
+-     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+-         nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+-         nsIAboutModule::HIDE_FROM_ABOUTABOUT},
+-    {"pocket-signup", "chrome://pocket/content/panels/signup.html",
+-     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+-         nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+-         nsIAboutModule::HIDE_FROM_ABOUTABOUT},
+-    {"pocket-home", "chrome://pocket/content/panels/home.html",
+-     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+-         nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+-         nsIAboutModule::HIDE_FROM_ABOUTABOUT},
+-    {"pocket-style-guide", "chrome://pocket/content/panels/style-guide.html",
+-     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+-         nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+-         nsIAboutModule::HIDE_FROM_ABOUTABOUT},
+     {"preferences", "chrome://browser/content/preferences/preferences.xhtml",
+      nsIAboutModule::ALLOW_SCRIPT | nsIAboutModule::IS_SECURE_CHROME_UI},
+     {"downloads",
+diff --git a/browser/components/newtab/lib/PlacesFeed.jsm b/browser/components/newtab/lib/PlacesFeed.jsm
+--- a/browser/components/newtab/lib/PlacesFeed.jsm
++++ b/browser/components/newtab/lib/PlacesFeed.jsm
+@@ -37,11 +37,6 @@ ChromeUtils.defineModuleGetter(
+ );
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "pktApi",
+-  "chrome://pocket/content/pktApi.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "ExperimentAPI",
+   "resource://nimbus/ExperimentAPI.jsm"
+ );
+@@ -327,88 +322,6 @@ class PlacesFeed {
+     }
+   }
+ 
+-  async saveToPocket(site, browser) {
+-    const sendToPocket = NimbusFeatures.pocketNewtab.getVariable(
+-      "sendToPocket"
+-    );
+-    // An experiment to send the user directly to Pocket's signup page.
+-    if (sendToPocket && !pktApi.isUserLoggedIn()) {
+-      const pocketNewtabExperiment = ExperimentAPI.getExperiment({
+-        featureId: "pocketNewtab",
+-      });
+-      const pocketSiteHost = Services.prefs.getStringPref(
+-        "extensions.pocket.site"
+-      ); // getpocket.com
+-      let utmSource = "firefox_newtab_save_button";
+-      // We want to know if the user is in a Pocket newtab related experiment.
+-      let utmCampaign = pocketNewtabExperiment?.slug;
+-      let utmContent = pocketNewtabExperiment?.branch?.slug;
+-
+-      const url = new URL(`https://${pocketSiteHost}/ff_signup`);
+-      url.searchParams.append("utmSource", utmSource);
+-      if (utmCampaign && utmContent) {
+-        url.searchParams.append("utmCampaign", utmCampaign);
+-        url.searchParams.append("utmContent", utmContent);
+-      }
+-
+-      const win = browser.ownerGlobal;
+-      win.openTrustedLinkIn(url.href, "tab");
+-      return;
+-    }
+-
+-    const { url, title } = site;
+-    try {
+-      let data = await NewTabUtils.activityStreamLinks.addPocketEntry(
+-        url,
+-        title,
+-        browser
+-      );
+-      if (data) {
+-        this.store.dispatch(
+-          ac.BroadcastToContent({
+-            type: at.PLACES_SAVED_TO_POCKET,
+-            data: {
+-              url,
+-              open_url: data.item.open_url,
+-              title,
+-              pocket_id: data.item.item_id,
+-            },
+-          })
+-        );
+-      }
+-    } catch (err) {
+-      Cu.reportError(err);
+-    }
+-  }
+-
+-  /**
+-   * Deletes an item from a user's saved to Pocket feed
+-   * @param {int} itemID
+-   *  The unique ID given by Pocket for that item; used to look the item up when deleting
+-   */
+-  async deleteFromPocket(itemID) {
+-    try {
+-      await NewTabUtils.activityStreamLinks.deletePocketEntry(itemID);
+-      this.store.dispatch({ type: at.POCKET_LINK_DELETED_OR_ARCHIVED });
+-    } catch (err) {
+-      Cu.reportError(err);
+-    }
+-  }
+-
+-  /**
+-   * Archives an item from a user's saved to Pocket feed
+-   * @param {int} itemID
+-   *  The unique ID given by Pocket for that item; used to look the item up when archiving
+-   */
+-  async archiveFromPocket(itemID) {
+-    try {
+-      await NewTabUtils.activityStreamLinks.archivePocketEntry(itemID);
+-      this.store.dispatch({ type: at.POCKET_LINK_DELETED_OR_ARCHIVED });
+-    } catch (err) {
+-      Cu.reportError(err);
+-    }
+-  }
+-
+   /**
+    * Sends an attribution request for Top Sites interactions.
+    * @param {object} data
+@@ -578,15 +491,6 @@ class PlacesFeed {
+       case at.OPEN_PRIVATE_WINDOW:
+         this.openLink(action, "window", true);
+         break;
+-      case at.SAVE_TO_POCKET:
+-        this.saveToPocket(action.data.site, action._target.browser);
+-        break;
+-      case at.DELETE_FROM_POCKET:
+-        this.deleteFromPocket(action.data.pocket_id);
+-        break;
+-      case at.ARCHIVE_FROM_POCKET:
+-        this.archiveFromPocket(action.data.pocket_id);
+-        break;
+       case at.FILL_SEARCH_TERM:
+         this.fillSearchTopSiteTerm(action);
+         break;
+diff --git a/browser/components/newtab/lib/SectionsManager.jsm b/browser/components/newtab/lib/SectionsManager.jsm
+--- a/browser/components/newtab/lib/SectionsManager.jsm
++++ b/browser/components/newtab/lib/SectionsManager.jsm
+@@ -74,7 +74,6 @@ const BUILT_IN_SECTIONS = () => ({
+     maxRows: 4,
+     availableLinkMenuOptions: [
+       "CheckBookmarkOrArchive",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+@@ -116,10 +115,7 @@ const BUILT_IN_SECTIONS = () => ({
+         {
+           name: "section.highlights.includePocket",
+           titleString: "home-prefs-highlights-option-saved-to-pocket",
+-          hidden: !Services.prefs.getBoolPref(
+-            "extensions.pocket.enabled",
+-            true
+-          ),
++          hidden: true,
+         },
+       ],
+     },
+@@ -142,11 +138,10 @@ const BUILT_IN_SECTIONS = () => ({
+ 
+ const SectionsManager = {
+   ACTIONS_TO_PROXY: ["WEBEXT_CLICK", "WEBEXT_DISMISS"],
+-  CONTEXT_MENU_PREFS: { CheckSavedToPocket: "extensions.pocket.enabled" },
++  CONTEXT_MENU_PREFS: {},
+   CONTEXT_MENU_OPTIONS_FOR_HIGHLIGHT_TYPES: {
+     history: [
+       "CheckBookmark",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+@@ -156,7 +151,6 @@ const SectionsManager = {
+     ],
+     bookmark: [
+       "CheckBookmark",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+@@ -166,7 +160,6 @@ const SectionsManager = {
+     ],
+     pocket: [
+       "ArchiveFromPocket",
+-      "CheckSavedToPocket",
+       "Separator",
+       "OpenInNewWindow",
+       "OpenInPrivateWindow",
+diff --git a/browser/components/newtab/lib/TopStoriesFeed.jsm b/browser/components/newtab/lib/TopStoriesFeed.jsm
+--- a/browser/components/newtab/lib/TopStoriesFeed.jsm
++++ b/browser/components/newtab/lib/TopStoriesFeed.jsm
+@@ -28,12 +28,6 @@ const { PersistentCache } = ChromeUtils.
+   "resource://activity-stream/lib/PersistentCache.jsm"
+ );
+ 
+-ChromeUtils.defineModuleGetter(
+-  this,
+-  "pktApi",
+-  "chrome://pocket/content/pktApi.jsm"
+-);
+-
+ const STORIES_UPDATE_TIME = 30 * 60 * 1000; // 30 minutes
+ const TOPICS_UPDATE_TIME = 3 * 60 * 60 * 1000; // 3 hours
+ const STORIES_NOW_THRESHOLD = 24 * 60 * 60 * 1000; // 24 hours
+@@ -96,7 +90,6 @@ this.TopStoriesFeed = class TopStoriesFe
+       this.storiesLastUpdated = 0;
+       this.topicsLastUpdated = 0;
+       this.storiesLoaded = false;
+-      this.dispatchPocketCta(this._prefs.get("pocketCta"), false);
+ 
+       // Cache is used for new page loads, which shouldn't have changed data.
+       // If we have changed data, cache should be cleared,
+@@ -135,20 +128,6 @@ this.TopStoriesFeed = class TopStoriesFe
+     SectionsManager.disableSection(SECTION_ID);
+   }
+ 
+-  getPocketState(target) {
+-    const action = { type: at.POCKET_LOGGED_IN, data: pktApi.isUserLoggedIn() };
+-    this.store.dispatch(ac.OnlyToOneContent(action, target));
+-  }
+-
+-  dispatchPocketCta(data, shouldBroadcast) {
+-    const action = { type: at.POCKET_CTA, data: JSON.parse(data) };
+-    this.store.dispatch(
+-      shouldBroadcast
+-        ? ac.BroadcastToContent(action)
+-        : ac.AlsoToPreloaded(action)
+-    );
+-  }
+-
+   /**
+    * doContentUpdate - Updates topics and stories in the topstories section.
+    *
+@@ -673,7 +652,6 @@ this.TopStoriesFeed = class TopStoriesFe
+         this.uninit();
+         break;
+       case at.NEW_TAB_REHYDRATED:
+-        this.getPocketState(action.meta.fromTarget);
+         this.maybeAddSpoc(action.meta.fromTarget);
+         break;
+       case at.SECTION_OPTIONS_CHANGED:
+@@ -697,8 +675,7 @@ this.TopStoriesFeed = class TopStoriesFe
+           const payload = action.data;
+           const viewImpression = !(
+             "click" in payload ||
+-            "block" in payload ||
+-            "pocket" in payload
++            "block" in payload
+           );
+           if (payload.tiles && viewImpression) {
+             if (this.shouldShowSpocs()) {
+@@ -732,9 +709,6 @@ this.TopStoriesFeed = class TopStoriesFe
+         if (action.data.name === "showSponsored" && !action.data.value) {
+           await this.removeSpocs();
+         }
+-        if (action.data.name === "pocketCta") {
+-          this.dispatchPocketCta(action.data.value, true);
+-        }
+         break;
+     }
+   }
+diff --git a/browser/components/pocket/content/SaveToPocket.jsm b/browser/components/pocket/content/SaveToPocket.jsm
+--- a/browser/components/pocket/content/SaveToPocket.jsm
++++ b/browser/components/pocket/content/SaveToPocket.jsm
+@@ -87,23 +87,7 @@ function browserWindows() {
+ 
+ var SaveToPocket = {
+   init() {
+-    // migrate enabled pref
+-    if (Services.prefs.prefHasUserValue("browser.pocket.enabled")) {
+-      Services.prefs.setBoolPref(
+-        "extensions.pocket.enabled",
+-        Services.prefs.getBoolPref("browser.pocket.enabled")
+-      );
+-      Services.prefs.clearUserPref("browser.pocket.enabled");
+-    }
+-    // Only define the pref getter now, so we don't get notified for the
+-    // migrated pref above.
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "prefEnabled",
+-      "extensions.pocket.enabled",
+-      true,
+-      this.onPrefChange.bind(this)
+-    );
++    this.prefEnabled = false;
+     if (this.prefEnabled) {
+       PocketOverlay.startup();
+     } else {
+diff --git a/dom/security/DOMSecurityMonitor.cpp b/dom/security/DOMSecurityMonitor.cpp
+--- a/dom/security/DOMSecurityMonitor.cpp
++++ b/dom/security/DOMSecurityMonitor.cpp
+@@ -54,8 +54,6 @@ void DOMSecurityMonitor::AuditParsingOfH
+    */
+   static nsLiteralCString htmlFragmentAllowlist[] = {
+       "chrome://global/content/elements/marquee.js"_ns,
+-      nsLiteralCString(
+-          "chrome://pocket/content/panels/js/vendor/jquery-2.1.1.min.js"),
+       "chrome://browser/content/certerror/aboutNetError.js"_ns,
+       nsLiteralCString("chrome://devtools/content/shared/sourceeditor/"
+                        "codemirror/codemirror.bundle.js"),
+diff --git a/toolkit/modules/NewTabUtils.jsm b/toolkit/modules/NewTabUtils.jsm
+--- a/toolkit/modules/NewTabUtils.jsm
++++ b/toolkit/modules/NewTabUtils.jsm
+@@ -43,18 +43,6 @@ ChromeUtils.defineModuleGetter(
+   "resource://gre/modules/BinarySearch.jsm"
+ );
+ 
+-ChromeUtils.defineModuleGetter(
+-  this,
+-  "pktApi",
+-  "chrome://pocket/content/pktApi.jsm"
+-);
+-
+-ChromeUtils.defineModuleGetter(
+-  this,
+-  "Pocket",
+-  "chrome://pocket/content/Pocket.jsm"
+-);
+-
+ let BrowserWindowTracker;
+ try {
+   BrowserWindowTracker = ChromeUtils.import(
+@@ -104,10 +92,6 @@ const ACTIVITY_STREAM_DEFAULT_RECENT = 5
+ // If devicePixelRatio cannot be found, it will be multiplied by 2.
+ const DEFAULT_SMALL_FAVICON_WIDTH = 16;
+ 
+-const POCKET_UPDATE_TIME = 24 * 60 * 60 * 1000; // 1 day
+-const POCKET_INACTIVE_TIME = 7 * 24 * 60 * 60 * 1000; // 1 week
+-const PREF_POCKET_LATEST_SINCE = "extensions.pocket.settings.latestSince";
+-
+ /**
+  * Calculate the MD5 hash for a string.
+  * @param aValue
+@@ -977,86 +961,6 @@ var ActivityStreamProvider = {
+   },
+ 
+   /**
+-   * Helper function which makes the call to the Pocket API to fetch the user's
+-   * saved Pocket items.
+-   */
+-  fetchSavedPocketItems(requestData) {
+-    const latestSince =
+-      Services.prefs.getStringPref(PREF_POCKET_LATEST_SINCE, 0) * 1000;
+-
+-    // Do not fetch Pocket items for users that have been inactive for too long, or are not logged in
+-    if (
+-      !pktApi.isUserLoggedIn() ||
+-      Date.now() - latestSince > POCKET_INACTIVE_TIME
+-    ) {
+-      return Promise.resolve(null);
+-    }
+-
+-    return new Promise((resolve, reject) => {
+-      pktApi.retrieve(requestData, {
+-        success(data) {
+-          resolve(data);
+-        },
+-        error(error) {
+-          reject(error);
+-        },
+-      });
+-    });
+-  },
+-
+-  /**
+-   * Get the most recently Pocket-ed items from a user's Pocket list. See:
+-   * https://getpocket.com/developer/docs/v3/retrieve for details
+-   *
+-   * @param {Object} aOptions
+-   *   {int} numItems: The max number of pocket items to fetch
+-   */
+-  async getRecentlyPocketed(aOptions) {
+-    const pocketSecondsAgo =
+-      Math.floor(Date.now() / 1000) - ACTIVITY_STREAM_DEFAULT_RECENT;
+-    const requestData = {
+-      detailType: "complete",
+-      count: aOptions.numItems,
+-      since: pocketSecondsAgo,
+-    };
+-    let data;
+-    try {
+-      data = await this.fetchSavedPocketItems(requestData);
+-      if (!data) {
+-        return [];
+-      }
+-    } catch (e) {
+-      Cu.reportError(e);
+-      return [];
+-    }
+-    /* Extract relevant parts needed to show this card as a highlight:
+-     * url, preview image, title, description, and the unique item_id
+-     * necessary for Pocket to identify the item
+-     */
+-    let items = Object.values(data.list)
+-      // status "0" means not archived or deleted
+-      .filter(item => item.status === "0")
+-      .map(item => ({
+-        date_added: item.time_added * 1000,
+-        description: item.excerpt,
+-        preview_image_url: item.image && item.image.src,
+-        title: item.resolved_title,
+-        url: item.resolved_url,
+-        pocket_id: item.item_id,
+-        open_url: item.open_url,
+-      }));
+-
+-    // Append the query param to let Pocket know this item came from highlights
+-    for (let item of items) {
+-      let url = new URL(item.open_url);
+-      url.searchParams.append("src", "fx_new_tab");
+-      item.open_url = url.href;
+-    }
+-
+-    return this._processHighlights(items, aOptions, "pocket");
+-  },
+-
+-  /**
+    * Get most-recently-created visited bookmarks for Activity Stream.
+    *
+    * @param {Object} aOptions
+@@ -1439,10 +1343,6 @@ var ActivityStreamProvider = {
+  * A set of actions which influence what sites shown on the Activity Stream page
+  */
+ var ActivityStreamLinks = {
+-  _savedPocketStories: null,
+-  _pocketLastUpdated: 0,
+-  _pocketLastLatest: 0,
+-
+   /**
+    * Block a url
+    *
+@@ -1451,10 +1351,6 @@ var ActivityStreamLinks = {
+    */
+   blockURL(aLink) {
+     BlockedLinks.block(aLink);
+-    // If we're blocking a pocket item, invalidate the cache too
+-    if (aLink.pocket_id) {
+-      this._savedPocketStories = null;
+-    }
+   },
+ 
+   onLinkBlocked(aLink) {
+@@ -1505,71 +1401,6 @@ var ActivityStreamLinks = {
+   },
+ 
+   /**
+-   * Helper function which makes the call to the Pocket API to delete an item from
+-   * a user's saved to Pocket feed. Also, invalidate the Pocket stories cache
+-   *
+-   * @param {Integer} aItemID
+-   *           The unique pocket ID used to find the item to be deleted
+-   *
+-   *@returns {Promise} Returns a promise at completion
+-   */
+-  deletePocketEntry(aItemID) {
+-    this._savedPocketStories = null;
+-    return new Promise((success, error) =>
+-      pktApi.deleteItem(aItemID, { success, error })
+-    );
+-  },
+-
+-  /**
+-   * Helper function which makes the call to the Pocket API to archive an item from
+-   * a user's saved to Pocket feed. Also, invalidate the Pocket stories cache
+-   *
+-   * @param {Integer} aItemID
+-   *           The unique pocket ID used to find the item to be archived
+-   *
+-   *@returns {Promise} Returns a promise at completion
+-   */
+-  archivePocketEntry(aItemID) {
+-    this._savedPocketStories = null;
+-    return new Promise((success, error) =>
+-      pktApi.archiveItem(aItemID, { success, error })
+-    );
+-  },
+-
+-  /**
+-   * Helper function which makes the call to the Pocket API to save an item to
+-   * a user's saved to Pocket feed if they are logged in. Also, invalidate the
+-   * Pocket stories cache
+-   *
+-   * @param {String} aUrl
+-   *           The URL belonging to the story being saved
+-   * @param {String} aTitle
+-   *           The title belonging to the story being saved
+-   * @param {Browser} aBrowser
+-   *           The target browser to show the doorhanger in
+-   *
+-   *@returns {Promise} Returns a promise at completion
+-   */
+-  addPocketEntry(aUrl, aTitle, aBrowser) {
+-    // If the user is not logged in, show the panel to prompt them to log in
+-    if (!pktApi.isUserLoggedIn()) {
+-      Pocket.savePage(aBrowser, aUrl, aTitle);
+-      return Promise.resolve(null);
+-    }
+-
+-    // If the user is logged in, just save the link to Pocket and Activity Stream
+-    // will update the page
+-    this._savedPocketStories = null;
+-    return new Promise((success, error) => {
+-      pktApi.addLink(aUrl, {
+-        title: aTitle,
+-        success,
+-        error,
+-      });
+-    });
+-  },
+-
+-  /**
+    * Get the Highlights links to show on Activity Stream
+    *
+    * @param {Object} aOptions
+@@ -1592,30 +1423,6 @@ var ActivityStreamLinks = {
+       );
+     }
+ 
+-    // Add the Pocket items if we need more and want them
+-    if (aOptions.numItems - results.length > 0 && !aOptions.excludePocket) {
+-      const latestSince = ~~Services.prefs.getStringPref(
+-        PREF_POCKET_LATEST_SINCE,
+-        0
+-      );
+-      // Invalidate the cache, get new stories, and update timestamps if:
+-      //  1. we do not have saved to Pocket stories already cached OR
+-      //  2. it has been too long since we last got Pocket stories OR
+-      //  3. there has been a paged saved to pocket since we last got new stories
+-      if (
+-        !this._savedPocketStories ||
+-        Date.now() - this._pocketLastUpdated > POCKET_UPDATE_TIME ||
+-        this._pocketLastLatest < latestSince
+-      ) {
+-        this._savedPocketStories = await ActivityStreamProvider.getRecentlyPocketed(
+-          aOptions
+-        );
+-        this._pocketLastUpdated = Date.now();
+-        this._pocketLastLatest = latestSince;
+-      }
+-      results.push(...this._savedPocketStories);
+-    }
+-
+     // Add in history if we need more and want them
+     if (aOptions.numItems - results.length > 0 && !aOptions.excludeHistory) {
+       // Use the same numItems as bookmarks above in case we remove duplicates

@@ -407,22 +407,14 @@ diff --git a/toolkit/mozapps/extensions/content/aboutaddons.js b/toolkit/mozapps
 diff --git a/toolkit/mozapps/extensions/content/view-controller.js b/toolkit/mozapps/extensions/content/view-controller.js
 --- a/toolkit/mozapps/extensions/content/view-controller.js
 +++ b/toolkit/mozapps/extensions/content/view-controller.js
-@@ -46,14 +46,7 @@ async function recordViewTelemetry(param
-     viewType === "discover" ||
-     (viewType === "list" && type === "extension")
-   ) {
--    // DiscoveryAPI is defined in aboutaddons.js (which is technically loaded after
--    // this script, nevertheless we would never reach this if aboutaddons.js wasn't
--    // already executed and the about:addons views defined, which guarantees that
--    // DiscoveryAPI will always be defined here.
--    // (This telemetry collection is also covered by tests and so there will also be
--    // test failures if that isn't the case anymore).
--    const { DiscoveryAPI } = window;
--    details.taarEnabled = !!DiscoveryAPI.clientIdDiscoveryEnabled;
-+    details.taarEnabled = false;
-   }
+@@ -207,7 +207,6 @@ var gViewController = {
+     this.isLoading = true;
  
-   AMTelemetry.recordViewEvent(details);
+     // Perform tasks before view load
+-    recordViewTelemetry(param);
+     document.dispatchEvent(
+       new CustomEvent("view-selected", {
+         detail: { id: state.view, param, type },
 diff --git a/toolkit/mozapps/extensions/extensions.manifest b/toolkit/mozapps/extensions/extensions.manifest
 --- a/toolkit/mozapps/extensions/extensions.manifest
 +++ b/toolkit/mozapps/extensions/extensions.manifest

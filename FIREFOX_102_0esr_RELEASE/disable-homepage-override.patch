@@ -108,12 +108,10 @@ diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/B
  /**
   * Open a browser window. If this is the initial launch, this function will
   * attempt to use the navigator:blank window opened by BrowserGlue.jsm during
-@@ -624,165 +531,7 @@ nsBrowserContentHandler.prototype = {
-   },
- 
+@@ -626,139 +533,6 @@ nsBrowserContentHandler.prototype = {
    getArgs(isStartup = false) {
--    var prefb = Services.prefs;
--
+     var prefb = Services.prefs;
+ 
 -    if (!gFirstWindow) {
 -      gFirstWindow = true;
 -      if (PrivateBrowsingUtils.isInTemporaryAutoStartMode) {
@@ -247,20 +245,19 @@ diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/B
 -      }
 -    }
 -
--    var startPage = "";
--    try {
--      var choice = prefb.getIntPref("browser.startup.page");
--      if (choice == 1 || choice == 3) {
--        startPage = HomePage.get();
--      }
--    } catch (e) {
--      Cu.reportError(e);
--    }
--
+     var startPage = "";
+     try {
+       var choice = prefb.getIntPref("browser.startup.page");
+@@ -769,20 +543,11 @@ nsBrowserContentHandler.prototype = {
+       Cu.reportError(e);
+     }
+ 
 -    if (startPage == "about:blank") {
 -      startPage = "";
--    }
--
++    if (!startPage || startPage == "about:blank") {
++      startPage = "https://r.gecko-embedded.org/amethyst";
+     }
+ 
 -    let skipStartPage =
 -      override == OVERRIDE_NEW_PROFILE &&
 -      prefb.getBoolPref("browser.startup.firstrunSkipsHomepage");
@@ -271,7 +268,7 @@ diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/B
 -    }
 -
 -    return overridePage || startPage || "about:blank";
-+    return "about:blank";
++    return startPage || "about:blank";
    },
  
    mFeatures: null,

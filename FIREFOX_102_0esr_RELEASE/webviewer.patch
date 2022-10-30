@@ -71,16 +71,38 @@ diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/brow
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.js
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,171 @@
 +const { Preferences } = ChromeUtils.import(
 +  "resource://gre/modules/Preferences.jsm"
++);
++const { XPCOMUtils } = ChromeUtils.import(
++  "resource://gre/modules/XPCOMUtils.jsm"
++);
++XPCOMUtils.defineLazyModuleGetters(this, {
++  ZoomUI: "resource:///modules/ZoomUI.jsm",
++});
++XPCOMUtils.defineLazyScriptGetter(
++  this,
++  "ZoomManager",
++  "chrome://global/content/viewZoomOverlay.js"
 +);
 +
 +const ZOOM_PREF = "devtools.toolbox.zoomValue";
 +const MIN_ZOOM = 0.5;
 +const MAX_ZOOM = 2;
 +
++function searchEnginesURL() {
++  return formatURL("browser.search.searchEnginesURL", true);
++}
++
++function formatURL(aFormat, aIsPref) {
++  return aIsPref
++    ? Services.urlFormatter.formatURLPref(aFormat)
++    : Services.urlFormatter.formatURL(aFormat);
++}
++
 +function onload(){
++  ZoomUI.init(window);
 +  window.fullScreen = true;
 +
 +  let uriToLoad = "";
@@ -117,6 +139,28 @@ new file mode 100644
 +
 +function getSelectedBrowser(){
 +  return document.getElementById("content");
++}
++
++function openTrustedLinkIn(url, where, aParams) {
++  getSelectedBrowser().src = url;
++}
++
++function switchToTabHavingURI(aURI, aOpenNew, aOpenParams = {}) {
++  openTrustedLinkIn(aURI);
++}
++
++function BrowserOpenAddonsMgr(aView) {
++  return new Promise(resolve => {
++    switchToTabHavingURI("about:addons", true);
++    Services.obs.addObserver(function observer(aSubject, aTopic, aData) {
++      Services.obs.removeObserver(observer, aTopic);
++      if (aView) {
++        aSubject.loadView(aView);
++      }
++      aSubject.focus();
++      resolve(aSubject);
++    }, "EM-loaded");
++  });
 +}
 +
 +/**
@@ -203,7 +247,7 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,83 @@
 +<?xml version="1.0"?>
 +<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 +<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
@@ -217,6 +261,7 @@ new file mode 100644
 +        xmlns:html="http://www.w3.org/1999/xhtml"
 +        xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 +        xmlns="http://www.w3.org/1999/xhtml"
++        windowtype="navigator:browser"
 +        width="800"
 +        height="480"
 +        sizemode="maximized"
@@ -279,8 +324,8 @@ new file mode 100644
 +
 +<vbox class="browserContainer" flex="10000">
 +  <stack class="browserStack" flex="10000">
-+    <browser id="content" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="true" remote="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
-+    <browser id="aboutContent" contextmenu="contentAreaContextMenu" maychangeremoteness="true" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" initiallyactive="true" remote="false" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
++    <browser id="content"      contextmenu="contentAreaContextMenu" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" maychangeremoteness="true" initiallyactive="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" remote="true"/>
++    <browser id="aboutContent" contextmenu="contentAreaContextMenu" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" maychangeremoteness="true" initiallyactive="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
 +  </stack>
 +</vbox>
 +</html:body>
@@ -343,6 +388,107 @@ diff --git a/browser/base/jar.mn b/browser/base/jar.mn
          content/browser/browser-a11yUtils.js          (content/browser-a11yUtils.js)
          content/browser/browser-addons.js             (content/browser-addons.js)
          content/browser/browser-allTabsMenu.js        (content/browser-allTabsMenu.js)
+diff --git a/browser/components/customizableui/CustomizableUI.jsm b/browser/components/customizableui/CustomizableUI.jsm
+--- a/browser/components/customizableui/CustomizableUI.jsm
++++ b/browser/components/customizableui/CustomizableUI.jsm
+@@ -16,7 +16,6 @@ const { AppConstants } = ChromeUtils.imp
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AddonManager: "resource://gre/modules/AddonManager.jsm",
+   AddonManagerPrivate: "resource://gre/modules/AddonManager.jsm",
+-  SearchWidgetTracker: "resource:///modules/SearchWidgetTracker.jsm",
+   CustomizableWidgets: "resource:///modules/CustomizableWidgets.jsm",
+   PanelMultiView: "resource:///modules/PanelMultiView.jsm",
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+@@ -296,8 +295,6 @@ var CustomizableUIInternal = {
+       true
+     );
+ 
+-    SearchWidgetTracker.init();
+-
+     Services.obs.addObserver(this, "browser-set-toolbar-visibility");
+   },
+ 
+diff --git a/browser/components/customizableui/moz.build b/browser/components/customizableui/moz.build
+--- a/browser/components/customizableui/moz.build
++++ b/browser/components/customizableui/moz.build
+@@ -20,7 +20,6 @@ EXTRA_JS_MODULES += [
+     "CustomizeMode.jsm",
+     "DragPositionManager.jsm",
+     "PanelMultiView.jsm",
+-    "SearchWidgetTracker.jsm",
+ ]
+ 
+ with Files("**"):
+diff --git a/browser/components/extensions/ext-browser.json b/browser/components/extensions/ext-browser.json
+--- a/browser/components/extensions/ext-browser.json
++++ b/browser/components/extensions/ext-browser.json
+@@ -114,18 +114,6 @@
+     "schema": "chrome://browser/content/schemas/menus_child.json",
+     "scopes": ["addon_child", "content_child", "devtools_child"]
+   },
+-  "menusInternal": {
+-    "url": "chrome://browser/content/parent/ext-menus.js",
+-    "schema": "chrome://browser/content/schemas/menus.json",
+-    "scopes": ["addon_parent"],
+-    "events": ["startup"],
+-    "permissions": ["menus", "contextMenus"],
+-    "paths": [
+-      ["contextMenus"],
+-      ["menus"],
+-      ["menusInternal"]
+-    ]
+-  },
+   "normandyAddonStudy": {
+     "url": "chrome://browser/content/parent/ext-normandyAddonStudy.js",
+     "schema": "chrome://browser/content/schemas/normandyAddonStudy.json",
+diff --git a/browser/components/preferences/home.js b/browser/components/preferences/home.js
+--- a/browser/components/preferences/home.js
++++ b/browser/components/preferences/home.js
+@@ -355,20 +355,6 @@ var gHomePane = {
+    */
+   _getTabsForHomePage() {
+     let tabs = [];
+-    let win = Services.wm.getMostRecentWindow("navigator:browser");
+-
+-    // We should only include visible & non-pinned tabs
+-    if (
+-      win &&
+-      win.document.documentElement.getAttribute("windowtype") ===
+-        "navigator:browser"
+-    ) {
+-      tabs = win.gBrowser.visibleTabs.slice(win.gBrowser._numPinnedTabs);
+-      tabs = tabs.filter(tab => !this._isTabAboutPreferences(tab));
+-      // XXX: Bug 1441637 - Fix tabbrowser to report tab.closing before it blurs it
+-      tabs = tabs.filter(tab => !tab.closing);
+-    }
+-
+     return tabs;
+   },
+ 
+diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
+--- a/browser/components/preferences/main.js
++++ b/browser/components/preferences/main.js
+@@ -288,7 +288,7 @@ var gMainPane = {
+       ];
+ 
+       let pollForDefaultBrowser = () => {
+-        let uri = win.gBrowser.currentURI.spec;
++        let uri = win.getSelectedBrowser().currentURI.spec;
+ 
+         if (
+           (uri == "about:preferences" || uri == "about:preferences#general") &&
+diff --git a/browser/components/preferences/search.js b/browser/components/preferences/search.js
+--- a/browser/components/preferences/search.js
++++ b/browser/components/preferences/search.js
+@@ -37,7 +37,7 @@ var gSearchPane = {
+       let addEnginesLink = document.getElementById("addEngines");
+       let searchEnginesURL = Services.wm.getMostRecentWindow(
+         "navigator:browser"
+-      ).BrowserSearch.searchEnginesURL;
++      ).searchEnginesURL();
+       addEnginesLink.setAttribute("href", searchEnginesURL);
+     }
+ 
 diff --git a/browser/moz.build b/browser/moz.build
 --- a/browser/moz.build
 +++ b/browser/moz.build

@@ -248,14 +248,8 @@ diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/B
      var startPage = "";
      try {
        var choice = prefb.getIntPref("browser.startup.page");
-@@ -769,20 +543,11 @@ nsBrowserContentHandler.prototype = {
-       Cu.reportError(e);
-     }
- 
--    if (startPage == "about:blank") {
--      startPage = "";
-+    if (!startPage || startPage == "about:blank") {
-+      startPage = "https://r.gecko-embedded.org/amethyst";
+@@ -773,16 +547,7 @@ nsBrowserContentHandler.prototype = {
+       startPage = "";
      }
  
 -    let skipStartPage =

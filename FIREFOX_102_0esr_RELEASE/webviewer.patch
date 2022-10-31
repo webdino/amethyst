@@ -500,3 +500,15 @@ diff --git a/browser/moz.build b/browser/moz.build
      "actors",
      "base",
      "components",
+diff --git a/toolkit/components/windowwatcher/nsWindowWatcher.cpp b/toolkit/components/windowwatcher/nsWindowWatcher.cpp
+--- a/toolkit/components/windowwatcher/nsWindowWatcher.cpp
++++ b/toolkit/components/windowwatcher/nsWindowWatcher.cpp
+@@ -644,7 +644,7 @@ nsresult nsWindowWatcher::OpenWindowInte
+   }
+ 
+   if (parentWindow) {
+-    parentTreeOwner = parentWindow->GetTreeOwner();
++    return NS_ERROR_ABORT;
+   }
+ 
+   // We expect BrowserParent to have provided us the absolute URI of the window

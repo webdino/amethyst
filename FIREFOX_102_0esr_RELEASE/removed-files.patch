@@ -247,6 +247,63 @@ diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/a
        if (path.EqualsLiteral("welcome")) {
          nsCOMPtr<nsIAboutNewTabService> aboutNewTabService =
              do_GetService("@mozilla.org/browser/aboutnewtab-service;1", &rv);
+diff --git a/browser/components/preferences/jar.mn b/browser/components/preferences/jar.mn
+--- a/browser/components/preferences/jar.mn
++++ b/browser/components/preferences/jar.mn
+@@ -13,7 +13,6 @@ browser.jar:
+    content/browser/preferences/privacy.js
+    content/browser/preferences/containers.js
+    content/browser/preferences/experimental.js
+-   content/browser/preferences/moreFromMozilla.js
+    content/browser/preferences/findInPage.js
+    content/browser/preferences/more-from-mozilla-qr-code-simple.svg
+    content/browser/preferences/more-from-mozilla-qr-code-simple-cn.svg
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -197,14 +197,6 @@ function init_all() {
+     register_module("paneExperimental", gExperimentalPane);
+   }
+ 
+-  NimbusFeatures.moreFromMozilla.recordExposureEvent({ once: true });
+-  if (NimbusFeatures.moreFromMozilla.getVariable("enabled")) {
+-    document.getElementById("category-more-from-mozilla").hidden = false;
+-    gMoreFromMozillaPane.option = NimbusFeatures.moreFromMozilla.getVariable(
+-      "template"
+-    );
+-    register_module("paneMoreFromMozilla", gMoreFromMozillaPane);
+-  }
+   register_module("paneSearchResults", gSearchResultsPane);
+   gSearchResultsPane.init();
+   gMainPane.preInit();
+diff --git a/browser/components/preferences/preferences.xhtml b/browser/components/preferences/preferences.xhtml
+--- a/browser/components/preferences/preferences.xhtml
++++ b/browser/components/preferences/preferences.xhtml
+@@ -140,16 +140,6 @@
+           <image class="category-icon"/>
+           <label class="category-name" flex="1" data-l10n-id="pane-experimental-title"></label>
+         </richlistitem>
+-        <richlistitem id="category-more-from-mozilla"
+-                      class="category"
+-                      hidden="true"
+-                      data-l10n-id="more-from-moz-category"
+-                      data-l10n-attrs="tooltiptext"
+-                      value="paneMoreFromMozilla"
+-                      align="center">
+-          <image class="category-icon"/>
+-          <label class="category-name" flex="1" data-l10n-id="more-from-moz-title"></label>
+-        </richlistitem>
+       </richlistbox>
+ 
+       <spacer flex="1"/>
+@@ -197,7 +187,6 @@
+ #include privacy.inc.xhtml
+ #include containers.inc.xhtml
+ #include experimental.inc.xhtml
+-#include moreFromMozilla.inc.xhtml
+         </vbox>
+       </vbox>
+     </vbox>
 diff --git a/browser/components/screenshots/moz.build b/browser/components/screenshots/moz.build
 --- a/browser/components/screenshots/moz.build
 +++ b/browser/components/screenshots/moz.build

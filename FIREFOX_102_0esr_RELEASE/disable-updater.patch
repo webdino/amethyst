@@ -46,26 +46,14 @@ diff --git a/browser/components/BrowserGlue.jsm b/browser/components/BrowserGlue
 diff --git a/build/moz.configure/update-programs.configure b/build/moz.configure/update-programs.configure
 --- a/build/moz.configure/update-programs.configure
 +++ b/build/moz.configure/update-programs.configure
-@@ -4,22 +4,6 @@
- # License, v. 2.0. If a copy of the MPL was not distributed with this
- # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+@@ -17,8 +17,8 @@ option(
+     help="{Enable|Disable} building the updater",
+ )
  
--# Updater
--# ==============================================================
--@depends(build_project)
--def updater_default(build_project):
--    return build_project != "mobile/android"
--
--
--option(
--    "--enable-updater",
--    default=updater_default,
--    help="{Enable|Disable} building the updater",
--)
--
 -set_config("MOZ_UPDATER", True, when="--enable-updater")
 -set_define("MOZ_UPDATER", True, when="--enable-updater")
--
++set_config("__MOZ_UPDATER_IS_FIXED_TO_DISABLE_ON_WEBVIEWER__", True, when="--enable-updater")
++set_define("__MOZ_UPDATER_IS_FIXED_TO_DISABLE_ON_WEBVIEWER__", True, when="--enable-updater")
+ 
  # Verify MAR signatures
  # ==============================================================
- 

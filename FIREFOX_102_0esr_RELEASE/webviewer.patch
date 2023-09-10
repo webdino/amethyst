@@ -247,7 +247,7 @@ diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/b
 new file mode 100644
 --- /dev/null
 +++ b/browser/amethyst/content/browser.xhtml
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,91 @@
 +<?xml version="1.0"?>
 +<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 +<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
@@ -321,6 +321,14 @@ new file mode 100644
 +    </panel>
 +  </html:template>
 +</popupset>
++
++<menulist popuponly="true" id="ContentSelectDropdown" hidden="true">
++  <menupopup rolluponmousewheel="true"
++             id="ContentSelectDropdownPopup"
++             activateontab="true" position="after_start"
++             level="parent"
++  />
++</menulist>
 +
 +<vbox class="browserContainer" flex="10000">
 +  <stack class="browserStack" flex="10000">

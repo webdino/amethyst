@@ -1,0 +1,522 @@
+diff --git a/browser/actors/BrowserTabParent.jsm b/browser/actors/BrowserTabParent.jsm
+--- a/browser/actors/BrowserTabParent.jsm
++++ b/browser/actors/BrowserTabParent.jsm
+@@ -18,6 +18,9 @@ class BrowserTabParent extends JSWindowA
+     }
+ 
+     let gBrowser = browser.ownerGlobal.gBrowser;
++    if (!gBrowser) {
++      return;
++    }
+ 
+     switch (message.name) {
+       case "Browser:WindowCreated": {
+diff --git a/browser/actors/ContextMenuParent.jsm b/browser/actors/ContextMenuParent.jsm
+--- a/browser/actors/ContextMenuParent.jsm
++++ b/browser/actors/ContextMenuParent.jsm
+@@ -16,8 +16,7 @@ class ContextMenuParent extends JSWindow
+     // since that'll likely be the "top" <xul:browser>, and then use its window's
+     // nsContextMenu instance instead.
+     if (!win.openContextMenu) {
+-      let topBrowser = browser.ownerGlobal.docShell.chromeEventHandler;
+-      win = topBrowser.ownerGlobal;
++      return;
+     }
+ 
+     win.openContextMenu(message, browser, this);
+diff --git a/browser/actors/DecoderDoctorParent.jsm b/browser/actors/DecoderDoctorParent.jsm
+--- a/browser/actors/DecoderDoctorParent.jsm
++++ b/browser/actors/DecoderDoctorParent.jsm
+@@ -99,7 +99,7 @@ class DecoderDoctorParent extends JSWind
+     // The xul browser is owned by a window.
+     let window = browser?.ownerGlobal;
+ 
+-    if (!browser || !window) {
++    if (!browser || !window || !browser.getTabBrowser()) {
+       // We don't have a browser or window so bail!
+       return;
+     }
+diff --git a/browser/amethyst/content/browser.css b/browser/amethyst/content/browser.css
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.css
+@@ -0,0 +1,26 @@
++.browserContainer {
++  height: 100%;
++  width: 100%;
++}
++
++/* browser/base/content/browser.css:7 */
++:root,
++body {
++  margin: 0;
++  padding: 0;
++  height: 100%;
++  width: 100%;
++  overflow: clip;
++}
++
++/* browser/base/content/browser.css:977 */
++#invalid-form-popup > description {
++  max-width: 280px;
++}
++
++.popup-anchor {
++  /* should occupy space but not be visible */
++  opacity: 0;
++  pointer-events: none;
++  position: absolute;
++}
+diff --git a/browser/amethyst/content/browser.js b/browser/amethyst/content/browser.js
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.js
+@@ -0,0 +1,171 @@
++const { Preferences } = ChromeUtils.import(
++  "resource://gre/modules/Preferences.jsm"
++);
++const { XPCOMUtils } = ChromeUtils.import(
++  "resource://gre/modules/XPCOMUtils.jsm"
++);
++XPCOMUtils.defineLazyModuleGetters(this, {
++  ZoomUI: "resource:///modules/ZoomUI.jsm",
++});
++XPCOMUtils.defineLazyScriptGetter(
++  this,
++  "ZoomManager",
++  "chrome://global/content/viewZoomOverlay.js"
++);
++
++const ZOOM_PREF = "devtools.toolbox.zoomValue";
++const MIN_ZOOM = 0.5;
++const MAX_ZOOM = 2;
++
++function searchEnginesURL() {
++  return formatURL("browser.search.searchEnginesURL", true);
++}
++
++function formatURL(aFormat, aIsPref) {
++  return aIsPref
++    ? Services.urlFormatter.formatURLPref(aFormat)
++    : Services.urlFormatter.formatURL(aFormat);
++}
++
++function onload(){
++  ZoomUI.init(window);
++  window.fullScreen = true;
++
++  let uriToLoad = "";
++  if (window.arguments && window.arguments.length) {
++    let args = window.arguments[0];
++    if (args instanceof Ci.nsIArray && args.length) {
++      for (let i = 0; i < args.length; i++) {
++        uriToLoad = args.queryElementAt(i, Ci.nsISupportsString).data;
++        if (!invalidStartupHomepage(uriToLoad)) break;
++      }
++    }
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = Cc["@mozilla.org/browser/clh;1"].getService(Ci.nsIBrowserHandler).defaultArgs;
++  }
++  if (invalidStartupHomepage(uriToLoad)) {
++    uriToLoad = Preferences.get("browser.startup.homepage");
++  }
++
++  if(uriToLoad.indexOf('about:') == 0){
++    document.getElementById("content").remove();
++    var element = document.getElementById("aboutContent");
++    element.id = "content";
++  }else{
++    document.getElementById("aboutContent").remove();
++  }
++
++  getSelectedBrowser().src = uriToLoad;
++}
++
++function invalidStartupHomepage(uriToLoad){
++  return !uriToLoad || uriToLoad === "about:home" || uriToLoad === "about:newtab";
++}
++
++function getSelectedBrowser(){
++  return document.getElementById("content");
++}
++
++function openTrustedLinkIn(url, where, aParams) {
++  getSelectedBrowser().src = url;
++}
++
++function switchToTabHavingURI(aURI, aOpenNew, aOpenParams = {}) {
++  openTrustedLinkIn(aURI);
++}
++
++function BrowserOpenAddonsMgr(aView) {
++  return new Promise(resolve => {
++    switchToTabHavingURI("about:addons", true);
++    Services.obs.addObserver(function observer(aSubject, aTopic, aData) {
++      Services.obs.removeObserver(observer, aTopic);
++      if (aView) {
++        aSubject.loadView(aView);
++      }
++      aSubject.focus();
++      resolve(aSubject);
++    }, "EM-loaded");
++  });
++}
++
++/**
++ * get Environment variable
++ */ 
++function getEnvVar(envVarName){
++  let env = Cc["@mozilla.org/process/environment;1"].getService(
++    Ci.nsIEnvironment
++  );
++  return env.get(envVarName);
++}
++
++/**
++ * Keyboard shortcut
++ */
++function BrowserHomePage(){
++  if(getEnvVar("WEBVIEWER_ENABLE_HOMEPAGE") || Preferences.get("webviewer.homepage.enable")){
++    return  getSelectedBrowser().src = Preferences.get("browser.startup.homepage");
++  }
++}
++
++function BrowserBack(){
++  if(getEnvVar("WEBVIEWER_ENABLE_BACK") || Preferences.get("webviewer.back.enable")){
++    return getSelectedBrowser().goBack();
++  }
++}
++
++function BrowserForward(){
++  if(getEnvVar("WEBVIEWER_ENABLE_FORWARD") || Preferences.get("webviewer.forward.enable")){
++    return getSelectedBrowser().goForward();
++  }
++}
++
++function BrowserReload(){
++  if(getEnvVar("WEBVIEWER_ENABLE_RELOAD") || Preferences.get("ebviewer.reload.enable")){
++    return getSelectedBrowser().reload();
++  }
++}
++
++function BrowserReloadSkipCache(){
++  if(getEnvVar("WEBVIEWER_ENABLE_RELOAD") || Preferences.get("ebviewer.reload.enable")){
++    return getSelectedBrowser().reloadWithFlags("LOAD_FLAGS_BYPASS_CACHE");
++  }
++}
++
++function BrowserZoomIn(){
++  if(getEnvVar("WEBVIEWER_ENABLE_ZOOM") || Preferences.get("webviewer.zoom.enable")){
++    if(MAX_ZOOM > getSelectedBrowser().fullZoom){
++    return getSelectedBrowser().fullZoom += 0.1;
++    }
++  }
++}
++
++function BrowserZoomOut(){
++  if(getEnvVar("WEBVIEWER_ENABLE_ZOOM") || Preferences.get("webviewer.zoom.enable")){
++    if(MIN_ZOOM < getSelectedBrowser().fullZoom){
++    return  getSelectedBrowser().fullZoom -= 0.1;
++    }
++  }
++}
++
++function BrowserZoomReset(){
++  if(getEnvVar("WEBVIEWER_ENABLE_ZOOM") || Preferences.get("webviewer.zoom.enable")){
++    return getSelectedBrowser().fullZoom =  parseFloat(Services.prefs.getCharPref(ZOOM_PREF));
++  }
++}
++
++function BrowserLoadURI(uriToLoad){
++  if(getEnvVar("WEBVIEWER_ENABLE_ABOUT") || Preferences.get("webviewer.about.enable")){
++    return  getSelectedBrowser().src = uriToLoad;
++  }
++}
++
++function BrowserQuit(){
++  if(getEnvVar("WEBVIEWER_ENABLE_QUIT") ||  Preferences.get("webviewer.quit.enable")){
++    window.close();
++  }
++}
++
++function BrowserFullScreen(){
++  window.fullScreen = !window.fullScreen;
++}
+diff --git a/browser/amethyst/content/browser.xhtml b/browser/amethyst/content/browser.xhtml
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/content/browser.xhtml
+@@ -0,0 +1,91 @@
++<?xml version="1.0"?>
++<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
++<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
++
++<!DOCTYPE window [
++<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
++%brandDTD;
++]>
++
++<html id="main-window"
++        xmlns:html="http://www.w3.org/1999/xhtml"
++        xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
++        xmlns="http://www.w3.org/1999/xhtml"
++        windowtype="navigator:browser"
++        width="800"
++        height="480"
++        sizemode="maximized"
++>
++<head>
++  <title>&brandFullName;</title>
++  <script type="text/javascript">
++    var {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
++    Services.scriptloader.loadSubScript("chrome://browser/content/browser.js", this);
++    window.addEventListener("load", onload, { once: true });
++  </script>
++</head>
++
++<html:body xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
++<commandset id="mainCommandSet">
++  <command id="Browser:Home"    oncommand="BrowserHomePage();"/>
++  <command id="Browser:Back"    oncommand="BrowserBack();"/>
++  <command id="Browser:Forward"    oncommand="BrowserForward();"/>
++  <command id="Browser:Reload"    oncommand="BrowserReload();"/>
++  <command id="Browser:ReloadSkipCache"    oncommand="BrowserReloadSkipCache();"/>
++  <command id="Browser:ZoomIn"    oncommand="BrowserZoomIn();"/>
++  <command id="Browser:ZoomOut"    oncommand="BrowserZoomOut();"/>
++  <command id="Browser:ZoomReset"    oncommand="BrowserZoomReset();"/>
++  <command id="Browser:about:pre"    oncommand="BrowserLoadURI('about:preferences');"/>
++  <command id="Browser:about:about"    oncommand="BrowserLoadURI('about:about');"/>
++  <command id="Browser:about:config"    oncommand="BrowserLoadURI('about:config');"/>
++  <command id="Browser:Quit"    oncommand="BrowserQuit();"/>
++  <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
++</commandset>
++<keyset id="mainKeyset">
++  <key modifiers="accel" keycode="VK_HOME" command="Browser:Home"/>
++  <key keycode="VK_BACK" command="Browser:Back"/>
++  <key modifiers="alt"   keycode="VK_LEFT" command="Browser:Back"/>
++  <key modifiers="accel" key="[" command="Browser:Back"/>
++  <key modifiers="alt"   keycode="VK_RIGHT" command="Browser:Forward"/>
++  <key modifiers="accel" key="]" command="Browser:Forward"/>
++  <key keycode="VK_F5"   command="Browser:Reload"/>
++  <key modifiers="accel" key="R" command="Browser:Reload"/>
++  <key modifiers="accel" keycode="VK_F5" command="Browser:ReloadSkipCache"/>
++  <key modifiers="accel shift" key="R" command="Browser:ReloadSkipCache"/>
++  <key modifiers="accel" key="+" command="Browser:ZoomIn"/>
++  <key modifiers="accel" key="-" command="Browser:ZoomOut"/>
++  <key modifiers="accel" key="0" command="Browser:ZoomReset"/>
++  <key modifiers="accel" key="," command="Browser:about:pre"/>
++  <key modifiers="accel" key="." command="Browser:about:about"/>
++  <key modifiers="accel" key="/" command="Browser:about:config"/>
++  <key modifiers="accel" key="Q" command="Browser:Quit"/>
++  <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
++</keyset>
++
++<!-- for invalid form error message -->
++<popupset id="mainPopupSet">
++  <html:template id="invalidFormTemplate">
++    <!-- for invalid form error message -->
++    <panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" level="parent" locationspecific="true">
++      <description/>
++    </panel>
++  </html:template>
++</popupset>
++
++<menulist popuponly="true" id="ContentSelectDropdown" hidden="true">
++  <menupopup rolluponmousewheel="true"
++             id="ContentSelectDropdownPopup"
++             activateontab="true" position="after_start"
++             level="parent"
++  />
++</menulist>
++
++<vbox class="browserContainer" flex="10000">
++  <stack class="browserStack" flex="10000">
++    <browser id="content"      contextmenu="contentAreaContextMenu" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" maychangeremoteness="true" initiallyactive="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true" remote="true"/>
++    <browser id="aboutContent" contextmenu="contentAreaContextMenu" message="true" messagemanagergroup="browsers" selectmenulist="ContentSelectDropdown" tooltip="aHTMLTooltip" type="content" maychangeremoteness="true" initiallyactive="true" autocompletepopup="PopupAutoComplete" nodefaultsrc="true" primary="true"/>
++  </stack>
++</vbox>
++</html:body>
++
++</html>
+diff --git a/browser/amethyst/jar.mn b/browser/amethyst/jar.mn
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/jar.mn
+@@ -0,0 +1,5 @@
++browser.jar:
++%  content browser %content/browser/ contentaccessible=yes
++        content/browser/browser.css                   (content/browser.css)
++        content/browser/browser.js                    (content/browser.js)
++        content/browser/browser.xhtml                 (content/browser.xhtml)
+diff --git a/browser/amethyst/moz.build b/browser/amethyst/moz.build
+new file mode 100644
+--- /dev/null
++++ b/browser/amethyst/moz.build
+@@ -0,0 +1,1 @@
++JAR_MANIFESTS += ['jar.mn']
+diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
+--- a/browser/app/profile/firefox.js
++++ b/browser/app/profile/firefox.js
+@@ -19,6 +19,15 @@
+   #endif
+ #endif
+ 
++// WebViewer pref
++pref("webviewer.homepage.enable", false);
++pref("webviewer.back.enable",     false);
++pref("webviewer.forward.enable",  false);
++pref("webviewer.reload.enable",   false);
++pref("webviewer.zoom.enable",     false);
++pref("webviewer.about.enable",    false);
++pref("webviewer.quit.enable",     false);
++
+ pref("browser.hiddenWindowChromeURL", "chrome://browser/content/hiddenWindowMac.xhtml");
+ 
+ // Enables some extra Extension System Logging (can reduce performance)
+@@ -286,7 +295,7 @@ pref("browser.shell.setDefaultPDFHandler
+ // 0 = blank, 1 = home (browser.startup.homepage), 2 = last visited page, 3 = resume previous browser session
+ // The behavior of option 3 is detailed at: http://wiki.mozilla.org/Session_Restore
+ pref("browser.startup.page",                1);
+-pref("browser.startup.homepage",            "about:home");
++pref("browser.startup.homepage",            "https://r.gecko-embedded.org/amethyst");
+ #ifdef NIGHTLY_BUILD
+ pref("browser.startup.homepage.abouthome_cache.enabled", true);
+ #else
+diff --git a/browser/base/jar.mn b/browser/base/jar.mn
+--- a/browser/base/jar.mn
++++ b/browser/base/jar.mn
+@@ -34,9 +34,6 @@ browser.jar:
+         content/browser/aboutTabCrashed.css           (content/aboutTabCrashed.css)
+         content/browser/aboutTabCrashed.js            (content/aboutTabCrashed.js)
+         content/browser/aboutTabCrashed.xhtml         (content/aboutTabCrashed.xhtml)
+-        content/browser/browser.css                   (content/browser.css)
+-        content/browser/browser.js                    (content/browser.js)
+-*       content/browser/browser.xhtml                 (content/browser.xhtml)
+         content/browser/browser-a11yUtils.js          (content/browser-a11yUtils.js)
+         content/browser/browser-addons.js             (content/browser-addons.js)
+         content/browser/browser-allTabsMenu.js        (content/browser-allTabsMenu.js)
+diff --git a/browser/components/customizableui/CustomizableUI.jsm b/browser/components/customizableui/CustomizableUI.jsm
+--- a/browser/components/customizableui/CustomizableUI.jsm
++++ b/browser/components/customizableui/CustomizableUI.jsm
+@@ -16,7 +16,6 @@ const { AppConstants } = ChromeUtils.imp
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AddonManager: "resource://gre/modules/AddonManager.jsm",
+   AddonManagerPrivate: "resource://gre/modules/AddonManager.jsm",
+-  SearchWidgetTracker: "resource:///modules/SearchWidgetTracker.jsm",
+   CustomizableWidgets: "resource:///modules/CustomizableWidgets.jsm",
+   PanelMultiView: "resource:///modules/PanelMultiView.jsm",
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+@@ -296,8 +295,6 @@ var CustomizableUIInternal = {
+       true
+     );
+ 
+-    SearchWidgetTracker.init();
+-
+     Services.obs.addObserver(this, "browser-set-toolbar-visibility");
+   },
+ 
+diff --git a/browser/components/customizableui/moz.build b/browser/components/customizableui/moz.build
+--- a/browser/components/customizableui/moz.build
++++ b/browser/components/customizableui/moz.build
+@@ -20,7 +20,6 @@ EXTRA_JS_MODULES += [
+     "CustomizeMode.jsm",
+     "DragPositionManager.jsm",
+     "PanelMultiView.jsm",
+-    "SearchWidgetTracker.jsm",
+ ]
+ 
+ with Files("**"):
+diff --git a/browser/components/extensions/ext-browser.json b/browser/components/extensions/ext-browser.json
+--- a/browser/components/extensions/ext-browser.json
++++ b/browser/components/extensions/ext-browser.json
+@@ -114,18 +114,6 @@
+     "schema": "chrome://browser/content/schemas/menus_child.json",
+     "scopes": ["addon_child", "content_child", "devtools_child"]
+   },
+-  "menusInternal": {
+-    "url": "chrome://browser/content/parent/ext-menus.js",
+-    "schema": "chrome://browser/content/schemas/menus.json",
+-    "scopes": ["addon_parent"],
+-    "events": ["startup"],
+-    "permissions": ["menus", "contextMenus"],
+-    "paths": [
+-      ["contextMenus"],
+-      ["menus"],
+-      ["menusInternal"]
+-    ]
+-  },
+   "normandyAddonStudy": {
+     "url": "chrome://browser/content/parent/ext-normandyAddonStudy.js",
+     "schema": "chrome://browser/content/schemas/normandyAddonStudy.json",
+diff --git a/browser/components/preferences/home.js b/browser/components/preferences/home.js
+--- a/browser/components/preferences/home.js
++++ b/browser/components/preferences/home.js
+@@ -355,20 +355,6 @@ var gHomePane = {
+    */
+   _getTabsForHomePage() {
+     let tabs = [];
+-    let win = Services.wm.getMostRecentWindow("navigator:browser");
+-
+-    // We should only include visible & non-pinned tabs
+-    if (
+-      win &&
+-      win.document.documentElement.getAttribute("windowtype") ===
+-        "navigator:browser"
+-    ) {
+-      tabs = win.gBrowser.visibleTabs.slice(win.gBrowser._numPinnedTabs);
+-      tabs = tabs.filter(tab => !this._isTabAboutPreferences(tab));
+-      // XXX: Bug 1441637 - Fix tabbrowser to report tab.closing before it blurs it
+-      tabs = tabs.filter(tab => !tab.closing);
+-    }
+-
+     return tabs;
+   },
+ 
+diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
+--- a/browser/components/preferences/main.js
++++ b/browser/components/preferences/main.js
+@@ -288,7 +288,7 @@ var gMainPane = {
+       ];
+ 
+       let pollForDefaultBrowser = () => {
+-        let uri = win.gBrowser.currentURI.spec;
++        let uri = win.getSelectedBrowser().currentURI.spec;
+ 
+         if (
+           (uri == "about:preferences" || uri == "about:preferences#general") &&
+diff --git a/browser/components/preferences/search.js b/browser/components/preferences/search.js
+--- a/browser/components/preferences/search.js
++++ b/browser/components/preferences/search.js
+@@ -37,7 +37,7 @@ var gSearchPane = {
+       let addEnginesLink = document.getElementById("addEngines");
+       let searchEnginesURL = Services.wm.getMostRecentWindow(
+         "navigator:browser"
+-      ).BrowserSearch.searchEnginesURL;
++      ).searchEnginesURL();
+       addEnginesLink.setAttribute("href", searchEnginesURL);
+     }
+ 
+diff --git a/browser/moz.build b/browser/moz.build
+--- a/browser/moz.build
++++ b/browser/moz.build
+@@ -13,6 +13,7 @@ EXTRA_COMPONENTS += [
+ ]
+ 
+ DIRS += [
++    "amethyst",
+     "actors",
+     "base",
+     "components",
+diff --git a/toolkit/components/windowwatcher/nsWindowWatcher.cpp b/toolkit/components/windowwatcher/nsWindowWatcher.cpp
+--- a/toolkit/components/windowwatcher/nsWindowWatcher.cpp
++++ b/toolkit/components/windowwatcher/nsWindowWatcher.cpp
+@@ -644,7 +644,7 @@ nsresult nsWindowWatcher::OpenWindowInte
+   }
+ 
+   if (parentWindow) {
+-    parentTreeOwner = parentWindow->GetTreeOwner();
++    return NS_ERROR_ABORT;
+   }
+ 
+   // We expect BrowserParent to have provided us the absolute URI of the window

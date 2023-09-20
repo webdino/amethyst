@@ -1,0 +1,957 @@
+diff --git a/toolkit/mozapps/extensions/AddonManager.jsm b/toolkit/mozapps/extensions/AddonManager.jsm
+--- a/toolkit/mozapps/extensions/AddonManager.jsm
++++ b/toolkit/mozapps/extensions/AddonManager.jsm
+@@ -38,7 +38,6 @@ const PREF_EM_LAST_PLATFORM_VERSION = "e
+ const PREF_EM_AUTOUPDATE_DEFAULT = "extensions.update.autoUpdateDefault";
+ const PREF_EM_STRICT_COMPATIBILITY = "extensions.strictCompatibility";
+ const PREF_EM_CHECK_UPDATE_SECURITY = "extensions.checkUpdateSecurity";
+-const PREF_SYS_ADDON_UPDATE_ENABLED = "extensions.systemAddon.update.enabled";
+ const PREF_REMOTESETTINGS_DISABLED = "extensions.remoteSettings.disabled";
+ 
+ const PREF_MIN_WEBEXT_PLATFORM_VERSION =
+@@ -484,8 +483,8 @@ var gCheckCompatibility = true;
+ var gStrictCompatibility = true;
+ var gCheckUpdateSecurityDefault = true;
+ var gCheckUpdateSecurity = gCheckUpdateSecurityDefault;
+-var gUpdateEnabled = true;
+-var gAutoUpdateDefault = true;
++var gUpdateEnabled = false;
++var gAutoUpdateDefault = false;
+ var gWebExtensionsMinPlatformVersion = "";
+ var gFinalShutdownBarrier = null;
+ var gBeforeShutdownBarrier = null;
+@@ -675,16 +674,8 @@ var AddonManagerInternal = {
+       );
+       Services.prefs.addObserver(PREF_EM_CHECK_UPDATE_SECURITY, this);
+ 
+-      gUpdateEnabled = Services.prefs.getBoolPref(
+-        PREF_EM_UPDATE_ENABLED,
+-        gUpdateEnabled
+-      );
+       Services.prefs.addObserver(PREF_EM_UPDATE_ENABLED, this);
+ 
+-      gAutoUpdateDefault = Services.prefs.getBoolPref(
+-        PREF_EM_AUTOUPDATE_DEFAULT,
+-        gAutoUpdateDefault
+-      );
+       Services.prefs.addObserver(PREF_EM_AUTOUPDATE_DEFAULT, this);
+ 
+       gWebExtensionsMinPlatformVersion = Services.prefs.getCharPref(
+@@ -1079,20 +1070,10 @@ var AddonManagerInternal = {
+         break;
+       }
+       case PREF_EM_UPDATE_ENABLED: {
+-        gUpdateEnabled = Services.prefs.getBoolPref(
+-          PREF_EM_UPDATE_ENABLED,
+-          true
+-        );
+-
+         this.callManagerListeners("onUpdateModeChanged");
+         break;
+       }
+       case PREF_EM_AUTOUPDATE_DEFAULT: {
+-        gAutoUpdateDefault = Services.prefs.getBoolPref(
+-          PREF_EM_AUTOUPDATE_DEFAULT,
+-          true
+-        );
+-
+         this.callManagerListeners("onUpdateModeChanged");
+         break;
+       }
+@@ -1217,17 +1198,6 @@ var AddonManagerInternal = {
+     });
+   },
+ 
+-  // Returns true if System Addons should be updated
+-  systemUpdateEnabled() {
+-    if (!Services.prefs.getBoolPref(PREF_SYS_ADDON_UPDATE_ENABLED)) {
+-      return false;
+-    }
+-    if (Services.policies && !Services.policies.isAllowed("SysAddonUpdate")) {
+-      return false;
+-    }
+-    return true;
+-  },
+-
+   /**
+    * Performs a background update check by starting an update for all add-ons
+    * that can be updated.
+@@ -1247,65 +1217,6 @@ var AddonManagerInternal = {
+ 
+       Services.obs.notifyObservers(null, "addons-background-update-start");
+ 
+-      if (this.updateEnabled) {
+-        // Keep track of all the async add-on updates happening in parallel
+-        let updates = [];
+-
+-        let allAddons = await this.getAllAddons();
+-
+-        // Repopulate repository cache first, to ensure compatibility overrides
+-        // are up to date before checking for addon updates.
+-        await AddonRepository.backgroundUpdateCheck();
+-
+-        for (let addon of allAddons) {
+-          // Check all add-ons for updates so that any compatibility updates will
+-          // be applied
+-
+-          if (!(addon.permissions & AddonManager.PERM_CAN_UPGRADE)) {
+-            continue;
+-          }
+-
+-          updates.push(
+-            new Promise((resolve, reject) => {
+-              addon.findUpdates(
+-                {
+-                  onUpdateAvailable(aAddon, aInstall) {
+-                    // Start installing updates when the add-on can be updated and
+-                    // background updates should be applied.
+-                    logger.debug("Found update for add-on ${id}", aAddon);
+-                    if (AddonManager.shouldAutoUpdate(aAddon)) {
+-                      // XXX we really should resolve when this install is done,
+-                      // not when update-available check completes, no?
+-                      logger.debug(`Starting upgrade install of ${aAddon.id}`);
+-                      aInstall.promptHandler = (...args) =>
+-                        AddonManagerInternal._updatePromptHandler(...args);
+-                      aInstall.install();
+-                    }
+-                  },
+-
+-                  onUpdateFinished: aAddon => {
+-                    logger.debug("onUpdateFinished for ${id}", aAddon);
+-                    resolve();
+-                  },
+-                },
+-                AddonManager.UPDATE_WHEN_PERIODIC_UPDATE
+-              );
+-            })
+-          );
+-        }
+-        await Promise.all(updates);
+-      }
+-
+-      if (AddonManagerInternal.systemUpdateEnabled()) {
+-        try {
+-          await AddonManagerInternal._getProviderByName(
+-            "XPIProvider"
+-          ).updateSystemAddons();
+-        } catch (e) {
+-          logger.warn("Failed to update system addons", e);
+-        }
+-      }
+-
+       logger.debug("Background update check complete");
+       Services.obs.notifyObservers(null, "addons-background-update-complete");
+     })();
+@@ -2919,7 +2830,7 @@ var AddonManagerInternal = {
+   },
+ 
+   get autoUpdateDefault() {
+-    return gAutoUpdateDefault;
++    return false;
+   },
+ 
+   set autoUpdateDefault(aValue) {
+@@ -2975,7 +2886,7 @@ var AddonManagerInternal = {
+   },
+ 
+   get updateEnabled() {
+-    return gUpdateEnabled;
++    return false;
+   },
+ 
+   set updateEnabled(aValue) {
+@@ -4208,26 +4119,7 @@ var AddonManager = {
+    * @return true if the addon should auto-update, false otherwise.
+    */
+   shouldAutoUpdate(aAddon) {
+-    if (!aAddon || typeof aAddon != "object") {
+-      throw Components.Exception(
+-        "aAddon must be specified",
+-        Cr.NS_ERROR_INVALID_ARG
+-      );
+-    }
+-
+-    if (!("applyBackgroundUpdates" in aAddon)) {
+-      return false;
+-    }
+-    if (!(aAddon.permissions & AddonManager.PERM_CAN_UPGRADE)) {
+-      return false;
+-    }
+-    if (aAddon.applyBackgroundUpdates == AddonManager.AUTOUPDATE_ENABLE) {
+-      return true;
+-    }
+-    if (aAddon.applyBackgroundUpdates == AddonManager.AUTOUPDATE_DISABLE) {
+-      return false;
+-    }
+-    return this.autoUpdateDefault;
++    return false;
+   },
+ 
+   get checkCompatibility() {
+diff --git a/toolkit/mozapps/extensions/Blocklist.jsm b/toolkit/mozapps/extensions/Blocklist.jsm
+--- a/toolkit/mozapps/extensions/Blocklist.jsm
++++ b/toolkit/mozapps/extensions/Blocklist.jsm
+@@ -1267,7 +1267,7 @@ const EXTENSION_BLOCK_FILTERS = [
+ ];
+ 
+ var gLoggingEnabled = null;
+-var gBlocklistEnabled = true;
++var gBlocklistEnabled = false;
+ var gBlocklistLevel = DEFAULT_LEVEL;
+ 
+ /**
+@@ -1342,10 +1342,6 @@ let Blocklist = {
+       PREF_EM_LOGGING_ENABLED,
+       false
+     );
+-    gBlocklistEnabled = Services.prefs.getBoolPref(
+-      PREF_BLOCKLIST_ENABLED,
+-      true
+-    );
+     gBlocklistLevel = Math.min(
+       Services.prefs.getIntPref(PREF_BLOCKLIST_LEVEL, DEFAULT_LEVEL),
+       MAX_BLOCK_LEVEL
+@@ -1380,10 +1376,6 @@ let Blocklist = {
+             );
+             break;
+           case PREF_BLOCKLIST_ENABLED:
+-            gBlocklistEnabled = Services.prefs.getBoolPref(
+-              PREF_BLOCKLIST_ENABLED,
+-              true
+-            );
+             this._blocklistUpdated();
+             break;
+           case PREF_BLOCKLIST_LEVEL:
+@@ -1450,7 +1442,6 @@ let Blocklist = {
+   },
+ 
+   _blocklistUpdated() {
+-    this.ExtensionBlocklist._onUpdate();
+   },
+ };
+ 
+diff --git a/toolkit/mozapps/extensions/content/aboutaddons.js b/toolkit/mozapps/extensions/content/aboutaddons.js
+--- a/toolkit/mozapps/extensions/content/aboutaddons.js
++++ b/toolkit/mozapps/extensions/content/aboutaddons.js
+@@ -524,89 +524,6 @@ class DiscoAddonWrapper {
+   }
+ }
+ 
+-/**
+- * A helper to retrieve the list of recommended add-ons via AMO's discovery API.
+- */
+-var DiscoveryAPI = {
+-  // Map<boolean, Promise> Promises from fetching the API results with or
+-  // without a client ID. The `false` (no client ID) case could actually
+-  // have been fetched with a client ID. See getResults() for more info.
+-  _resultPromises: new Map(),
+-
+-  /**
+-   * Fetch the list of recommended add-ons. The results are cached.
+-   *
+-   * Pending requests are coalesced, so there is only one request at any given
+-   * time. If a request fails, the pending promises are rejected, but a new
+-   * call will result in a new request. A succesful response is cached for the
+-   * lifetime of the document.
+-   *
+-   * @param {boolean} preferClientId
+-   *                  A boolean indicating a preference for using a client ID.
+-   *                  This will not overwrite the user preference but will
+-   *                  avoid sending a client ID if no request has been made yet.
+-   * @returns {Promise<DiscoAddonWrapper[]>}
+-   */
+-  async getResults(preferClientId = true) {
+-    // Allow a caller to set preferClientId to false, but not true if discovery
+-    // is disabled.
+-    preferClientId = preferClientId && this.clientIdDiscoveryEnabled;
+-
+-    // Reuse a request for this preference first.
+-    let resultPromise =
+-      this._resultPromises.get(preferClientId) ||
+-      // If the client ID isn't preferred, we can still reuse a request with the
+-      // client ID.
+-      (!preferClientId && this._resultPromises.get(true));
+-
+-    if (resultPromise) {
+-      return resultPromise;
+-    }
+-
+-    // Nothing is prepared for this preference, make a new request.
+-    resultPromise = this._fetchRecommendedAddons(preferClientId).catch(e => {
+-      // Delete the pending promise, so _fetchRecommendedAddons can be
+-      // called again at the next property access.
+-      this._resultPromises.delete(preferClientId);
+-      Cu.reportError(e);
+-      throw e;
+-    });
+-
+-    // Store the new result for the preference.
+-    this._resultPromises.set(preferClientId, resultPromise);
+-
+-    return resultPromise;
+-  },
+-
+-  get clientIdDiscoveryEnabled() {
+-    // These prefs match Discovery.jsm for enabling clientId cookies.
+-    return (
+-      Services.prefs.getBoolPref(PREF_RECOMMENDATION_ENABLED, false) &&
+-      Services.prefs.getBoolPref(PREF_TELEMETRY_ENABLED, false) &&
+-      !PrivateBrowsingUtils.isContentWindowPrivate(window)
+-    );
+-  },
+-
+-  async _fetchRecommendedAddons(useClientId) {
+-    let discoveryApiUrl = new URL(
+-      Services.urlFormatter.formatURLPref(PREF_DISCOVERY_API_URL)
+-    );
+-
+-    if (useClientId) {
+-      let clientId = await ClientID.getClientIdHash();
+-      discoveryApiUrl.searchParams.set("telemetry-client-id", clientId);
+-    }
+-    let res = await fetch(discoveryApiUrl.href, {
+-      credentials: "omit",
+-    });
+-    if (!res.ok) {
+-      throw new Error(`Failed to fetch recommended add-ons, ${res.status}`);
+-    }
+-    let { results } = await res.json();
+-    return results.map(details => new DiscoAddonWrapper(details));
+-  },
+-};
+-
+ class SupportLink extends HTMLAnchorElement {
+   static get observedAttributes() {
+     return ["support-page"];
+@@ -4370,10 +4287,6 @@ customElements.define("addon-list", Addo
+ 
+ class RecommendedAddonList extends HTMLElement {
+   connectedCallback() {
+-    if (this.isConnected) {
+-      this.loadCardsIfNeeded();
+-      this.updateCardsWithAddonManager();
+-    }
+     AddonManagerListenerHandler.addListener(this);
+   }
+ 
+@@ -4443,49 +4356,6 @@ class RecommendedAddonList extends HTMLE
+     return !this.type || this.type == "extension";
+   }
+ 
+-  async updateCardsWithAddonManager() {
+-    let cards = Array.from(this.children);
+-    let addonIds = cards.map(card => card.addonId);
+-    let addons = await AddonManager.getAddonsByIDs(addonIds);
+-    for (let [i, card] of cards.entries()) {
+-      let addon = addons[i];
+-      this.setAddonForCard(card, addon);
+-      if (addon) {
+-        // Already installed, move card to end.
+-        this.append(card);
+-      }
+-    }
+-  }
+-
+-  async loadCardsIfNeeded() {
+-    // Use promise as guard. Also used by tests to detect when load completes.
+-    if (!this.cardsReady) {
+-      this.cardsReady = this._loadCards();
+-    }
+-    return this.cardsReady;
+-  }
+-
+-  async _loadCards() {
+-    let recommendedAddons;
+-    try {
+-      recommendedAddons = await DiscoveryAPI.getResults(this.preferClientId);
+-    } catch (e) {
+-      return;
+-    }
+-
+-    let frag = document.createDocumentFragment();
+-    for (let addon of recommendedAddons) {
+-      if (this.type && addon.type != this.type) {
+-        continue;
+-      }
+-      let card = document.createElement("recommended-addon-card");
+-      card.setDiscoAddon(addon);
+-      frag.append(card);
+-    }
+-    this.append(frag);
+-    await this.updateCardsWithAddonManager();
+-  }
+-
+   /**
+    * AddonManager listener events.
+    */
+@@ -4509,8 +4379,7 @@ customElements.define("recommended-addon
+ class TaarMessageBar extends HTMLElement {
+   connectedCallback() {
+     this.hidden =
+-      Services.prefs.getBoolPref(PREF_RECOMMENDATION_HIDE_NOTICE, false) ||
+-      !DiscoveryAPI.clientIdDiscoveryEnabled;
++      true;
+     if (this.childElementCount == 0 && !this.hidden) {
+       this.appendChild(importTemplate("taar-notice"));
+       this.addEventListener("click", this);
+@@ -4627,9 +4496,6 @@ class RecommendedSection extends HTMLEle
+     // suddenly shifting when the user attempts to interact with it.
+     let { footer } = this;
+     footer.hidden = true;
+-    this.list.loadCardsIfNeeded().finally(() => {
+-      footer.hidden = false;
+-    });
+   }
+ }
+ 
+diff --git a/toolkit/mozapps/extensions/content/view-controller.js b/toolkit/mozapps/extensions/content/view-controller.js
+--- a/toolkit/mozapps/extensions/content/view-controller.js
++++ b/toolkit/mozapps/extensions/content/view-controller.js
+@@ -207,7 +207,6 @@ var gViewController = {
+     this.isLoading = true;
+ 
+     // Perform tasks before view load
+-    recordViewTelemetry(param);
+     document.dispatchEvent(
+       new CustomEvent("view-selected", {
+         detail: { id: state.view, param, type },
+diff --git a/toolkit/mozapps/extensions/extensions.manifest b/toolkit/mozapps/extensions/extensions.manifest
+--- a/toolkit/mozapps/extensions/extensions.manifest
++++ b/toolkit/mozapps/extensions/extensions.manifest
+@@ -1,6 +1,3 @@
+-#ifndef MOZ_WIDGET_ANDROID
+-category update-timer addonManager @mozilla.org/addons/integration;1,getService,addon-background-update-timer,extensions.update.interval,86400
+-#endif
+ #ifndef MOZ_THUNDERBIRD
+ #ifndef MOZ_WIDGET_ANDROID
+ category addon-provider-module GMPProvider resource://gre/modules/addons/GMPProvider.jsm
+diff --git a/toolkit/mozapps/extensions/internal/AddonRepository.jsm b/toolkit/mozapps/extensions/internal/AddonRepository.jsm
+--- a/toolkit/mozapps/extensions/internal/AddonRepository.jsm
++++ b/toolkit/mozapps/extensions/internal/AddonRepository.jsm
+@@ -43,7 +43,6 @@ var EXPORTED_SYMBOLS = ["AddonRepository
+ 
+ Cu.importGlobalProperties(["fetch"]);
+ 
+-const PREF_GETADDONS_CACHE_ENABLED = "extensions.getAddons.cache.enabled";
+ const PREF_GETADDONS_CACHE_TYPES = "extensions.getAddons.cache.types";
+ const PREF_GETADDONS_CACHE_ID_ENABLED =
+   "extensions.%ID%.getAddons.cache.enabled";
+@@ -334,7 +333,7 @@ var AddonRepository = {
+    * Whether caching is currently enabled
+    */
+   get cacheEnabled() {
+-    return Services.prefs.getBoolPref(PREF_GETADDONS_CACHE_ENABLED, false);
++    return false;
+   },
+ 
+   /**
+@@ -405,89 +404,6 @@ var AddonRepository = {
+   },
+ 
+   /**
+-   * Fetch data from an API where the results may span multiple "pages".
+-   * This function will take care of issuing multiple requests until all
+-   * the results have been fetched, and will coalesce them all into a
+-   * single return value.  The handling here is specific to the way AMO
+-   * implements paging (ie a JSON result with a "next" property).
+-   *
+-   * @param {string} startURL
+-   *                 URL for the first page of results
+-   * @param {function} handler
+-   *                   This function will be called once per page of results,
+-   *                   it should return an array of objects (the type depends
+-   *                   on the particular API being called of course).
+-   *
+-   * @returns Promise{array} An array of all the individual results from
+-   *                         the API call(s).
+-   */
+-  _fetchPaged(ids, pref, handler) {
+-    let startURL = this._formatURLPref(pref, { IDS: ids.join(",") });
+-    let results = [];
+-    let idCheck = ids.map(id => {
+-      if (id.startsWith("rta:")) {
+-        return atob(id.split(":")[1]);
+-      }
+-      return id;
+-    });
+-
+-    const fetchNextPage = url => {
+-      return new Promise((resolve, reject) => {
+-        let request = new ServiceRequest({ mozAnon: true });
+-        request.mozBackgroundRequest = true;
+-        request.open("GET", url, true);
+-        request.responseType = "json";
+-
+-        request.addEventListener("error", aEvent => {
+-          reject(new Error(`GET ${url} failed`));
+-        });
+-        request.addEventListener("timeout", aEvent => {
+-          reject(new Error(`GET ${url} timed out`));
+-        });
+-        request.addEventListener("load", aEvent => {
+-          let response = request.response;
+-          if (!response || (request.status != 200 && request.status != 0)) {
+-            reject(new Error(`GET ${url} failed (status ${request.status})`));
+-            return;
+-          }
+-
+-          try {
+-            let newResults = handler(response.results).filter(e =>
+-              idCheck.includes(e.id)
+-            );
+-            results.push(...newResults);
+-          } catch (err) {
+-            reject(err);
+-          }
+-
+-          if (response.next) {
+-            resolve(fetchNextPage(response.next));
+-          }
+-
+-          resolve(results);
+-        });
+-
+-        request.send(null);
+-      });
+-    };
+-
+-    return fetchNextPage(startURL);
+-  },
+-
+-  /**
+-   * Fetch metadata for a given set of addons from AMO.
+-   *
+-   * @param  aIDs
+-   *         The array of ids to retrieve metadata for.
+-   * @returns {array<AddonSearchResult>}
+-   */
+-  async getAddonsByIDs(aIDs) {
+-    return this._fetchPaged(aIDs, PREF_GETADDONS_BYIDS, results =>
+-      results.map(entry => this._parseAddon(entry))
+-    );
+-  },
+-
+-  /**
+    * Fetch addon metadata for a set of addons.
+    *
+    * @param {array<string>} aIDs
+@@ -497,12 +413,6 @@ var AddonRepository = {
+    */
+   async _getFullData(aIDs) {
+     let addons = [];
+-    try {
+-      addons = await this.getAddonsByIDs(aIDs, false);
+-    } catch (err) {
+-      logger.error(`Error in addon metadata check: ${err.message}`);
+-    }
+-
+     return addons;
+   },
+ 
+diff --git a/toolkit/mozapps/extensions/internal/AddonUpdateChecker.jsm b/toolkit/mozapps/extensions/internal/AddonUpdateChecker.jsm
+--- a/toolkit/mozapps/extensions/internal/AddonUpdateChecker.jsm
++++ b/toolkit/mozapps/extensions/internal/AddonUpdateChecker.jsm
+@@ -256,182 +256,6 @@ function parseJSONManifest(aId, aRequest
+ }
+ 
+ /**
+- * Starts downloading an update manifest and then passes it to an appropriate
+- * parser to convert to an array of update objects
+- *
+- * @param  aId
+- *         The ID of the add-on being checked for updates
+- * @param  aUrl
+- *         The URL of the update manifest
+- * @param  aObserver
+- *         An observer to pass results to
+- */
+-function UpdateParser(aId, aUrl, aObserver) {
+-  this.id = aId;
+-  this.observer = aObserver;
+-  this.url = aUrl;
+-
+-  logger.debug("Requesting " + aUrl);
+-  try {
+-    this.request = new ServiceRequest({ mozAnon: true });
+-    this.request.open("GET", this.url, true);
+-    this.request.channel.notificationCallbacks = new CertUtils.BadCertHandler(
+-      !AddonSettings.UPDATE_REQUIREBUILTINCERTS
+-    );
+-    this.request.channel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE;
+-    // Prevent the request from writing to cache.
+-    this.request.channel.loadFlags |= Ci.nsIRequest.INHIBIT_CACHING;
+-    this.request.overrideMimeType("text/plain");
+-    this.request.timeout = TIMEOUT;
+-    this.request.addEventListener("load", () => this.onLoad());
+-    this.request.addEventListener("error", () => this.onError());
+-    this.request.addEventListener("timeout", () => this.onTimeout());
+-    this.request.send(null);
+-  } catch (e) {
+-    logger.error("Failed to request update manifest", e);
+-  }
+-}
+-
+-UpdateParser.prototype = {
+-  id: null,
+-  observer: null,
+-  request: null,
+-  url: null,
+-
+-  /**
+-   * Called when the manifest has been successfully loaded.
+-   */
+-  onLoad() {
+-    let request = this.request;
+-    this.request = null;
+-    this._doneAt = new Error("place holder");
+-
+-    try {
+-      CertUtils.checkCert(
+-        request.channel,
+-        !AddonSettings.UPDATE_REQUIREBUILTINCERTS
+-      );
+-    } catch (e) {
+-      logger.warn("Request failed: " + this.url + " - " + e);
+-      this.notifyError(AddonManager.ERROR_DOWNLOAD_ERROR);
+-      return;
+-    }
+-
+-    if (!Components.isSuccessCode(request.status)) {
+-      logger.warn("Request failed: " + this.url + " - " + request.status);
+-      this.notifyError(AddonManager.ERROR_DOWNLOAD_ERROR);
+-      return;
+-    }
+-
+-    let channel = request.channel;
+-    if (channel instanceof Ci.nsIHttpChannel && !channel.requestSucceeded) {
+-      logger.warn(
+-        "Request failed: " +
+-          this.url +
+-          " - " +
+-          channel.responseStatus +
+-          ": " +
+-          channel.responseStatusText
+-      );
+-      this.notifyError(AddonManager.ERROR_DOWNLOAD_ERROR);
+-      return;
+-    }
+-
+-    let results;
+-    try {
+-      let json = JSON.parse(request.responseText);
+-      results = parseJSONManifest(this.id, request, json);
+-      updateTypeHistogram.add("JSON");
+-    } catch (e) {
+-      logger.warn("onUpdateCheckComplete failed to parse update manifest", e);
+-      this.notifyError(AddonManager.ERROR_PARSE_ERROR);
+-      return;
+-    }
+-
+-    if ("onUpdateCheckComplete" in this.observer) {
+-      try {
+-        this.observer.onUpdateCheckComplete(results);
+-      } catch (e) {
+-        logger.warn("onUpdateCheckComplete notification failed", e);
+-      }
+-    } else {
+-      logger.warn(
+-        "onUpdateCheckComplete may not properly cancel",
+-        new Error("stack marker")
+-      );
+-    }
+-  },
+-
+-  /**
+-   * Called when the request times out
+-   */
+-  onTimeout() {
+-    this.request = null;
+-    this._doneAt = new Error("Timed out");
+-    logger.warn("Request for " + this.url + " timed out");
+-    this.notifyError(AddonManager.ERROR_TIMEOUT);
+-  },
+-
+-  /**
+-   * Called when the manifest failed to load.
+-   */
+-  onError() {
+-    if (!Components.isSuccessCode(this.request.status)) {
+-      logger.warn("Request failed: " + this.url + " - " + this.request.status);
+-    } else if (this.request.channel instanceof Ci.nsIHttpChannel) {
+-      try {
+-        if (this.request.channel.requestSucceeded) {
+-          logger.warn(
+-            "Request failed: " +
+-              this.url +
+-              " - " +
+-              this.request.channel.responseStatus +
+-              ": " +
+-              this.request.channel.responseStatusText
+-          );
+-        }
+-      } catch (e) {
+-        logger.warn("HTTP Request failed for an unknown reason");
+-      }
+-    } else {
+-      logger.warn("Request failed for an unknown reason");
+-    }
+-
+-    this.request = null;
+-    this._doneAt = new Error("UP_onError");
+-
+-    this.notifyError(AddonManager.ERROR_DOWNLOAD_ERROR);
+-  },
+-
+-  /**
+-   * Helper method to notify the observer that an error occurred.
+-   */
+-  notifyError(aStatus) {
+-    if ("onUpdateCheckError" in this.observer) {
+-      try {
+-        this.observer.onUpdateCheckError(aStatus);
+-      } catch (e) {
+-        logger.warn("onUpdateCheckError notification failed", e);
+-      }
+-    }
+-  },
+-
+-  /**
+-   * Called to cancel an in-progress update check.
+-   */
+-  cancel() {
+-    if (!this.request) {
+-      logger.error("Trying to cancel already-complete request", this._doneAt);
+-      return;
+-    }
+-    this.request.abort();
+-    this.request = null;
+-    this._doneAt = new Error("UP_cancel");
+-    this.notifyError(AddonManager.ERROR_CANCELLED);
+-  },
+-};
+-
+-/**
+  * Tests if an update matches a version of the application or platform
+  *
+  * @param  aUpdate
+@@ -631,20 +455,4 @@ var AddonUpdateChecker = {
+     }
+     return newest;
+   },
+-
+-  /**
+-   * Starts an update check.
+-   *
+-   * @param  aId
+-   *         The ID of the add-on being checked for updates
+-   * @param  aUrl
+-   *         The URL of the add-on's update manifest
+-   * @param  aObserver
+-   *         An observer to notify of results
+-   * @return UpdateParser so that the caller can use UpdateParser.cancel() to shut
+-   *         down in-progress update requests
+-   */
+-  checkForUpdates(aId, aUrl, aObserver) {
+-    return new UpdateParser(aId, aUrl, aObserver);
+-  },
+ };
+diff --git a/toolkit/mozapps/extensions/internal/XPIInstall.jsm b/toolkit/mozapps/extensions/internal/XPIInstall.jsm
+--- a/toolkit/mozapps/extensions/internal/XPIInstall.jsm
++++ b/toolkit/mozapps/extensions/internal/XPIInstall.jsm
+@@ -2889,29 +2889,7 @@ var UpdateChecker = function(
+     aReason == AddonManager.UPDATE_WHEN_NEW_APP_INSTALLED;
+   this.isUserRequested = aReason == AddonManager.UPDATE_WHEN_USER_REQUESTED;
+ 
+-  let updateURL = aAddon.updateURL;
+-  if (!updateURL) {
+-    if (
+-      aReason == AddonManager.UPDATE_WHEN_PERIODIC_UPDATE &&
+-      Services.prefs.getPrefType(PREF_EM_UPDATE_BACKGROUND_URL) ==
+-        Services.prefs.PREF_STRING
+-    ) {
+-      updateURL = Services.prefs.getCharPref(PREF_EM_UPDATE_BACKGROUND_URL);
+-    } else {
+-      updateURL = Services.prefs.getCharPref(PREF_EM_UPDATE_URL);
+-    }
+-  }
+-
+-  const UPDATE_TYPE_COMPATIBILITY = 32;
+-  const UPDATE_TYPE_NEWVERSION = 64;
+-
+-  aReason |= UPDATE_TYPE_COMPATIBILITY;
+-  if ("onUpdateAvailable" in this.listener) {
+-    aReason |= UPDATE_TYPE_NEWVERSION;
+-  }
+-
+-  let url = escapeAddonURI(aAddon, updateURL, aReason, aAppVersion);
+-  this._parser = AddonUpdateChecker.checkForUpdates(aAddon.id, url, this);
++  this.onUpdateCheckError(AddonManager.ERROR_CANCELLED);
+ };
+ 
+ UpdateChecker.prototype = {
+@@ -4050,165 +4028,6 @@ var XPIInstall = {
+     return addon;
+   },
+ 
+-  async updateSystemAddons() {
+-    let systemAddonLocation = XPIStates.getLocation(KEY_APP_SYSTEM_ADDONS);
+-    if (!systemAddonLocation) {
+-      return;
+-    }
+-
+-    let installer = systemAddonLocation.installer;
+-
+-    // Don't do anything in safe mode
+-    if (Services.appinfo.inSafeMode) {
+-      return;
+-    }
+-
+-    // Download the list of system add-ons
+-    let url = Services.prefs.getStringPref(PREF_SYSTEM_ADDON_UPDATE_URL, null);
+-    if (!url) {
+-      await installer.cleanDirectories();
+-      return;
+-    }
+-
+-    url = await UpdateUtils.formatUpdateURL(url);
+-
+-    logger.info(`Starting system add-on update check from ${url}.`);
+-    let res = await ProductAddonChecker.getProductAddonList(
+-      url,
+-      true
+-    ).catch(e => logger.error(`System addon update list error ${e}`));
+-
+-    // If there was no list then do nothing.
+-    if (!res || !res.addons) {
+-      logger.info("No system add-ons list was returned.");
+-      await installer.cleanDirectories();
+-      return;
+-    }
+-
+-    let addonList = new Map(
+-      res.addons.map(spec => [spec.id, { spec, path: null, addon: null }])
+-    );
+-
+-    let setMatches = (wanted, existing) => {
+-      if (wanted.size != existing.size) {
+-        return false;
+-      }
+-
+-      for (let [id, addon] of existing) {
+-        let wantedInfo = wanted.get(id);
+-
+-        if (!wantedInfo) {
+-          return false;
+-        }
+-        if (wantedInfo.spec.version != addon.version) {
+-          return false;
+-        }
+-      }
+-
+-      return true;
+-    };
+-
+-    // If this matches the current set in the profile location then do nothing.
+-    let updatedAddons = addonMap(
+-      await XPIDatabase.getAddonsInLocation(KEY_APP_SYSTEM_ADDONS)
+-    );
+-    if (setMatches(addonList, updatedAddons)) {
+-      logger.info("Retaining existing updated system add-ons.");
+-      await installer.cleanDirectories();
+-      return;
+-    }
+-
+-    // If this matches the current set in the default location then reset the
+-    // updated set.
+-    let defaultAddons = addonMap(
+-      await XPIDatabase.getAddonsInLocation(KEY_APP_SYSTEM_DEFAULTS)
+-    );
+-    if (setMatches(addonList, defaultAddons)) {
+-      logger.info("Resetting system add-ons.");
+-      await installer.resetAddonSet();
+-      await installer.cleanDirectories();
+-      return;
+-    }
+-
+-    // Download all the add-ons
+-    async function downloadAddon(item) {
+-      try {
+-        let sourceAddon = updatedAddons.get(item.spec.id);
+-        if (sourceAddon && sourceAddon.version == item.spec.version) {
+-          // Copying the file to a temporary location has some benefits. If the
+-          // file is locked and cannot be read then we'll fall back to
+-          // downloading a fresh copy. We later mark the install object with
+-          // ownsTempFile so that we will cleanup later (see installAddonSet).
+-          try {
+-            let tmpDir = Services.dirsvc.get("TmpD", Ci.nsIFile).path;
+-            let uniquePath = await IOUtils.createUniqueFile(tmpDir, "tmpaddon");
+-            await IOUtils.copy(sourceAddon._sourceBundle.path, uniquePath);
+-            // Make sure to update file modification times so this is detected
+-            // as a new add-on.
+-            await IOUtils.setModificationTime(uniquePath);
+-            item.path = uniquePath;
+-          } catch (e) {
+-            logger.warn(
+-              `Failed make temporary copy of ${sourceAddon._sourceBundle.path}.`,
+-              e
+-            );
+-          }
+-        }
+-        if (!item.path) {
+-          item.path = await ProductAddonChecker.downloadAddon(item.spec);
+-        }
+-        item.addon = await loadManifestFromFile(
+-          nsIFile(item.path),
+-          systemAddonLocation
+-        );
+-      } catch (e) {
+-        logger.error(`Failed to download system add-on ${item.spec.id}`, e);
+-      }
+-    }
+-    await Promise.all(Array.from(addonList.values()).map(downloadAddon));
+-
+-    // The download promises all resolve regardless, now check if they all
+-    // succeeded
+-    let validateAddon = item => {
+-      if (item.spec.id != item.addon.id) {
+-        logger.warn(
+-          `Downloaded system add-on expected to be ${item.spec.id} but was ${item.addon.id}.`
+-        );
+-        return false;
+-      }
+-
+-      if (item.spec.version != item.addon.version) {
+-        logger.warn(
+-          `Expected system add-on ${item.spec.id} to be version ${item.spec.version} but was ${item.addon.version}.`
+-        );
+-        return false;
+-      }
+-
+-      if (!installer.isValidAddon(item.addon)) {
+-        return false;
+-      }
+-
+-      return true;
+-    };
+-
+-    if (
+-      !Array.from(addonList.values()).every(
+-        item => item.path && item.addon && validateAddon(item)
+-      )
+-    ) {
+-      throw new Error(
+-        "Rejecting updated system add-on set that either could not " +
+-          "be downloaded or contained unusable add-ons."
+-      );
+-    }
+-
+-    // Install into the install location
+-    logger.info("Installing new system add-on set");
+-    await installer.installAddonSet(
+-      Array.from(addonList.values()).map(a => a.addon)
+-    );
+-  },
+-
+   /**
+    * Called to test whether installing XPI add-ons is enabled.
+    *

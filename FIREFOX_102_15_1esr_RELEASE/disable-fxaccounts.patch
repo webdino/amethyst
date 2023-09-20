@@ -1,0 +1,2187 @@
+diff --git a/browser/actors/WebRTCParent.jsm b/browser/actors/WebRTCParent.jsm
+--- a/browser/actors/WebRTCParent.jsm
++++ b/browser/actors/WebRTCParent.jsm
+@@ -98,10 +98,8 @@ class WebRTCParent extends JSWindowActor
+         })().then(decision => {
+           let message;
+           if (decision) {
+-            webrtcUI.emitter.emit("peer-request-allowed", params);
+             message = "rtcpeer:Allow";
+           } else {
+-            webrtcUI.emitter.emit("peer-request-blocked", params);
+             message = "rtcpeer:Deny";
+           }
+ 
+@@ -117,7 +115,6 @@ class WebRTCParent extends JSWindowActor
+           origin: this.manager.documentPrincipal.origin,
+           callID: aMessage.data,
+         });
+-        webrtcUI.emitter.emit("peer-request-cancel", params);
+         break;
+       }
+       case "webrtc:Request": {
+diff --git a/browser/base/content/appmenu-viewcache.inc.xhtml b/browser/base/content/appmenu-viewcache.inc.xhtml
+--- a/browser/base/content/appmenu-viewcache.inc.xhtml
++++ b/browser/base/content/appmenu-viewcache.inc.xhtml
+@@ -25,22 +25,6 @@
+                      oncommand="PanelUI._onBannerItemSelected(event)"
+                      wrap="true"
+                      hidden="true"/>
+-      <toolbaritem id="appMenu-fxa-status2"
+-                   closemenu="none"
+-                   class="subviewbutton toolbaritem-combined-buttons">
+-        <html:div id="appMenu-fxa-text" data-l10n-id="appmenu-fxa-sync-and-save-data2"/>
+-        <toolbarbutton id="appMenu-fxa-label2"
+-                      class="subviewbutton"
+-                      oncommand="gSync.toggleAccountPanel(this, event)">
+-          <vbox flex="1">
+-            <label id="appMenu-header-title"
+-                   crop="end"/>
+-            <label id="appMenu-header-description"
+-                   crop="end"/>
+-          </vbox>
+-        </toolbarbutton>
+-      </toolbaritem>
+-      <toolbarseparator id="appMenu-fxa-separator" class="proton-zap"/>
+       <toolbarbutton id="appMenu-new-tab-button2"
+                      class="subviewbutton"
+                      data-l10n-id="appmenuitem-new-tab"
+@@ -412,237 +396,6 @@
+     </vbox>
+   </panelview>
+ 
+-  <panelview id="PanelUI-remotetabs" flex="1" class="PanelUI-subView"
+-             descriptionheightworkaround="true">
+-    <vbox class="panel-subview-body">
+-      <!-- this widget has 3 boxes in the body, but only 1 is ever visible -->
+-      <!-- When Sync is ready to sync -->
+-      <vbox id="PanelUI-remotetabs-main" hidden="true">
+-        <vbox id="PanelUI-remotetabs-buttons">
+-          <toolbarbutton id="PanelUI-remotetabs-syncnow"
+-                         align="center"
+-                         class="subviewbutton"
+-                         oncommand="gSync.doSync();"
+-                         onmouseover="gSync.refreshSyncButtonsTooltip();"
+-                         closemenu="none">
+-            <hbox flex="1">
+-              <image class="syncNowBtn"/>
+-              <label class="syncnow-label"
+-                     data-l10n-id="appmenuitem-fxa-toolbar-sync-now2"
+-                     sync-now-data-l10n-id="appmenuitem-fxa-toolbar-sync-now2"
+-                     syncing-data-l10n-id="fxa-toolbar-sync-syncing2"
+-                     crop="end"/>
+-            </hbox>
+-          </toolbarbutton>
+-          <toolbarbutton id="PanelUI-remotetabs-view-managedevices"
+-                         class="subviewbutton"
+-                         data-l10n-id="appmenuitem-fxa-manage-account"
+-                         oncommand="gSync.openDevicesManagementPage('syncedtabs-menupanel');">
+-                         <observes element="sidebar-box" attribute="positionend"/>
+-          </toolbarbutton>
+-          <toolbarseparator id="PanelUI-remotetabs-separator"/>
+-        </vbox>
+-        <deck id="PanelUI-remotetabs-deck">
+-          <!-- Sync is ready to Sync and the "tabs" engine is enabled -->
+-          <vbox id="PanelUI-remotetabs-tabspane">
+-            <vbox id="PanelUI-remotetabs-tabslist"
+-            notabsforclientlabel="appmenu-remote-tabs-notabs"
+-                  />
+-          </vbox>
+-          <!-- Sync is ready to Sync but we are still fetching the tabs to show -->
+-          <vbox id="PanelUI-remotetabs-fetching">
+-            <!-- Show intentionally blank panel, see bug 1239845 -->
+-          </vbox>
+-          <!-- Sync is ready to Sync but the "tabs" engine isn't enabled-->
+-          <hbox id="PanelUI-remotetabs-tabsdisabledpane" pack="center" flex="1">
+-            <vbox class="PanelUI-remotetabs-instruction-box" align="center">
+-              <hbox pack="center">
+-                <image class="fxaSyncIllustrationIssue"/>
+-              </hbox>
+-              <label class="PanelUI-remotetabs-instruction-label" data-l10n-id="appmenu-remote-tabs-tabsnotsyncing"></label>
+-              <hbox pack="center">
+-                <toolbarbutton class="PanelUI-remotetabs-button"
+-                               id="PanelUI-remotetabs-tabsdisabledpane-button"
+-                               data-l10n-id="appmenu-remote-tabs-opensettings"
+-                               oncommand="gSync.openPrefs('synced-tabs');"/>
+-              </hbox>
+-            </vbox>
+-          </hbox>
+-          <!-- Sync has only 1 (ie, this) device connected -->
+-          <hbox id="PanelUI-remotetabs-nodevicespane" pack="center" flex="1">
+-            <vbox class="PanelUI-remotetabs-instruction-box" align="center">
+-              <hbox pack="center">
+-                <image class="fxaSyncIllustrationIssue"/>
+-              </hbox>
+-              <label class="PanelUI-remotetabs-instruction-label" data-l10n-id="appmenu-remote-tabs-noclients"></label>
+-              <toolbarbutton id="PanelUI-remotetabs-connect-device-button"
+-                             class="PanelUI-remotetabs-button"
+-                             data-l10n-id="appmenu-remote-tabs-connectdevice"
+-                             oncommand="gSync.openConnectAnotherDevice('synced-tabs');"/>
+-            </vbox>
+-          </hbox>
+-        </deck>
+-      </vbox>
+-      <!-- a box to ensure contained boxes are centered horizonally -->
+-      <hbox pack="center" flex="1">
+-        <!-- When Sync is not configured -->
+-        <vbox id="PanelUI-remotetabs-setupsync"
+-              flex="1"
+-              align="center"
+-              class="PanelUI-remotetabs-instruction-box"
+-              hidden="true">
+-          <image class="fxaSyncIllustration"/>
+-          <label class="PanelUI-remotetabs-instruction-label" data-l10n-id="appmenu-remote-tabs-welcome"></label>
+-          <toolbarbutton class="PanelUI-remotetabs-button"
+-                         id="PanelUI-remotetabs-setupsync-button"
+-                         data-l10n-id="appmenu-remote-tabs-sign-into-sync"
+-                         oncommand="gSync.openPrefs('synced-tabs');"/>
+-        </vbox>
+-        <!-- When Sync is not enabled -->
+-        <vbox id="PanelUI-remotetabs-syncdisabled"
+-              flex="1"
+-              align="center"
+-              class="PanelUI-remotetabs-instruction-box"
+-              hidden="true">
+-          <image class="fxaSyncIllustration"/>
+-          <label class="PanelUI-remotetabs-instruction-label" data-l10n-id="appmenu-remote-tabs-welcome"></label>
+-          <toolbarbutton class="PanelUI-remotetabs-button"
+-                         id="PanelUI-remotetabs-syncdisabled-button"
+-                         data-l10n-id="appmenu-remote-tabs-turn-on-sync"
+-                         oncommand="gSync.openPrefs('synced-tabs');"/>
+-        </vbox>
+-        <!-- When Sync needs re-authentication -->
+-        <vbox id="PanelUI-remotetabs-reauthsync"
+-              flex="1"
+-              align="center"
+-              class="PanelUI-remotetabs-instruction-box"
+-              hidden="true">
+-          <image class="fxaSyncIllustrationIssue"/>
+-          <label class="PanelUI-remotetabs-instruction-label" data-l10n-id="appmenu-remote-tabs-welcome"></label>
+-          <toolbarbutton class="PanelUI-remotetabs-button"
+-                         id="PanelUI-remotetabs-reauthsync-button"
+-                         data-l10n-id="appmenu-remote-tabs-sign-into-sync"
+-                         oncommand="gSync.openPrefs('synced-tabs');"/>
+-        </vbox>
+-        <!-- When Sync needs verification -->
+-        <vbox id="PanelUI-remotetabs-unverified"
+-              flex="1"
+-              align="center"
+-              class="PanelUI-remotetabs-instruction-box"
+-              hidden="true">
+-          <image class="fxaSyncIllustrationIssue"/>
+-          <label class="PanelUI-remotetabs-instruction-label" data-l10n-id="appmenu-remote-tabs-unverified"></label>
+-          <toolbarbutton class="PanelUI-remotetabs-button"
+-                         id="PanelUI-remotetabs-unverified-button"
+-                         data-l10n-id="appmenu-remote-tabs-opensettings"
+-                         oncommand="gSync.openPrefs('synced-tabs');"/>
+-        </vbox>
+-      </hbox>
+-    </vbox>
+-  </panelview>
+-
+-  <panelview id="PanelUI-fxa" class="PanelUI-subView" descriptionheightworkaround="true">
+-    <vbox id="PanelUI-fxa-menu" class="panel-subview-body">
+-      <toolbarbutton id="fxa-manage-account-button"
+-                     align="center"
+-                     class="subviewbutton"
+-                     oncommand="gSync.clickFxAMenuHeaderButton(this);">
+-        <vbox flex="1">
+-          <label id="fxa-menu-header-title"
+-                 crop="end"
+-                 data-l10n-id="appmenuitem-fxa-sign-in"/>
+-          <label id="fxa-menu-header-description"
+-                 crop="end"
+-                 data-l10n-id="fxa-menu-turn-on-sync"/>
+-        </vbox>
+-      </toolbarbutton>
+-      <toolbarbutton id="PanelUI-fxa-menu-syncnow-button"
+-                     align="center"
+-                     class="subviewbutton"
+-                     oncommand="gSync.doSyncFromFxaMenu(this);"
+-                     onmouseover="gSync.refreshSyncButtonsTooltip();"
+-                     closemenu="none">
+-        <hbox flex="1">
+-          <image id="PanelUI-appMenu-fxa-image-last-synced"
+-                 class="syncNowBtn"/>
+-          <label class="syncnow-label"
+-                 data-l10n-id="appmenuitem-fxa-toolbar-sync-now2"
+-                 sync-now-data-l10n-id="appmenuitem-fxa-toolbar-sync-now2"
+-                 syncing-data-l10n-id="fxa-toolbar-sync-syncing2"
+-                 crop="end"/>
+-        </hbox>
+-      </toolbarbutton>
+-      <toolbarbutton id="PanelUI-fxa-menu-setup-sync-button"
+-                      class="subviewbutton"
+-                      data-l10n-id="appmenu-fxa-setup-sync"
+-                      oncommand="gSync.openPrefsFromFxaMenu('sync_settings', this);"/>
+-      <!-- The `Connect Another Device` button is disabled by default until the user logs into Sync. -->
+-      <toolbarbutton id="PanelUI-fxa-menu-connect-device-button"
+-                      class="subviewbutton"
+-                      data-l10n-id="fxa-menu-connect-another-device"
+-                      disabled="true"
+-                      oncommand="gSync.openConnectAnotherDeviceFromFxaMenu(this);"/>
+-      <toolbarbutton id="PanelUI-fxa-menu-sendtab-button"
+-                      class="subviewbutton subviewbutton-nav"
+-                      closemenu="none"
+-                      oncommand="gSync.showSendToDeviceViewFromFxaMenu(this);"/>
+-      <toolbarbutton id="PanelUI-fxa-menu-sync-prefs-button"
+-                      class="subviewbutton"
+-                      data-l10n-id="fxa-menu-sync-settings"
+-                      hidden="true"
+-                      oncommand="gSync.openPrefsFromFxaMenu('sync_settings', this);"/>
+-      <toolbarseparator id="PanelUI-sign-out-separator"/>
+-      <toolbarbutton id="PanelUI-fxa-menu-account-signout-button"
+-              class="subviewbutton"
+-              data-l10n-id="fxa-menu-sign-out"
+-              oncommand="gSync.disconnect();"/>
+-      <toolbarseparator id="PanelUI-remote-tabs-separator"/>
+-      <deck id="PanelUI-fxa-remotetabs-deck">
+-        <!-- Sync is ready to Sync and the "tabs" engine is enabled -->
+-        <vbox id="PanelUI-fxa-remotetabs-tabspane">
+-          <vbox id="PanelUI-fxa-remotetabs-tabslist"
+-          notabsforclientlabel="appmenu-remote-tabs-notabs"
+-          />
+-        </vbox>
+-        <!-- Sync is ready to Sync but we are still fetching the tabs to show -->
+-        <vbox id="PanelUI-fxa-remotetabs-fetching">
+-          <!-- Show intentionally blank panel, see bug 1239845 -->
+-        </vbox>
+-      </deck>
+-    </vbox>
+-  </panelview>
+-
+-  <!-- This panelview is used to contain the dynamically created buttons for send tab to devices -->
+-  <panelview id="PanelUI-sendTabToDevice" flex="1" class="PanelUI-subView">
+-    <vbox class="panel-subview-body">
+-      <toolbarbutton id="PanelUI-sendTabToDevice-syncingDevices" class="subviewbutton subviewbutton-iconic pageAction-sendToDevice-notReady"
+-                     data-l10n-id="fxa-menu-send-tab-to-device-syncnotready"
+-                     disabled="true"/>
+-    </vbox>
+-  </panelview>
+-
+-  <panelview id="PanelUI-fxa-menu-sendtab-not-configured" flex="1" class="PanelUI-subView">
+-    <vbox id="PanelUI-fxa-sendtab-not-configured" align="center" class="panel-subview-body">
+-      <image class="fxaSendToDeviceLogo" role="presentation"/>
+-      <label class="PanelUI-fxa-service-description-label" data-l10n-id="fxa-menu-send-tab-to-device-description"></label>
+-      <toolbarbutton id="PanelUI-fxa-menu-sendtab-not-configured-button"
+-                     class="PanelUI-fxa-signin-button"
+-                     data-l10n-id="appmenuitem-fxa-sign-in"
+-                     oncommand="gSync.openPrefsFromFxaMenu('send_tab', this);"/>
+-    </vbox>
+-  </panelview>
+-
+-  <panelview id="PanelUI-fxa-menu-sendtab-no-devices" flex="1" class="PanelUI-subView">
+-    <vbox id="PanelUI-fxa-sendtab-no-devices" align="center" class="panel-subview-body">
+-      <image class="fxaSendToDeviceLogo" role="presentation"/>
+-      <label class="PanelUI-fxa-service-description-label" data-l10n-id="fxa-menu-send-tab-to-device-description"></label>
+-      <toolbarbutton id="PanelUI-fxa-menu-sendtab-connect-device-button"
+-                     class="PanelUI-fxa-signin-button"
+-                     data-l10n-id="appmenu-remote-tabs-connectdevice"
+-                     oncommand="gSync.openConnectAnotherDeviceFromFxaMenu(this);"/>
+-    </vbox>
+-  </panelview>
+-
+   <panelview id="appMenu-libraryView" class="PanelUI-subView">
+     <vbox class="panel-subview-body">
+       <toolbarbutton id="appMenu-library-bookmarks-button"
+diff --git a/browser/base/content/browser-context.inc b/browser/base/content/browser-context.inc
+--- a/browser/base/content/browser-context.inc
++++ b/browser/base/content/browser-context.inc
+@@ -100,9 +100,6 @@
+       <menuitem id="context-savelink"
+                 data-l10n-id="main-context-menu-save-link"
+                 oncommand="gContextMenu.saveLink();"/>
+-      <menuitem id="context-savelinktopocket"
+-                data-l10n-id="main-context-menu-save-link-to-pocket"
+-                oncommand= "Pocket.savePage(gContextMenu.browser, gContextMenu.linkURL);"/>
+       <menuitem id="context-copyemail"
+                 data-l10n-id="main-context-menu-copy-email"
+                 oncommand="gContextMenu.copyEmail();"/>
+@@ -112,13 +109,6 @@
+       <menuitem id="context-copylink"
+                 data-l10n-id="main-context-menu-copy-link-simple"
+                 oncommand="gContextMenu.copyLink();"/>
+-      <menu id="context-sendlinktodevice"
+-            class="sync-ui-item"
+-            data-l10n-id="main-context-menu-link-send-to-device"
+-            hidden="true">
+-            <menupopup id="context-sendlinktodevice-popup"
+-                  onpopupshowing="gSync.populateSendTabToDevicesMenu(event.target, gContextMenu.linkURL, gContextMenu.linkTextStr);"/>
+-      </menu>
+       <menuseparator id="context-sep-sendlinktodevice" class="sync-ui-item"
+                 hidden="true"/>
+       <menuseparator id="context-sep-copylink"/>
+@@ -256,16 +246,6 @@
+       <menuitem id="context-savepage"
+                 data-l10n-id="main-context-menu-page-save"
+                 oncommand="gContextMenu.savePageAs();"/>
+-      <menuitem id="context-pocket"
+-                data-l10n-id="main-context-menu-save-to-pocket"
+-                oncommand="Pocket.savePage(gContextMenu.browser, gContextMenu.browser.currentURI.spec, gContextMenu.browser.contentTitle);"/>
+-      <menu id="context-sendpagetodevice"
+-            class="sync-ui-item"
+-            data-l10n-id="main-context-menu-send-to-device"
+-            hidden="true">
+-        <menupopup id="context-sendpagetodevice-popup"
+-                   onpopupshowing="(() => { gSync.populateSendTabToDevicesMenu(event.target, gBrowser.currentURI.spec, gBrowser.contentTitle); })()"/>
+-      </menu>
+       <menu id="fill-login" hidden="true">
+         <menupopup id="fill-login-popup" />
+       </menu>
+diff --git a/browser/base/content/browser-menubar.inc b/browser/base/content/browser-menubar.inc
+--- a/browser/base/content/browser-menubar.inc
++++ b/browser/base/content/browser-menubar.inc
+@@ -149,10 +149,6 @@
+                               type="checkbox"
+                               key="key_gotoHistory"
+                               oncommand="SidebarUI.toggle('viewHistorySidebar');" data-l10n-id="menu-view-history-button"/>
+-                    <menuitem id="menu_tabsSidebar"
+-                              type="checkbox"
+-                              class="sync-ui-item"
+-                              oncommand="SidebarUI.toggle('viewTabsSidebar');" data-l10n-id="menu-view-synced-tabs-sidebar"/>
+                   </menupopup>
+                 </menu>
+                 <menuseparator/>
+@@ -242,9 +238,6 @@
+                           key="key_sanitize"
+                           command="Tools:Sanitize" data-l10n-id="menu-history-clear-recent-history"/>
+                 <menuseparator id="sanitizeSeparator"/>
+-                <menuitem id="sync-tabs-menuitem"
+-                          oncommand="gSync.openSyncedTabsPanel();"
+-                          hidden="true" data-l10n-id="menu-history-synced-tabs"/>
+                 <menuitem id="historyRestoreLastSession"
+                           command="Browser:RestoreLastSession" data-l10n-id="menu-history-restore-last-session"/>
+                 <menuitem id="hiddenTabsMenu"
+@@ -372,27 +365,6 @@
+                         key="key_openAddons"
+                         command="Tools:Addons" data-l10n-id="menu-tools-addons-and-themes"/>
+ 
+-              <!-- only one of sync-setup, sync-enable, sync-unverifieditem, sync-syncnowitem or sync-reauthitem will be showing at once -->
+-              <menuitem id="sync-setup"
+-                        class="sync-ui-item"
+-                        hidden="true"
+-                        oncommand="gSync.openPrefs('menubar')" data-l10n-id="menu-tools-fxa-sign-in2"/>
+-              <menuitem id="sync-enable"
+-                        class="sync-ui-item"
+-                        hidden="true"
+-                        oncommand="gSync.openPrefs('menubar')" data-l10n-id="menu-tools-turn-on-sync2"/>
+-              <menuitem id="sync-unverifieditem"
+-                        class="sync-ui-item"
+-                        hidden="true"
+-                        oncommand="gSync.openPrefs('menubar')" data-l10n-id="menu-tools-fxa-sign-in2"/>
+-              <menuitem id="sync-syncnowitem"
+-                        class="sync-ui-item"
+-                        hidden="true"
+-                        oncommand="gSync.doSync(event);" data-l10n-id="menu-tools-sync-now"/>
+-              <menuitem id="sync-reauthitem"
+-                        class="sync-ui-item"
+-                        hidden="true"
+-                        oncommand="gSync.openSignInAgainPage('menubar');" data-l10n-id="menu-tools-fxa-re-auth"/>
+               <menuseparator id="devToolsSeparator"/>
+               <menu id="browserToolsMenu" data-l10n-id="menu-tools-browser-tools">
+                 <menupopup id="menuWebDeveloperPopup">
+diff --git a/browser/base/content/browser-places.js b/browser/base/content/browser-places.js
+--- a/browser/base/content/browser-places.js
++++ b/browser/base/content/browser-places.js
+@@ -639,7 +639,6 @@ HistoryMenu.prototype = {
+     undoTabMenu: "historyUndoMenu",
+     hiddenTabsMenu: "hiddenTabsMenu",
+     undoWindowMenu: "historyUndoWindowMenu",
+-    syncTabsMenuitem: "sync-tabs-menuitem",
+   },
+ 
+   _getClosedTabCount() {
+@@ -737,21 +736,6 @@ HistoryMenu.prototype = {
+     undoPopup.appendChild(windowsFragment);
+   },
+ 
+-  toggleTabsFromOtherComputers: function PHM_toggleTabsFromOtherComputers() {
+-    // Enable/disable the Tabs From Other Computers menu. Some of the menus handled
+-    // by HistoryMenu do not have this menuitem.
+-    if (!this.syncTabsMenuitem) {
+-      return;
+-    }
+-
+-    if (!PlacesUIUtils.shouldShowTabsFromOtherComputersMenuitem()) {
+-      this.syncTabsMenuitem.hidden = true;
+-      return;
+-    }
+-
+-    this.syncTabsMenuitem.hidden = false;
+-  },
+-
+   _onPopupShowing: function HM__onPopupShowing(aEvent) {
+     PlacesMenu.prototype._onPopupShowing.apply(this, arguments);
+ 
+@@ -763,7 +747,6 @@ HistoryMenu.prototype = {
+     this.toggleHiddenTabs();
+     this.toggleRecentlyClosedTabs();
+     this.toggleRecentlyClosedWindows();
+-    this.toggleTabsFromOtherComputers();
+   },
+ 
+   _onCommand: function HM__onCommand(aEvent) {
+diff --git a/browser/base/content/browser-sidebar.js b/browser/base/content/browser-sidebar.js
+--- a/browser/base/content/browser-sidebar.js
++++ b/browser/base/content/browser-sidebar.js
+@@ -41,14 +41,6 @@ var SidebarUI = {
+           triggerButtonId: "appMenuViewHistorySidebar",
+         }),
+       ],
+-      [
+-        "viewTabsSidebar",
+-        makeSidebar({
+-          elementId: "sidebar-switcher-tabs",
+-          url: "chrome://browser/content/syncedtabs/sidebar.xhtml",
+-          menuId: "menu_tabsSidebar",
+-        }),
+-      ],
+     ]));
+   },
+ 
+diff --git a/browser/base/content/browser-sync.js b/browser/base/content/browser-sync.js
+--- a/browser/base/content/browser-sync.js
++++ b/browser/base/content/browser-sync.js
+@@ -431,13 +431,7 @@ var gSync = {
+     return targets.sort((a, b) => b.lastAccessTime - a.lastAccessTime);
+   },
+ 
+-  _definePrefGetters() {
+-    XPCOMUtils.defineLazyPreferenceGetter(
+-      this,
+-      "FXA_ENABLED",
+-      "identity.fxaccounts.enabled"
+-    );
+-  },
++  FXA_ENABLED: false,
+ 
+   maybeUpdateUIState() {
+     // Update the UI.
+@@ -456,8 +450,6 @@ var gSync = {
+       return;
+     }
+ 
+-    this._definePrefGetters();
+-
+     if (!this.FXA_ENABLED) {
+       this.onFxaDisabled();
+       return;
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -88,9 +88,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   UrlbarTokenizer: "resource:///modules/UrlbarTokenizer.jsm",
+   UrlbarUtils: "resource:///modules/UrlbarUtils.jsm",
+   UrlbarValueFormatter: "resource:///modules/UrlbarValueFormatter.jsm",
+-  Weave: "resource://services-sync/main.js",
+   WebNavigationFrames: "resource://gre/modules/WebNavigationFrames.jsm",
+-  fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   webrtcUI: "resource:///modules/webrtcUI.jsm",
+   WebsiteFilter: "resource:///modules/policies/WebsiteFilter.jsm",
+   ZoomUI: "resource:///modules/ZoomUI.jsm",
+@@ -191,11 +189,6 @@ XPCOMUtils.defineLazyScriptGetter(
+ );
+ XPCOMUtils.defineLazyScriptGetter(
+   this,
+-  "gSync",
+-  "chrome://browser/content/browser-sync.js"
+-);
+-XPCOMUtils.defineLazyScriptGetter(
+-  this,
+   "gBrowserThumbnails",
+   "chrome://browser/content/browser-thumbnails.js"
+ );
+@@ -674,45 +667,8 @@ var gNavigatorBundle = {
+ };
+ 
+ function updateFxaToolbarMenu(enable, isInitialUpdate = false) {
+-  // We only show the Firefox Account toolbar menu if the feature is enabled and
+-  // if sync is enabled.
+-  const syncEnabled = Services.prefs.getBoolPref(
+-    "identity.fxaccounts.enabled",
+-    false
+-  );
+-
+   const mainWindowEl = document.documentElement;
+-  const fxaPanelEl = PanelMultiView.getViewNode(document, "PanelUI-fxa");
+-
+-  // To minimize the toolbar button flickering or appearing/disappearing during startup,
+-  // we use this pref to anticipate the likely FxA status.
+-  const statusGuess = !!Services.prefs.getStringPref(
+-    "identity.fxaccounts.account.device.name",
+-    ""
+-  );
+-  mainWindowEl.setAttribute(
+-    "fxastatus",
+-    statusGuess ? "signed_in" : "not_configured"
+-  );
+-
+-  fxaPanelEl.addEventListener("ViewShowing", gSync.updateSendToDeviceTitle);
+-
+-  Services.telemetry.setEventRecordingEnabled("fxa_app_menu", true);
+-
+-  if (enable && syncEnabled) {
+-    mainWindowEl.setAttribute("fxatoolbarmenu", "visible");
+-
+-    // We have to manually update the sync state UI when toggling the FxA toolbar
+-    // because it could show an invalid icon if the user is logged in and no sync
+-    // event was performed yet.
+-    if (!isInitialUpdate) {
+-      gSync.maybeUpdateUIState();
+-    }
+-
+-    Services.telemetry.setEventRecordingEnabled("fxa_avatar_menu", true);
+-  } else {
+     mainWindowEl.removeAttribute("fxatoolbarmenu");
+-  }
+ }
+ 
+ function UpdateBackForwardCommands(aWebNavigation) {
+@@ -2310,11 +2266,6 @@ var gBrowserInit = {
+     }
+ 
+     scheduleIdleTask(() => {
+-      // Initialize the Sync UI
+-      gSync.init();
+-    });
+-
+-    scheduleIdleTask(() => {
+       // Read prefers-reduced-motion setting
+       let reduceMotionQuery = window.matchMedia(
+         "(prefers-reduced-motion: reduce)"
+@@ -2469,8 +2420,6 @@ var gBrowserInit = {
+ 
+     FullScreen.uninit();
+ 
+-    gSync.uninit();
+-
+     gExtensionsNotifications.uninit();
+ 
+     try {
+diff --git a/browser/base/content/main-popupset.inc.xhtml b/browser/base/content/main-popupset.inc.xhtml
+--- a/browser/base/content/main-popupset.inc.xhtml
++++ b/browser/base/content/main-popupset.inc.xhtml
+@@ -57,13 +57,6 @@
+                   oncommand="gBrowser.replaceTabsWithWindow(TabContextMenu.contextTab);"/>
+       </menupopup>
+     </menu>
+-    <menu id="context_sendTabToDevice"
+-          class="sync-ui-item"
+-          data-lazy-l10n-id="tab-context-send-tabs-to-device"
+-          data-l10n-args='{"tabCount": 1}'>
+-      <menupopup id="context_sendTabToDevicePopupMenu"
+-                 onpopupshowing="gSync.populateSendTabToDevicesMenu(event.target, TabContextMenu.contextTab.linkedBrowser.currentURI.spec, TabContextMenu.contextTab.linkedBrowser.contentTitle, TabContextMenu.contextTab.multiselected);"/>
+-    </menu>
+     <menu id="context_reopenInContainer"
+           data-lazy-l10n-id="tab-context-open-in-new-container-tab"
+           hidden="true">
+@@ -318,10 +311,6 @@
+                    class="subviewbutton"
+                    key="key_gotoHistory"
+                    oncommand="SidebarUI.show('viewHistorySidebar');"/>
+-    <toolbarbutton id="sidebar-switcher-tabs"
+-                   data-l10n-id="sidebar-menu-synced-tabs"
+-                   class="subviewbutton sync-ui-item"
+-                   oncommand="SidebarUI.show('viewTabsSidebar');"/>
+     <toolbarseparator/>
+     <!-- Extension toolbarbuttons go here. -->
+     <toolbarseparator id="sidebar-extensions-separator"/>
+@@ -572,9 +561,6 @@
+     <menuseparator/>
+     <menuitem data-lazy-l10n-id="synced-tabs-context-open-all-in-tabs"
+               id="syncedTabsOpenAllInTabs"/>
+-    <menuitem data-lazy-l10n-id="synced-tabs-context-manage-devices"
+-              id="syncedTabsManageDevices"
+-              oncommand="gSync.openDevicesManagementPage('syncedtabs-sidebar');"/>
+     <menuitem data-lazy-l10n-id="synced-tabs-context-sync-now"
+               id="syncedTabsRefresh"/>
+   </menupopup>
+diff --git a/browser/base/content/moz.build b/browser/base/content/moz.build
+--- a/browser/base/content/moz.build
++++ b/browser/base/content/moz.build
+@@ -154,9 +154,6 @@ with Files("browser-places.js"):
+ with Files("browser-safebrowsing.js"):
+     BUG_COMPONENT = ("Toolkit", "Safe Browsing")
+ 
+-with Files("browser-sync.js"):
+-    BUG_COMPONENT = ("Firefox", "Sync")
+-
+ with Files("contentSearch*"):
+     BUG_COMPONENT = ("Firefox", "Search")
+ 
+diff --git a/browser/base/content/navigator-toolbox.inc.xhtml b/browser/base/content/navigator-toolbox.inc.xhtml
+--- a/browser/base/content/navigator-toolbox.inc.xhtml
++++ b/browser/base/content/navigator-toolbox.inc.xhtml
+@@ -403,20 +403,6 @@
+           <image class="toolbarbutton-animatable-image" id="downloads-indicator-finish-image"/>
+         </box>
+       </toolbarbutton>
+-
+-      <toolbarbutton id="fxa-toolbar-menu-button" class="toolbarbutton-1 chromeclass-toolbar-additional subviewbutton-nav"
+-                     badged="true"
+-                     onmousedown="gSync.toggleAccountPanel(this, event)"
+-                     onkeypress="gSync.toggleAccountPanel(this, event)"
+-                     consumeanchor="fxa-toolbar-menu-button"
+-                     closemenu="none"
+-                     data-l10n-id="toolbar-button-fxaccount"
+-                     cui-areatype="toolbar"
+-                     removable="true">
+-                     <vbox>
+-                      <image id="fxa-avatar-image"/>
+-                     </vbox>
+-      </toolbarbutton>
+     </hbox>
+ 
+     <toolbarbutton id="nav-bar-overflow-button"
+diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
+--- a/browser/base/content/nsContextMenu.js
++++ b/browser/base/content/nsContextMenu.js
+@@ -338,7 +338,6 @@ class nsContextMenu {
+     this.initPocketItems();
+     this.initSpellingItems();
+     this.initSaveItems();
+-    this.initSyncItems();
+     this.initClipboardItems();
+     this.initMediaPlayerItems();
+     this.initLeaveDOMFullScreenItems();
+@@ -1117,10 +1116,6 @@ class nsContextMenu {
+     }
+   }
+ 
+-  initSyncItems() {
+-    this.syncItemsShown = gSync.updateContentContextMenu(this);
+-  }
+-
+   initViewSourceItems() {
+     const getString = name => {
+       const { bundle } = gViewSourceUtils.getPageActor(this.browser);
+diff --git a/browser/base/content/tabbrowser.js b/browser/base/content/tabbrowser.js
+--- a/browser/base/content/tabbrowser.js
++++ b/browser/base/content/tabbrowser.js
+@@ -7228,16 +7228,9 @@ var TabContextMenu = {
+     this.contextTab.addEventListener("TabAttrModified", this);
+     aPopupMenu.addEventListener("popuphiding", this);
+ 
+-    gSync.updateTabContextMenu(aPopupMenu, this.contextTab);
+-
+     document.getElementById("context_reopenInContainer").hidden =
+       !Services.prefs.getBoolPref("privacy.userContext.enabled", false) ||
+       PrivateBrowsingUtils.isWindowPrivate(window);
+-
+-    gShareUtils.updateShareURLMenuItem(
+-      this.contextTab.linkedBrowser,
+-      document.getElementById("context_sendTabToDevice")
+-    );
+   },
+ 
+   handleEvent(aEvent) {
+diff --git a/browser/base/jar.mn b/browser/base/jar.mn
+--- a/browser/base/jar.mn
++++ b/browser/base/jar.mn
+@@ -57,7 +57,6 @@ browser.jar:
+         content/browser/browser-siteIdentity.js             (content/browser-siteIdentity.js)
+         content/browser/browser-sitePermissionPanel.js      (content/browser-sitePermissionPanel.js)
+         content/browser/browser-siteProtections.js          (content/browser-siteProtections.js)
+-        content/browser/browser-sync.js                     (content/browser-sync.js)
+         content/browser/browser-tabsintitlebar.js           (content/browser-tabsintitlebar.js)
+         content/browser/browser-toolbarKeyNav.js            (content/browser-toolbarKeyNav.js)
+         content/browser/browser-thumbnails.js               (content/browser-thumbnails.js)
+diff --git a/browser/components/BrowserGlue.jsm b/browser/components/BrowserGlue.jsm
+--- a/browser/components/BrowserGlue.jsm
++++ b/browser/components/BrowserGlue.jsm
+@@ -47,7 +47,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   E10SUtils: "resource://gre/modules/E10SUtils.jsm",
+   ExtensionsUI: "resource:///modules/ExtensionsUI.jsm",
+   FeatureGate: "resource://featuregates/FeatureGate.jsm",
+-  FxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   HomePage: "resource:///modules/HomePage.jsm",
+   Integration: "resource://gre/modules/Integration.jsm",
+   Interactions: "resource:///modules/Interactions.jsm",
+@@ -786,12 +785,6 @@ let JSWINDOWACTORS = {
+   },
+ };
+ 
+-XPCOMUtils.defineLazyGetter(
+-  this,
+-  "WeaveService",
+-  () => Cc["@mozilla.org/weave/service;1"].getService().wrappedJSObject
+-);
+-
+ if (AppConstants.MOZ_CRASHREPORTER) {
+   XPCOMUtils.defineLazyModuleGetters(this, {
+     UnsubmittedCrashHandler: "resource:///modules/ContentCrashHandlers.jsm",
+@@ -955,24 +948,6 @@ BrowserGlue.prototype = {
+           this._setPrefToSaveSession();
+         }
+         break;
+-      case "fxaccounts:onverified":
+-        this._onThisDeviceConnected();
+-        break;
+-      case "fxaccounts:device_connected":
+-        this._onDeviceConnected(data);
+-        break;
+-      case "fxaccounts:verify_login":
+-        this._onVerifyLoginNotification(JSON.parse(data));
+-        break;
+-      case "fxaccounts:device_disconnected":
+-        data = JSON.parse(data);
+-        if (data.isLocalDevice) {
+-          this._onDeviceDisconnected();
+-        }
+-        break;
+-      case "fxaccounts:commands:open-uri":
+-        this._onDisplaySyncURIs(subject);
+-        break;
+       case "session-save":
+         this._setPrefToSaveSession(true);
+         subject.QueryInterface(Ci.nsISupportsPRBool);
+@@ -1086,9 +1061,6 @@ BrowserGlue.prototype = {
+           this._notifyUnsignedAddonsDisabled();
+         }
+         break;
+-      case "sync-ui-state:update":
+-        this._updateFxaBadges(BrowserWindowTracker.getTopWindow());
+-        break;
+       case "handlersvc-store-initialized":
+         // Initialize PdfJs when running in-process and remote. This only
+         // happens once since PdfJs registers global hooks. If the PdfJs
+@@ -1120,11 +1092,6 @@ BrowserGlue.prototype = {
+       "browser:purge-session-history",
+       "quit-application-requested",
+       "quit-application-granted",
+-      "fxaccounts:onverified",
+-      "fxaccounts:device_connected",
+-      "fxaccounts:verify_login",
+-      "fxaccounts:device_disconnected",
+-      "fxaccounts:commands:open-uri",
+       "session-save",
+       "places-init-complete",
+       "distribution-customization-complete",
+@@ -1134,7 +1101,6 @@ BrowserGlue.prototype = {
+       "browser-search-engine-modified",
+       "restart-in-safe-mode",
+       "xpi-signature-changed",
+-      "sync-ui-state:update",
+       "handlersvc-store-initialized",
+     ].forEach(topic => os.addObserver(this, topic, true));
+     if (OBSERVE_LASTWINDOW_CLOSE_TOPICS) {
+@@ -1656,11 +1622,6 @@ BrowserGlue.prototype = {
+ 
+     this._checkForOldBuildUpdates();
+ 
+-    // Check if Sync is configured
+-    if (Services.prefs.prefHasUserValue("services.sync.username")) {
+-      WeaveService.init();
+-    }
+-
+     PageThumbs.init();
+ 
+     NewTabUtils.init();
+@@ -2738,15 +2699,6 @@ BrowserGlue.prototype = {
+           this._collectTelemetryPiPEnabled();
+         },
+       },
+-      // Schedule a sync (if enabled) after we've loaded
+-      {
+-        task: async () => {
+-          if (WeaveService.enabled) {
+-            await WeaveService.whenLoaded();
+-            WeaveService.Weave.Service.scheduler.autoConnect();
+-          }
+-        },
+-      },
+ 
+       {
+         condition: AppConstants.platform == "win",
+@@ -3347,29 +3299,6 @@ BrowserGlue.prototype = {
+     notification.persistence = -1; // Until user closes it
+   },
+ 
+-  _onThisDeviceConnected() {
+-    let bundle = Services.strings.createBundle(
+-      "chrome://browser/locale/accounts.properties"
+-    );
+-    let title = bundle.GetStringFromName("deviceConnDisconnTitle");
+-    let body = bundle.GetStringFromName("thisDeviceConnectedBody");
+-
+-    let clickCallback = (subject, topic, data) => {
+-      if (topic != "alertclickcallback") {
+-        return;
+-      }
+-      this._openPreferences("sync");
+-    };
+-    this.AlertsService.showAlertNotification(
+-      null,
+-      title,
+-      body,
+-      true,
+-      null,
+-      clickCallback
+-    );
+-  },
+-
+   _migrateXULStoreForDocument(fromURL, toURL) {
+     Array.from(Services.xulStore.getIDsEnumerator(fromURL)).forEach(id => {
+       Array.from(Services.xulStore.getAttributeEnumerator(fromURL, id)).forEach(
+@@ -4413,240 +4342,6 @@ BrowserGlue.prototype = {
+     });
+   },
+ 
+-  /**
+-   * Called as an observer when Sync's "display URIs" notification is fired.
+-   *
+-   * We open the received URIs in background tabs.
+-   */
+-  async _onDisplaySyncURIs(data) {
+-    try {
+-      // The payload is wrapped weirdly because of how Sync does notifications.
+-      const URIs = data.wrappedJSObject.object;
+-
+-      // win can be null, but it's ok, we'll assign it later in openTab()
+-      let win = BrowserWindowTracker.getTopWindow({ private: false });
+-
+-      const openTab = async URI => {
+-        let tab;
+-        if (!win) {
+-          win = await this._openURLInNewWindow(URI.uri);
+-          let tabs = win.gBrowser.tabs;
+-          tab = tabs[tabs.length - 1];
+-        } else {
+-          tab = win.gBrowser.addWebTab(URI.uri);
+-        }
+-        tab.attention = true;
+-        return tab;
+-      };
+-
+-      const firstTab = await openTab(URIs[0]);
+-      await Promise.all(URIs.slice(1).map(URI => openTab(URI)));
+-
+-      const deviceName = URIs[0].sender && URIs[0].sender.name;
+-      let title, body;
+-      const bundle = Services.strings.createBundle(
+-        "chrome://browser/locale/accounts.properties"
+-      );
+-      if (URIs.length == 1) {
+-        // Due to bug 1305895, tabs from iOS may not have device information, so
+-        // we have separate strings to handle those cases. (See Also
+-        // unnamedTabsArrivingNotificationNoDevice.body below)
+-        if (deviceName) {
+-          title = bundle.formatStringFromName(
+-            "tabArrivingNotificationWithDevice.title",
+-            [deviceName]
+-          );
+-        } else {
+-          title = bundle.GetStringFromName("tabArrivingNotification.title");
+-        }
+-        // Use the page URL as the body. We strip the fragment and query (after
+-        // the `?` and `#` respectively) to reduce size, and also format it the
+-        // same way that the url bar would.
+-        body = URIs[0].uri.replace(/([?#]).*$/, "$1");
+-        let wasTruncated = body.length < URIs[0].uri.length;
+-        body = BrowserUIUtils.trimURL(body);
+-        if (wasTruncated) {
+-          body = bundle.formatStringFromName(
+-            "singleTabArrivingWithTruncatedURL.body",
+-            [body]
+-          );
+-        }
+-      } else {
+-        title = bundle.GetStringFromName(
+-          "multipleTabsArrivingNotification.title"
+-        );
+-        const allKnownSender = URIs.every(URI => URI.sender != null);
+-        const allSameDevice =
+-          allKnownSender &&
+-          URIs.every(URI => URI.sender.id == URIs[0].sender.id);
+-        let tabArrivingBody;
+-        if (allSameDevice) {
+-          if (deviceName) {
+-            tabArrivingBody = "unnamedTabsArrivingNotification2.body";
+-          } else {
+-            tabArrivingBody = "unnamedTabsArrivingNotificationNoDevice.body";
+-          }
+-        } else {
+-          tabArrivingBody = "unnamedTabsArrivingNotificationMultiple2.body";
+-        }
+-
+-        body = bundle.GetStringFromName(tabArrivingBody);
+-        body = PluralForm.get(URIs.length, body);
+-        body = body.replace("#1", URIs.length);
+-        body = body.replace("#2", deviceName);
+-      }
+-
+-      const clickCallback = (obsSubject, obsTopic, obsData) => {
+-        if (obsTopic == "alertclickcallback") {
+-          win.gBrowser.selectedTab = firstTab;
+-        }
+-      };
+-
+-      // Specify an icon because on Windows no icon is shown at the moment
+-      let imageURL;
+-      if (AppConstants.platform == "win") {
+-        imageURL = "chrome://branding/content/icon64.png";
+-      }
+-      this.AlertsService.showAlertNotification(
+-        imageURL,
+-        title,
+-        body,
+-        true,
+-        null,
+-        clickCallback
+-      );
+-    } catch (ex) {
+-      Cu.reportError("Error displaying tab(s) received by Sync: " + ex);
+-    }
+-  },
+-
+-  async _onVerifyLoginNotification({ body, title, url }) {
+-    let tab;
+-    let imageURL;
+-    if (AppConstants.platform == "win") {
+-      imageURL = "chrome://branding/content/icon64.png";
+-    }
+-    let win = BrowserWindowTracker.getTopWindow({ private: false });
+-    if (!win) {
+-      win = await this._openURLInNewWindow(url);
+-      let tabs = win.gBrowser.tabs;
+-      tab = tabs[tabs.length - 1];
+-    } else {
+-      tab = win.gBrowser.addWebTab(url);
+-    }
+-    tab.attention = true;
+-    let clickCallback = (subject, topic, data) => {
+-      if (topic != "alertclickcallback") {
+-        return;
+-      }
+-      win.gBrowser.selectedTab = tab;
+-    };
+-
+-    try {
+-      this.AlertsService.showAlertNotification(
+-        imageURL,
+-        title,
+-        body,
+-        true,
+-        null,
+-        clickCallback
+-      );
+-    } catch (ex) {
+-      Cu.reportError("Error notifying of a verify login event: " + ex);
+-    }
+-  },
+-
+-  _onDeviceConnected(deviceName) {
+-    let accountsBundle = Services.strings.createBundle(
+-      "chrome://browser/locale/accounts.properties"
+-    );
+-    let title = accountsBundle.GetStringFromName("deviceConnDisconnTitle");
+-    let body = accountsBundle.formatStringFromName(
+-      "otherDeviceConnectedBody" + (deviceName ? "" : ".noDeviceName"),
+-      [deviceName]
+-    );
+-
+-    let clickCallback = async (subject, topic, data) => {
+-      if (topic != "alertclickcallback") {
+-        return;
+-      }
+-      let url = await FxAccounts.config.promiseManageDevicesURI(
+-        "device-connected-notification"
+-      );
+-      let win = BrowserWindowTracker.getTopWindow({ private: false });
+-      if (!win) {
+-        this._openURLInNewWindow(url);
+-      } else {
+-        win.gBrowser.addWebTab(url);
+-      }
+-    };
+-
+-    try {
+-      this.AlertsService.showAlertNotification(
+-        null,
+-        title,
+-        body,
+-        true,
+-        null,
+-        clickCallback
+-      );
+-    } catch (ex) {
+-      Cu.reportError("Error notifying of a new Sync device: " + ex);
+-    }
+-  },
+-
+-  _onDeviceDisconnected() {
+-    let bundle = Services.strings.createBundle(
+-      "chrome://browser/locale/accounts.properties"
+-    );
+-    let title = bundle.GetStringFromName("deviceConnDisconnTitle");
+-    let body = bundle.GetStringFromName("thisDeviceDisconnectedBody");
+-
+-    let clickCallback = (subject, topic, data) => {
+-      if (topic != "alertclickcallback") {
+-        return;
+-      }
+-      this._openPreferences("sync");
+-    };
+-    this.AlertsService.showAlertNotification(
+-      null,
+-      title,
+-      body,
+-      true,
+-      null,
+-      clickCallback
+-    );
+-  },
+-
+-  _updateFxaBadges(win) {
+-    let fxaButton = win.document.getElementById("fxa-toolbar-menu-button");
+-    let badge = fxaButton?.querySelector(".toolbarbutton-badge");
+-
+-    let state = UIState.get();
+-    if (
+-      state.status == UIState.STATUS_LOGIN_FAILED ||
+-      state.status == UIState.STATUS_NOT_VERIFIED
+-    ) {
+-      // If the fxa toolbar button is in the toolbox, we display the notification
+-      // on the fxa button instead of the app menu.
+-      let navToolbox = win.document.getElementById("navigator-toolbox");
+-      let isFxAButtonShown = navToolbox.contains(fxaButton);
+-      if (isFxAButtonShown) {
+-        state.status == UIState.STATUS_LOGIN_FAILED
+-          ? fxaButton?.setAttribute("badge-status", state.status)
+-          : badge?.classList.add("feature-callout");
+-      } else {
+-        AppMenuNotifications.showBadgeOnlyNotification(
+-          "fxa-needs-authentication"
+-        );
+-      }
+-    } else {
+-      fxaButton?.removeAttribute("badge-status");
+-      badge?.classList.remove("feature-callout");
+-      AppMenuNotifications.removeNotification("fxa-needs-authentication");
+-    }
+-  },
+-
+   _collectTelemetryPiPEnabled() {
+     Services.telemetry.setEventRecordingEnabled(
+       "pictureinpicture.settings",
+diff --git a/browser/components/aboutlogins/AboutLoginsParent.jsm b/browser/components/aboutlogins/AboutLoginsParent.jsm
+--- a/browser/components/aboutlogins/AboutLoginsParent.jsm
++++ b/browser/components/aboutlogins/AboutLoginsParent.jsm
+@@ -24,7 +24,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   MigrationUtils: "resource:///modules/MigrationUtils.jsm",
+   OSKeyStore: "resource://gre/modules/OSKeyStore.jsm",
+   Services: "resource://gre/modules/Services.jsm",
+-  UIState: "resource://services-sync/UIState.jsm",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
+ });
+ 
+@@ -39,12 +38,6 @@ XPCOMUtils.defineLazyPreferenceGetter(
+ );
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+-  "FXA_ENABLED",
+-  "identity.fxaccounts.enabled",
+-  false
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+   "OS_AUTH_ENABLED",
+   "signon.management.page.os-auth.enabled",
+   true
+@@ -118,14 +111,6 @@ class AboutLoginsParent extends JSWindow
+         this.#sortChanged(message.data);
+         break;
+       }
+-      case "AboutLogins:SyncEnable": {
+-        this.#syncEnable();
+-        break;
+-      }
+-      case "AboutLogins:SyncOptions": {
+-        this.#syncOptions();
+-        break;
+-      }
+       case "AboutLogins:ImportFromBrowser": {
+         this.#importFromBrowser();
+         break;
+@@ -217,14 +202,6 @@ class AboutLoginsParent extends JSWindow
+     Services.prefs.setCharPref("signon.management.page.sort", sort);
+   }
+ 
+-  #syncEnable() {
+-    this.#ownerGlobal.gSync.openFxAEmailFirstPage("password-manager");
+-  }
+-
+-  #syncOptions() {
+-    this.#ownerGlobal.gSync.openFxAManagePage("password-manager");
+-  }
+-
+   #importFromBrowser() {
+     try {
+       MigrationUtils.showMigrationWizard(this.#ownerGlobal, [
+@@ -562,10 +539,6 @@ class AboutLoginsInternal {
+         this.#showPrimaryPasswordLoginNotifications();
+         break;
+       }
+-      case UIState.ON_UPDATE: {
+-        this.#messageSubscribers("AboutLogins:SyncState", this.getSyncState());
+-        break;
+-      }
+       case "passwordmgr-storage-changed": {
+         switch (type) {
+           case "addLogin": {
+@@ -860,19 +833,12 @@ class AboutLoginsInternal {
+   }
+ 
+   getSyncState() {
+-    const state = UIState.get();
+-    // As long as Sync is configured, about:logins will treat it as
+-    // authenticated. More diagnostics and error states can be handled
+-    // by other more Sync-specific pages.
+-    const loggedIn = state.status != UIState.STATUS_NOT_CONFIGURED;
+-    const passwordSyncEnabled = state.syncEnabled && PASSWORD_SYNC_ENABLED;
+-
+     return {
+-      loggedIn,
+-      email: state.email,
+-      avatarURL: state.avatarURL,
+-      fxAccountsEnabled: FXA_ENABLED,
+-      passwordSyncEnabled,
++      loggedIn: false,
++      email: "",
++      avatarURL: "",
++      fxAccountsEnabled: false,
++      passwordSyncEnabled: false,
+     };
+   }
+ 
+@@ -885,7 +851,6 @@ class AboutLoginsInternal {
+     "passwordmgr-crypto-loginCanceled",
+     "passwordmgr-storage-changed",
+     "passwordmgr-reload-all",
+-    UIState.ON_UPDATE,
+   ];
+ 
+   addObservers() {
+@@ -907,11 +872,3 @@ class AboutLoginsInternal {
+ 
+ let AboutLogins = new AboutLoginsInternal();
+ var _AboutLogins = AboutLogins;
+-
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "PASSWORD_SYNC_ENABLED",
+-  "services.sync.engine.passwords",
+-  false,
+-  AboutLogins.onPasswordSyncEnabledPreferenceChange
+-);
+diff --git a/browser/components/customizableui/CustomizableUI.jsm b/browser/components/customizableui/CustomizableUI.jsm
+--- a/browser/components/customizableui/CustomizableUI.jsm
++++ b/browser/components/customizableui/CustomizableUI.jsm
+@@ -242,7 +242,6 @@ var CustomizableUIInternal = {
+       "save-to-pocket-button",
+       "downloads-button",
+       AppConstants.MOZ_DEV_EDITION ? "developer-button" : null,
+-      "fxa-toolbar-menu-button",
+     ].filter(name => name);
+ 
+     this.registerArea(
+@@ -574,15 +573,6 @@ var CustomizableUIInternal = {
+       }
+     }
+ 
+-    // Add the FxA toolbar menu as the right most button item
+-    if (currentVersion < 16 && gSavedState.placements) {
+-      let navbarPlacements = gSavedState.placements[CustomizableUI.AREA_NAVBAR];
+-      // Place the menu item as the first item to the left of the hamburger menu
+-      if (navbarPlacements) {
+-        navbarPlacements.push("fxa-toolbar-menu-button");
+-      }
+-    }
+-
+     // Add the save to Pocket button left of downloads button.
+     if (currentVersion < 17 && gSavedState.placements) {
+       let navbarPlacements = gSavedState.placements[CustomizableUI.AREA_NAVBAR];
+@@ -603,7 +593,6 @@ var CustomizableUIInternal = {
+         // Pocket's new home is next to the downloads button, or the next best spot.
+         let newPosition =
+           navbarPlacements.indexOf("downloads-button") ??
+-          navbarPlacements.indexOf("fxa-toolbar-menu-button") ??
+           navbarPlacements.length;
+ 
+         navbarPlacements.splice(newPosition, 0, "save-to-pocket-button");
+diff --git a/browser/components/customizableui/CustomizableWidgets.jsm b/browser/components/customizableui/CustomizableWidgets.jsm
+--- a/browser/components/customizableui/CustomizableWidgets.jsm
++++ b/browser/components/customizableui/CustomizableWidgets.jsm
+@@ -504,38 +504,6 @@ const CustomizableWidgets = [
+   },
+ ];
+ 
+-if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+-  CustomizableWidgets.push({
+-    id: "sync-button",
+-    l10nId: "toolbar-button-synced-tabs",
+-    type: "view",
+-    viewId: "PanelUI-remotetabs",
+-    onViewShowing(aEvent) {
+-      let panelview = aEvent.target;
+-      let doc = panelview.ownerDocument;
+-
+-      let syncNowBtn = panelview.querySelector(".syncnow-label");
+-      let l10nId = syncNowBtn.getAttribute(
+-        panelview.ownerGlobal.gSync._isCurrentlySyncing
+-          ? "syncing-data-l10n-id"
+-          : "sync-now-data-l10n-id"
+-      );
+-      syncNowBtn.setAttribute("data-l10n-id", l10nId);
+-
+-      let SyncedTabsPanelList = doc.defaultView.SyncedTabsPanelList;
+-      panelview.syncedTabsPanelList = new SyncedTabsPanelList(
+-        panelview,
+-        PanelMultiView.getViewNode(doc, "PanelUI-remotetabs-deck"),
+-        PanelMultiView.getViewNode(doc, "PanelUI-remotetabs-tabslist")
+-      );
+-    },
+-    onViewHiding(aEvent) {
+-      aEvent.target.syncedTabsPanelList.destroy();
+-      aEvent.target.syncedTabsPanelList = null;
+-    },
+-  });
+-}
+-
+ if (!screenshotsDisabled) {
+   CustomizableWidgets.push({
+     id: "screenshot-button",
+diff --git a/browser/components/moz.build b/browser/components/moz.build
+--- a/browser/components/moz.build
++++ b/browser/components/moz.build
+@@ -53,7 +53,6 @@ DIRS += [
+     "search",
+     "sessionstore",
+     "shell",
+-    "syncedtabs",
+     "tabunloader",
+     "translation",
+     "uitour",
+diff --git a/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm b/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
+--- a/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
++++ b/browser/components/newtab/aboutwelcome/AboutWelcomeParent.jsm
+@@ -15,7 +15,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   AddonManager: "resource://gre/modules/AddonManager.jsm",
+   BrowserUtils: "resource://gre/modules/BrowserUtils.jsm",
+   BuiltInThemes: "resource:///modules/BuiltInThemes.jsm",
+-  FxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   MigrationUtils: "resource:///modules/MigrationUtils.jsm",
+   SpecialMessageActions:
+     "resource://messaging-system/lib/SpecialMessageActions.jsm",
+@@ -250,8 +249,6 @@ class AboutWelcomeParent extends JSWindo
+       case "AWPage:SPECIAL_ACTION":
+         SpecialMessageActions.handleAction(data, browser);
+         break;
+-      case "AWPage:FXA_METRICS_FLOW_URI":
+-        return FxAccounts.config.promiseMetricsFlowURI("aboutwelcome");
+       case "AWPage:IMPORTABLE_SITES":
+         return getImportableSites();
+       case "AWPage:TELEMETRY_EVENT":
+diff --git a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+--- a/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
++++ b/browser/components/newtab/aboutwelcome/lib/AboutWelcomeDefaults.jsm
+@@ -414,14 +414,12 @@ async function prepareContentForReact(co
+   }
+ 
+   // Remove Firefox Accounts related UI and prevent related metrics.
+-  if (!Services.prefs.getBoolPref("identity.fxaccounts.enabled", false)) {
+     delete content.screens?.find(
+       screen =>
+         screen.content?.secondary_button_top?.action?.type ===
+         "SHOW_FIREFOX_ACCOUNTS"
+     )?.content.secondary_button_top;
+     content.skipFxA = true;
+-  }
+ 
+   // Remove the English-only image caption.
+   if (Services.locale.appLocaleAsBCP47.split("-")[0] !== "en") {
+diff --git a/browser/components/newtab/lib/ASRouterTargeting.jsm b/browser/components/newtab/lib/ASRouterTargeting.jsm
+--- a/browser/components/newtab/lib/ASRouterTargeting.jsm
++++ b/browser/components/newtab/lib/ASRouterTargeting.jsm
+@@ -2,7 +2,6 @@
+  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+  * You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+-const FXA_ENABLED_PREF = "identity.fxaccounts.enabled";
+ const DISTRIBUTION_ID_PREF = "distribution.id";
+ const DISTRIBUTION_ID_CHINA_REPACK = "MozillaOnline";
+ 
+@@ -22,7 +21,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+   AttributionCode: "resource:///modules/AttributionCode.jsm",
+   TargetingContext: "resource://messaging-system/targeting/Targeting.jsm",
+-  fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   Region: "resource://gre/modules/Region.jsm",
+   TelemetrySession: "resource://gre/modules/TelemetrySession.jsm",
+   HomePage: "resource:///modules/HomePage.jsm",
+@@ -80,12 +78,6 @@ XPCOMUtils.defineLazyPreferenceGetter(
+ );
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+-  "isFxAEnabled",
+-  FXA_ENABLED_PREF,
+-  true
+-);
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+   "isXPIInstallEnabled",
+   "xpinstall.enabled",
+   true
+@@ -109,7 +101,6 @@ const FXA_USERNAME_PREF = "services.sync
+ 
+ const { activityStreamProvider: asProvider } = NewTabUtils;
+ 
+-const FXA_ATTACHED_CLIENTS_UPDATE_INTERVAL = 4 * 60 * 60 * 1000; // Four hours
+ const FRECENT_SITES_UPDATE_INTERVAL = 6 * 60 * 60 * 1000; // Six hours
+ const FRECENT_SITES_IGNORE_BLOCKED = false;
+ const FRECENT_SITES_NUM_ITEMS = 25;
+@@ -151,26 +142,10 @@ function CachedTargetingGetter(
+ 
+ function CacheListAttachedOAuthClients() {
+   return {
+-    _lastUpdated: 0,
+-    _value: null,
+     expire() {
+-      this._lastUpdated = 0;
+-      this._value = null;
+     },
+     get() {
+-      const now = Date.now();
+-      if (now - this._lastUpdated >= FXA_ATTACHED_CLIENTS_UPDATE_INTERVAL) {
+-        this._value = new Promise(resolve => {
+-          fxAccounts
+-            .listAttachedOAuthClients()
+-            .then(clients => {
+-              resolve(clients);
+-            })
+-            .catch(() => resolve([]));
+-        });
+-        this._lastUpdated = now;
+-      }
+-      return this._value;
++      return [];
+     },
+   };
+ }
+@@ -416,7 +391,7 @@ const TargetingGetters = {
+     return Services.prefs.prefHasUserValue(FXA_USERNAME_PREF);
+   },
+   get isFxAEnabled() {
+-    return isFxAEnabled;
++    return false;
+   },
+   get sync() {
+     return {
+@@ -573,9 +548,7 @@ const TargetingGetters = {
+     );
+   },
+   get attachedFxAOAuthClients() {
+-    return this.usesFirefoxSync
+-      ? QueryCache.queries.ListAttachedOAuthClients.get()
+-      : [];
++    return [];
+   },
+   get platformName() {
+     return AppConstants.platform;
+diff --git a/browser/components/newtab/lib/OnboardingMessageProvider.jsm b/browser/components/newtab/lib/OnboardingMessageProvider.jsm
+--- a/browser/components/newtab/lib/OnboardingMessageProvider.jsm
++++ b/browser/components/newtab/lib/OnboardingMessageProvider.jsm
+@@ -22,16 +22,6 @@ const L10N = new Localization([
+ 
+ const ONBOARDING_MESSAGES = () => [
+   {
+-    id: "FXA_ACCOUNTS_BADGE",
+-    template: "toolbar_badge",
+-    content: {
+-      delay: 10000, // delay for 10 seconds
+-      target: "fxa-toolbar-menu-button",
+-    },
+-    targeting: "false",
+-    trigger: { id: "toolbarBadgeUpdate" },
+-  },
+-  {
+     id: "PROTECTIONS_PANEL_1",
+     template: "protections_panel",
+     content: {
+diff --git a/browser/components/places/PlacesUIUtils.jsm b/browser/components/places/PlacesUIUtils.jsm
+--- a/browser/components/places/PlacesUIUtils.jsm
++++ b/browser/components/places/PlacesUIUtils.jsm
+@@ -26,7 +26,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PluralForm: "resource://gre/modules/PluralForm.jsm",
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+   PromiseUtils: "resource://gre/modules/PromiseUtils.jsm",
+-  Weave: "resource://services-sync/main.js",
+ });
+ 
+ XPCOMUtils.defineLazyGetter(this, "bundle", function() {
+@@ -1151,13 +1150,6 @@ var PlacesUIUtils = {
+     return title || this.getString("noTitle");
+   },
+ 
+-  shouldShowTabsFromOtherComputersMenuitem() {
+-    let weaveOK =
+-      Weave.Status.checkSetup() != Weave.CLIENT_NOT_CONFIGURED &&
+-      Weave.Svc.Prefs.get("firstSync", "") != "notReady";
+-    return weaveOK;
+-  },
+-
+   /**
+    * WARNING TO ADDON AUTHORS: DO NOT USE THIS METHOD. IT'S LIKELY TO BE REMOVED IN A
+    * FUTURE RELEASE.
+diff --git a/browser/components/pocket/content/pktUI.js b/browser/components/pocket/content/pktUI.js
+--- a/browser/components/pocket/content/pktUI.js
++++ b/browser/components/pocket/content/pktUI.js
+@@ -604,14 +604,7 @@ var pktUI = (function() {
+   }
+ 
+   function getFirefoxAccountSignedInUser(callback) {
+-    fxAccounts
+-      .getSignedInUser()
+-      .then(userData => {
+-        callback(userData);
+-      })
+-      .then(null, error => {
+         callback();
+-      });
+   }
+ 
+   function getUILocale() {
+diff --git a/browser/components/preferences/dialogs/jar.mn b/browser/components/preferences/dialogs/jar.mn
+--- a/browser/components/preferences/dialogs/jar.mn
++++ b/browser/components/preferences/dialogs/jar.mn
+@@ -39,7 +39,5 @@ browser.jar:
+    content/browser/preferences/dialogs/siteDataSettings.js
+ *  content/browser/preferences/dialogs/siteDataRemoveSelected.xhtml
+    content/browser/preferences/dialogs/siteDataRemoveSelected.js
+-   content/browser/preferences/dialogs/syncChooseWhatToSync.xhtml
+-   content/browser/preferences/dialogs/syncChooseWhatToSync.js
+    content/browser/preferences/dialogs/translation.xhtml
+    content/browser/preferences/dialogs/translation.js
+diff --git a/browser/components/preferences/jar.mn b/browser/components/preferences/jar.mn
+--- a/browser/components/preferences/jar.mn
++++ b/browser/components/preferences/jar.mn
+@@ -12,11 +12,8 @@ browser.jar:
+    content/browser/preferences/search.js
+    content/browser/preferences/privacy.js
+    content/browser/preferences/containers.js
+-   content/browser/preferences/sync.js
+    content/browser/preferences/experimental.js
+    content/browser/preferences/moreFromMozilla.js
+-   content/browser/preferences/fxaPairDevice.xhtml
+-   content/browser/preferences/fxaPairDevice.js
+    content/browser/preferences/findInPage.js
+    content/browser/preferences/more-from-mozilla-qr-code-simple.svg
+    content/browser/preferences/more-from-mozilla-qr-code-simple-cn.svg
+diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
+--- a/browser/components/preferences/main.js
++++ b/browser/components/preferences/main.js
+@@ -885,24 +885,6 @@ var gMainPane = {
+   },
+ 
+   async onGetStarted(aEvent) {
+-    if (!AppConstants.MOZ_DEV_EDITION) {
+-      return;
+-    }
+-    const win = Services.wm.getMostRecentWindow("navigator:browser");
+-    if (!win) {
+-      return;
+-    }
+-    const user = await fxAccounts.getSignedInUser();
+-    if (user) {
+-      // We have a user, open Sync preferences in the same tab
+-      win.openTrustedLinkIn("about:preferences#sync", "current");
+-      return;
+-    }
+-    let url = await FxAccounts.config.promiseConnectAccountURI(
+-      "dev-edition-setup"
+-    );
+-    let accountsTab = win.gBrowser.addWebTab(url);
+-    win.gBrowser.selectedTab = accountsTab;
+   },
+ 
+   // HOME PAGE
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -37,11 +37,6 @@ var { PrivateBrowsingUtils } = ChromeUti
+   "resource://gre/modules/PrivateBrowsingUtils.jsm"
+ );
+ 
+-var { Weave } = ChromeUtils.import("resource://services-sync/main.js");
+-var { FxAccounts, fxAccounts } = ChromeUtils.import(
+-  "resource://gre/modules/FxAccounts.jsm"
+-);
+-
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   gApplicationUpdateService: [
+     "@mozilla.org/updates/update-service;1",
+@@ -211,13 +206,6 @@ function init_all() {
+     );
+     register_module("paneMoreFromMozilla", gMoreFromMozillaPane);
+   }
+-  // The Sync category needs to be the last of the "real" categories
+-  // registered and inititalized since many tests wait for the
+-  // "sync-pane-loaded" observer notification before starting the test.
+-  if (Services.prefs.getBoolPref("identity.fxaccounts.enabled")) {
+-    document.getElementById("category-sync").hidden = false;
+-    register_module("paneSync", gSyncPane);
+-  }
+   register_module("paneSearchResults", gSearchResultsPane);
+   gSearchResultsPane.init();
+   gMainPane.preInit();
+diff --git a/browser/components/preferences/preferences.xhtml b/browser/components/preferences/preferences.xhtml
+--- a/browser/components/preferences/preferences.xhtml
++++ b/browser/components/preferences/preferences.xhtml
+@@ -129,18 +129,6 @@
+           <label class="category-name" flex="1" data-l10n-id="pane-privacy-title"></label>
+         </richlistitem>
+ 
+-        <richlistitem id="category-sync"
+-                      class="category"
+-                      hidden="true"
+-                      value="paneSync"
+-                      helpTopic="prefs-weave"
+-                      data-l10n-id="category-sync3"
+-                      data-l10n-attrs="tooltiptext"
+-                      align="center">
+-          <image class="category-icon"/>
+-          <label class="category-name" flex="1" data-l10n-id="pane-sync-title3"></label>
+-        </richlistitem>
+-
+         <richlistitem id="category-experimental"
+                       class="category"
+                       hidden="true"
+@@ -208,7 +196,6 @@
+ #include search.inc.xhtml
+ #include privacy.inc.xhtml
+ #include containers.inc.xhtml
+-#include sync.inc.xhtml
+ #include experimental.inc.xhtml
+ #include moreFromMozilla.inc.xhtml
+         </vbox>
+diff --git a/browser/components/uitour/UITour.jsm b/browser/components/uitour/UITour.jsm
+--- a/browser/components/uitour/UITour.jsm
++++ b/browser/components/uitour/UITour.jsm
+@@ -18,8 +18,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   BrowserUsageTelemetry: "resource:///modules/BrowserUsageTelemetry.jsm",
+   BuiltInThemes: "resource:///modules/BuiltInThemes.jsm",
+   CustomizableUI: "resource:///modules/CustomizableUI.jsm",
+-  fxAccounts: "resource://gre/modules/FxAccounts.jsm",
+-  FxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   PanelMultiView: "resource:///modules/PanelMultiView.jsm",
+   ProfileAge: "resource://gre/modules/ProfileAge.jsm",
+   ResetProfile: "resource://gre/modules/ResetProfile.jsm",
+@@ -82,15 +80,6 @@ var UITour = {
+   highlightEffects: ["random", "wobble", "zoom", "color", "focus-outline"],
+   targets: new Map([
+     [
+-      "accountStatus",
+-      {
+-        query: "#appMenu-fxa-label2",
+-        // This is a fake widgetName starting with the "appMenu-" prefix so we know
+-        // to automatically open the appMenu when annotating this target.
+-        widgetName: "appMenu-fxa-label2",
+-      },
+-    ],
+-    [
+       "addons",
+       {
+         query: "#appMenu-extensions-themes-button",
+@@ -441,58 +430,6 @@ var UITour = {
+         break;
+       }
+ 
+-      case "showFirefoxAccounts": {
+-        Promise.resolve()
+-          .then(() => {
+-            return data.email
+-              ? FxAccounts.config.promiseEmailURI(
+-                  data.email,
+-                  data.entrypoint || "uitour"
+-                )
+-              : FxAccounts.config.promiseConnectAccountURI(
+-                  data.entrypoint || "uitour"
+-                );
+-          })
+-          .then(uri => {
+-            const url = new URL(uri);
+-            // Call our helper to validate extraURLParams and populate URLSearchParams
+-            if (!this._populateURLParams(url, data.extraURLParams)) {
+-              log.warn("showFirefoxAccounts: invalid campaign args specified");
+-              return;
+-            }
+-            // We want to replace the current tab.
+-            browser.loadURI(url.href, {
+-              triggeringPrincipal: Services.scriptSecurityManager.createNullPrincipal(
+-                {}
+-              ),
+-            });
+-          });
+-        break;
+-      }
+-
+-      case "showConnectAnotherDevice": {
+-        FxAccounts.config
+-          .promiseConnectDeviceURI(data.entrypoint || "uitour")
+-          .then(uri => {
+-            const url = new URL(uri);
+-            // Call our helper to validate extraURLParams and populate URLSearchParams
+-            if (!this._populateURLParams(url, data.extraURLParams)) {
+-              log.warn(
+-                "showConnectAnotherDevice: invalid campaign args specified"
+-              );
+-              return;
+-            }
+-
+-            // We want to replace the current tab.
+-            browser.loadURI(url.href, {
+-              triggeringPrincipal: Services.scriptSecurityManager.createNullPrincipal(
+-                {}
+-              ),
+-            });
+-          });
+-        break;
+-      }
+-
+       case "resetFirefox": {
+         // Open a reset profile dialog window.
+         if (ResetProfile.resetSupported()) {
+@@ -1582,12 +1519,6 @@ var UITour = {
+             });
+           });
+         break;
+-      case "fxa":
+-        this.getFxA(aBrowser, aCallbackID);
+-        break;
+-      case "fxaConnections":
+-        this.getFxAConnections(aBrowser, aCallbackID);
+-        break;
+ 
+       // NOTE: 'sync' is deprecated and should be removed in Firefox 73 (because
+       // by then, all consumers will have upgraded to use 'fxa' in that version
+@@ -1660,109 +1591,6 @@ var UITour = {
+     }
+   },
+ 
+-  // Get data about the local FxA account. This should be a low-latency request
+-  // - everything returned here can be obtained locally without hitting any
+-  // remote servers. See also `getFxAConnections()`
+-  getFxA(aBrowser, aCallbackID) {
+-    (async () => {
+-      let setup = !!(await fxAccounts.getSignedInUser());
+-      let result = { setup };
+-      if (!setup) {
+-        this.sendPageCallback(aBrowser, aCallbackID, result);
+-        return;
+-      }
+-      // We are signed in so need to build a richer result.
+-      // Each of the "browser services" - currently only "sync" is supported
+-      result.browserServices = {};
+-      let hasSync = Services.prefs.prefHasUserValue("services.sync.username");
+-      if (hasSync) {
+-        result.browserServices.sync = {
+-          // We always include 'setup' for b/w compatibility.
+-          setup: true,
+-          desktopDevices: Services.prefs.getIntPref(
+-            "services.sync.clients.devices.desktop",
+-            0
+-          ),
+-          mobileDevices: Services.prefs.getIntPref(
+-            "services.sync.clients.devices.mobile",
+-            0
+-          ),
+-          totalDevices: Services.prefs.getIntPref(
+-            "services.sync.numClients",
+-            0
+-          ),
+-        };
+-      }
+-      // And the account state.
+-      result.accountStateOK = await fxAccounts.hasLocalSession();
+-      this.sendPageCallback(aBrowser, aCallbackID, result);
+-    })().catch(err => {
+-      log.error(err);
+-      this.sendPageCallback(aBrowser, aCallbackID, {});
+-    });
+-  },
+-
+-  // Get data about the FxA account "connections" (ie, other devices, other
+-  // apps, etc. Note that this is likely to be a high-latency request - we will
+-  // usually hit the FxA servers to obtain this info.
+-  getFxAConnections(aBrowser, aCallbackID) {
+-    (async () => {
+-      let setup = !!(await fxAccounts.getSignedInUser());
+-      let result = { setup };
+-      if (!setup) {
+-        this.sendPageCallback(aBrowser, aCallbackID, result);
+-        return;
+-      }
+-      // We are signed in so need to build a richer result.
+-      let devices = fxAccounts.device.recentDeviceList;
+-      // A recent device list is fine, but if we don't even have that we should
+-      // wait for it to be fetched.
+-      if (!devices) {
+-        try {
+-          await fxAccounts.device.refreshDeviceList();
+-        } catch (ex) {
+-          log.warn("failed to fetch device list", ex);
+-        }
+-        devices = fxAccounts.device.recentDeviceList;
+-      }
+-      if (devices) {
+-        // A falsey `devices` should be impossible, so we omit `devices` from
+-        // the result object so the consuming page can try to differentiate
+-        // between "no additional devices" and "something's wrong"
+-        result.numOtherDevices = Math.max(0, devices.length - 1);
+-        result.numDevicesByType = devices
+-          .filter(d => !d.isCurrentDevice)
+-          .reduce((accum, d) => {
+-            let type = d.type || "unknown";
+-            accum[type] = (accum[type] || 0) + 1;
+-            return accum;
+-          }, {});
+-      }
+-
+-      try {
+-        // Each of the "account services", which we turn into a map keyed by ID.
+-        let attachedClients = await fxAccounts.listAttachedOAuthClients();
+-        result.accountServices = attachedClients
+-          .filter(c => !!c.id)
+-          .reduce((accum, c) => {
+-            accum[c.id] = {
+-              id: c.id,
+-              lastAccessedWeeksAgo: c.lastAccessedDaysAgo
+-                ? Math.floor(c.lastAccessedDaysAgo / 7)
+-                : null,
+-            };
+-            return accum;
+-          }, {});
+-      } catch (ex) {
+-        log.warn("Failed to build the attached clients list", ex);
+-      }
+-      this.sendPageCallback(aBrowser, aCallbackID, result);
+-    })().catch(err => {
+-      log.error(err);
+-      this.sendPageCallback(aBrowser, aCallbackID, {});
+-    });
+-  },
+-
+   getAppInfo(aBrowser, aWindow, aCallbackID) {
+     (async () => {
+       let appinfo = { version: Services.appinfo.version };
+diff --git a/browser/components/urlbar/UrlbarProvidersManager.jsm b/browser/components/urlbar/UrlbarProvidersManager.jsm
+--- a/browser/components/urlbar/UrlbarProvidersManager.jsm
++++ b/browser/components/urlbar/UrlbarProvidersManager.jsm
+@@ -54,7 +54,6 @@ var localProviderModules = {
+     "resource:///modules/UrlbarProviderPrivateSearch.jsm",
+   UrlbarProviderQuickSuggest:
+     "resource:///modules/UrlbarProviderQuickSuggest.jsm",
+-  UrlbarProviderRemoteTabs: "resource:///modules/UrlbarProviderRemoteTabs.jsm",
+   UrlbarProviderSearchTips: "resource:///modules/UrlbarProviderSearchTips.jsm",
+   UrlbarProviderSearchSuggestions:
+     "resource:///modules/UrlbarProviderSearchSuggestions.jsm",
+diff --git a/browser/components/urlbar/moz.build b/browser/components/urlbar/moz.build
+--- a/browser/components/urlbar/moz.build
++++ b/browser/components/urlbar/moz.build
+@@ -32,7 +32,6 @@ EXTRA_JS_MODULES += [
+     "UrlbarProviderPreloadedSites.jsm",
+     "UrlbarProviderPrivateSearch.jsm",
+     "UrlbarProviderQuickSuggest.jsm",
+-    "UrlbarProviderRemoteTabs.jsm",
+     "UrlbarProviderSearchSuggestions.jsm",
+     "UrlbarProviderSearchTips.jsm",
+     "UrlbarProvidersManager.jsm",
+diff --git a/browser/modules/BrowserUsageTelemetry.jsm b/browser/modules/BrowserUsageTelemetry.jsm
+--- a/browser/modules/BrowserUsageTelemetry.jsm
++++ b/browser/modules/BrowserUsageTelemetry.jsm
+@@ -133,7 +133,6 @@ const KNOWN_ADDONS = [];
+ // and is defaulted to false.
+ const SET_USAGE_PREF_BUTTONS = [
+   "downloads-button",
+-  "fxa-toolbar-menu-button",
+   "home-button",
+   "sidebar-button",
+   "library-button",
+diff --git a/browser/modules/webrtcUI.jsm b/browser/modules/webrtcUI.jsm
+--- a/browser/modules/webrtcUI.jsm
++++ b/browser/modules/webrtcUI.jsm
+@@ -6,9 +6,6 @@
+ 
+ var EXPORTED_SYMBOLS = ["webrtcUI", "MacOSWebRTCStatusbarIndicator"];
+ 
+-const { EventEmitter } = ChromeUtils.import(
+-  "resource:///modules/syncedtabs/EventEmitter.jsm"
+-);
+ const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ 
+ ChromeUtils.defineModuleGetter(
+@@ -41,7 +38,6 @@ var webrtcUI = {
+   initialized: false,
+ 
+   peerConnectionBlockers: new Set(),
+-  emitter: new EventEmitter(),
+ 
+   init() {
+     if (!this.initialized) {
+@@ -767,11 +763,9 @@ var webrtcUI = {
+   },
+ 
+   on(...args) {
+-    return this.emitter.on(...args);
+   },
+ 
+   off(...args) {
+-    return this.emitter.off(...args);
+   },
+ 
+   getHostOrExtensionName(uri, href) {
+diff --git a/services/fxaccounts/FxAccounts.jsm b/services/fxaccounts/FxAccounts.jsm
+--- a/services/fxaccounts/FxAccounts.jsm
++++ b/services/fxaccounts/FxAccounts.jsm
+@@ -92,12 +92,7 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   Preferences: "resource://gre/modules/Preferences.jsm",
+ });
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "FXA_ENABLED",
+-  "identity.fxaccounts.enabled",
+-  true
+-);
++const FXA_ENABLED = false;
+ 
+ // An AccountState object holds all state related to one specific account.
+ // It is considered "private" to the FxAccounts modules.
+diff --git a/services/moz.build b/services/moz.build
+--- a/services/moz.build
++++ b/services/moz.build
+@@ -18,12 +18,4 @@ DIRS += [
+ if not CONFIG["RELEASE_OR_BETA"] or CONFIG["MOZ_DEBUG"]:
+     DIRS += ["automation"]
+ 
+-if CONFIG["MOZ_WIDGET_TOOLKIT"] != "android":
+-    DIRS += [
+-        "fxaccounts",
+-    ]
+-
+-if CONFIG["MOZ_SERVICES_SYNC"]:
+-    DIRS += ["sync"]
+-
+ SPHINX_TREES["/services"] = "docs"
+diff --git a/services/sync/Weave.jsm b/services/sync/Weave.jsm
+--- a/services/sync/Weave.jsm
++++ b/services/sync/Weave.jsm
+@@ -101,33 +101,6 @@ WeaveService.prototype = {
+   },
+ 
+   init() {
+-    // Force Weave service to load if it hasn't triggered from overlays
+-    this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+-    this.timer.initWithCallback(
+-      {
+-        notify: () => {
+-          let isConfigured = false;
+-          // We only load more if it looks like Sync is configured.
+-          if (this.enabled) {
+-            // We have an associated FxAccount. So, do a more thorough check.
+-            // This will import a number of modules and thus increase memory
+-            // accordingly. We could potentially copy code performed by
+-            // this check into this file if our above code is yielding too
+-            // many false positives.
+-            var { Weave } = ChromeUtils.import(
+-              "resource://services-sync/main.js"
+-            );
+-            isConfigured =
+-              Weave.Status.checkSetup() != Weave.CLIENT_NOT_CONFIGURED;
+-          }
+-          if (isConfigured) {
+-            this.ensureLoaded();
+-          }
+-        },
+-      },
+-      10000,
+-      Ci.nsITimer.TYPE_ONE_SHOT
+-    );
+   },
+ 
+   /**
+@@ -139,10 +112,7 @@ WeaveService.prototype = {
+    * For that, you'll want to check Weave.Status.checkSetup().
+    */
+   get enabled() {
+-    return (
+-      !!syncUsername &&
+-      Services.prefs.getBoolPref("identity.fxaccounts.enabled")
+-    );
++    return false;
+   },
+ };
+ 
+diff --git a/toolkit/components/extensions/moz.build b/toolkit/components/extensions/moz.build
+--- a/toolkit/components/extensions/moz.build
++++ b/toolkit/components/extensions/moz.build
+@@ -28,8 +28,6 @@ EXTRA_JS_MODULES += [
+     "ExtensionShortcuts.jsm",
+     "ExtensionStorage.jsm",
+     "ExtensionStorageIDB.jsm",
+-    "ExtensionStorageSync.jsm",
+-    "ExtensionStorageSyncKinto.jsm",
+     "ExtensionTelemetry.jsm",
+     "ExtensionUtils.jsm",
+     "ExtensionWorkerChild.jsm",
+diff --git a/toolkit/components/extensions/parent/ext-storage.js b/toolkit/components/extensions/parent/ext-storage.js
+--- a/toolkit/components/extensions/parent/ext-storage.js
++++ b/toolkit/components/extensions/parent/ext-storage.js
+@@ -14,16 +14,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+ var { ExtensionError } = ExtensionUtils;
+ var { ignoreEvent } = ExtensionCommon;
+ 
+-XPCOMUtils.defineLazyGetter(this, "extensionStorageSync", () => {
+-  // TODO bug 1637465: Remove Kinto-based implementation.
+-  let url = Services.prefs.getBoolPref("webextensions.storage.sync.kinto")
+-    ? "resource://gre/modules/ExtensionStorageSyncKinto.jsm"
+-    : "resource://gre/modules/ExtensionStorageSync.jsm";
+-
+-  const { extensionStorageSync } = ChromeUtils.import(url);
+-  return extensionStorageSync;
+-});
+-
+ const enforceNoTemporaryAddon = extensionId => {
+   const EXCEPTION_MESSAGE =
+     "The storage API will not work with a temporary addon ID. " +
+@@ -73,13 +63,9 @@ this.storage = class extends ExtensionAP
+         // be deserialized by the onChanged handler in child/ext-storage.js.
+         fire.raw(changes, "local");
+       });
+-      let unregisterSync = this.registerSyncChangedListener(changes => {
+-        fire.async(changes, "sync");
+-      });
+       return {
+         unregister() {
+           unregisterLocal();
+-          unregisterSync();
+         },
+         convert(_fire) {
+           fire = _fire;
+@@ -99,17 +85,6 @@ this.storage = class extends ExtensionAP
+         },
+       };
+     },
+-    "sync.onChanged"({ fire }) {
+-      let unregister = this.registerSyncChangedListener(changes => {
+-        fire.async(changes);
+-      });
+-      return {
+-        unregister,
+-        convert(_fire) {
+-          fire = _fire;
+-        },
+-      };
+-    },
+   };
+ 
+   registerLocalChangedListener(onStorageLocalChanged) {
+@@ -131,37 +106,6 @@ this.storage = class extends ExtensionAP
+     };
+   }
+ 
+-  registerSyncChangedListener(onStorageSyncChanged) {
+-    const { extension } = this;
+-    let closeCallback;
+-    // The ExtensionStorageSyncKinto implementation of addOnChangedListener
+-    // relies on context.callOnClose (via ExtensionStorageSync.registerInUse)
+-    // to keep track of active users of the storage. We don't need to pass a
+-    // real BaseContext instance, a dummy object with the callOnClose method
+-    // works too. This enables us to register a primed listener before any
+-    // context is available.
+-    // TODO bug 1637465: Remove this when the Kinto backend is dropped.
+-    let dummyContextForKinto = {
+-      callOnClose({ close }) {
+-        closeCallback = close;
+-      },
+-    };
+-    extensionStorageSync.addOnChangedListener(
+-      extension,
+-      onStorageSyncChanged,
+-      dummyContextForKinto
+-    );
+-    return () => {
+-      extensionStorageSync.removeOnChangedListener(
+-        extension,
+-        onStorageSyncChanged
+-      );
+-      // May be void if ExtensionStorageSyncKinto.jsm was not used.
+-      // ExtensionStorageSync.jsm does not use the context.
+-      closeCallback?.();
+-    };
+-  }
+-
+   onShutdown() {
+     const { clearStorageChangedListener } = this;
+     this.clearStorageChangedListener = null;
+@@ -246,35 +190,6 @@ this.storage = class extends ExtensionAP
+           }).api(),
+         },
+ 
+-        sync: {
+-          get(spec) {
+-            enforceNoTemporaryAddon(extension.id);
+-            return extensionStorageSync.get(extension, spec, context);
+-          },
+-          set(items) {
+-            enforceNoTemporaryAddon(extension.id);
+-            return extensionStorageSync.set(extension, items, context);
+-          },
+-          remove(keys) {
+-            enforceNoTemporaryAddon(extension.id);
+-            return extensionStorageSync.remove(extension, keys, context);
+-          },
+-          clear() {
+-            enforceNoTemporaryAddon(extension.id);
+-            return extensionStorageSync.clear(extension, context);
+-          },
+-          getBytesInUse(keys) {
+-            enforceNoTemporaryAddon(extension.id);
+-            return extensionStorageSync.getBytesInUse(extension, keys, context);
+-          },
+-          onChanged: new EventManager({
+-            context,
+-            module: "storage",
+-            event: "sync.onChanged",
+-            extensionApi: this,
+-          }).api(),
+-        },
+-
+         managed: {
+           async get(keys) {
+             enforceNoTemporaryAddon(extension.id);
+diff --git a/toolkit/components/messaging-system/lib/SpecialMessageActions.jsm b/toolkit/components/messaging-system/lib/SpecialMessageActions.jsm
+--- a/toolkit/components/messaging-system/lib/SpecialMessageActions.jsm
++++ b/toolkit/components/messaging-system/lib/SpecialMessageActions.jsm
+@@ -15,7 +15,6 @@ const NETWORK_TRR_MODE_PREF = "network.t
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AddonManager: "resource://gre/modules/AddonManager.jsm",
+   UITour: "resource:///modules/UITour.jsm",
+-  FxAccounts: "resource://gre/modules/FxAccounts.jsm",
+   MigrationUtils: "resource:///modules/MigrationUtils.jsm",
+   Spotlight: "resource://activity-stream/lib/Spotlight.jsm",
+ });
+@@ -256,21 +255,6 @@ const SpecialMessageActions = {
+           showDescription: true,
+         });
+         break;
+-      case "SHOW_FIREFOX_ACCOUNTS":
+-        const data = action.data;
+-        const url = await FxAccounts.config.promiseConnectAccountURI(
+-          (data && data.entrypoint) || "snippets",
+-          (data && data.extraParams) || {}
+-        );
+-        // We want to replace the current tab.
+-        window.openLinkIn(url, "current", {
+-          private: false,
+-          triggeringPrincipal: Services.scriptSecurityManager.createNullPrincipal(
+-            {}
+-          ),
+-          csp: null,
+-        });
+-        break;
+       case "OPEN_PROTECTION_PANEL":
+         let { gProtectionsHandler } = window;
+         gProtectionsHandler.showProtectionsPopup({});
+diff --git a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+--- a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
++++ b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+@@ -46,11 +46,6 @@ ChromeUtils.defineModuleGetter(
+ );
+ ChromeUtils.defineModuleGetter(
+   this,
+-  "fxAccounts",
+-  "resource://gre/modules/FxAccounts.jsm"
+-);
+-ChromeUtils.defineModuleGetter(
+-  this,
+   "WindowsVersionInfo",
+   "resource://gre/modules/components-utils/WindowsVersionInfo.jsm"
+ );
+@@ -395,7 +390,6 @@ const AUTO_UPDATE_PREF_CHANGE_TOPIC =
+ const BACKGROUND_UPDATE_PREF_CHANGE_TOPIC =
+   UpdateUtils.PER_INSTALLATION_PREFS["app.update.background.enabled"]
+     .observerTopic;
+-const SERVICES_INFO_CHANGE_TOPIC = "sync-ui-state:update";
+ const FIREFOX_SUGGEST_UPDATE_TOPIC = "firefox-suggest-update";
+ 
+ /**
+@@ -1317,7 +1311,6 @@ EnvironmentCache.prototype = {
+     Services.obs.addObserver(this, SEARCH_SERVICE_TOPIC);
+     Services.obs.addObserver(this, AUTO_UPDATE_PREF_CHANGE_TOPIC);
+     Services.obs.addObserver(this, BACKGROUND_UPDATE_PREF_CHANGE_TOPIC);
+-    Services.obs.addObserver(this, SERVICES_INFO_CHANGE_TOPIC);
+     Services.obs.addObserver(this, FIREFOX_SUGGEST_UPDATE_TOPIC);
+   },
+ 
+@@ -1336,7 +1329,6 @@ EnvironmentCache.prototype = {
+     Services.obs.removeObserver(this, SEARCH_SERVICE_TOPIC);
+     Services.obs.removeObserver(this, AUTO_UPDATE_PREF_CHANGE_TOPIC);
+     Services.obs.removeObserver(this, BACKGROUND_UPDATE_PREF_CHANGE_TOPIC);
+-    Services.obs.removeObserver(this, SERVICES_INFO_CHANGE_TOPIC);
+     Services.obs.removeObserver(this, FIREFOX_SUGGEST_UPDATE_TOPIC);
+   },
+ 
+@@ -1408,9 +1400,6 @@ EnvironmentCache.prototype = {
+       case BACKGROUND_UPDATE_PREF_CHANGE_TOPIC:
+         this._currentEnvironment.settings.update.background = aData == "true";
+         break;
+-      case SERVICES_INFO_CHANGE_TOPIC:
+-        this._updateServicesInfo();
+-        break;
+       case FIREFOX_SUGGEST_UPDATE_TOPIC:
+         this._updateFirefoxSuggest();
+         break;
+@@ -1756,42 +1745,6 @@ EnvironmentCache.prototype = {
+     this._currentEnvironment.settings.intl = getIntlSettings();
+     Policy._intlLoaded = true;
+   },
+-  // This exists as a separate function for testing.
+-  async _getFxaSignedInUser() {
+-    return fxAccounts.getSignedInUser();
+-  },
+-
+-  async _updateServicesInfo() {
+-    let syncEnabled = false;
+-    let accountEnabled = false;
+-    let weaveService = Cc["@mozilla.org/weave/service;1"].getService()
+-      .wrappedJSObject;
+-    syncEnabled = weaveService && weaveService.enabled;
+-    if (syncEnabled) {
+-      // All sync users are account users, definitely.
+-      accountEnabled = true;
+-    } else {
+-      // Not all account users are sync users. See if they're signed into FxA.
+-      try {
+-        let user = await this._getFxaSignedInUser();
+-        if (user) {
+-          accountEnabled = true;
+-        }
+-      } catch (e) {
+-        // We don't know. This might be a transient issue which will clear
+-        // itself up later, but the information in telemetry is quite possibly stale
+-        // (this is called from a change listener), so clear it out to avoid
+-        // reporting data which might be wrong until we can figure it out.
+-        delete this._currentEnvironment.services;
+-        this._log.error("_updateServicesInfo() caught error", e);
+-        return;
+-      }
+-    }
+-    this._currentEnvironment.services = {
+-      accountEnabled,
+-      syncEnabled,
+-    };
+-  },
+ 
+   /**
+    * Updates environment data related to Firefox Suggest.

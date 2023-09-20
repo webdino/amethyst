@@ -1,0 +1,757 @@
+diff --git a/browser/actors/ContextMenuChild.jsm b/browser/actors/ContextMenuChild.jsm
+--- a/browser/actors/ContextMenuChild.jsm
++++ b/browser/actors/ContextMenuChild.jsm
+@@ -132,34 +132,6 @@ class ContextMenuChild extends JSWindowA
+                   media.requestFullscreen();
+                 }
+                 break;
+-              case "pictureinpicture":
+-                Services.telemetry.keyedScalarAdd(
+-                  "pictureinpicture.opened_method",
+-                  "contextmenu",
+-                  1
+-                );
+-                let args = {
+-                  method: "contextMenu",
+-                  firstTimeToggle: (!Services.prefs.getBoolPref(
+-                    "media.videocontrols.picture-in-picture.video-toggle.has-used"
+-                  )).toString(),
+-                };
+-                Services.telemetry.recordEvent(
+-                  "pictureinpicture",
+-                  "opened_method",
+-                  "method",
+-                  null,
+-                  args
+-                );
+-                let event = new this.contentWindow.CustomEvent(
+-                  "MozTogglePictureInPicture",
+-                  {
+-                    bubbles: true,
+-                  },
+-                  this.contentWindow
+-                );
+-                media.dispatchEvent(event);
+-                break;
+             }
+           }
+         );
+diff --git a/browser/base/content/browser-context.inc b/browser/base/content/browser-context.inc
+--- a/browser/base/content/browser-context.inc
++++ b/browser/base/content/browser-context.inc
+@@ -184,10 +184,6 @@
+       <menuitem id="context-viewvideo"
+                 data-l10n-id="main-context-menu-video-view-new-tab"
+                 oncommand="gContextMenu.viewMedia(event);"/>
+-      <menuitem id="context-video-pictureinpicture"
+-                data-l10n-id="main-context-menu-media-watch-pip"
+-                type="checkbox"
+-                oncommand="gContextMenu.mediaCommand('pictureinpicture');"/>
+       <menuseparator id="context-media-sep-commands"/>
+       <menuitem id="context-reloadimage"
+                 data-l10n-id="main-context-menu-image-reload"
+diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
+--- a/browser/base/content/browser-sets.inc
++++ b/browser/base/content/browser-sets.inc
+@@ -43,7 +43,6 @@
+     <command id="View:PageInfo" oncommand="BrowserPageInfo();"/>
+     <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
+     <command id="View:ReaderView" oncommand="AboutReaderParent.toggleReaderMode(event);"/>
+-    <command id="View:PictureInPicture" oncommand="PictureInPicture.onCommand(event);"/>
+     <command id="cmd_find" oncommand="gLazyFindCommand('onFindCommand')"/>
+     <command id="cmd_findAgain" oncommand="gLazyFindCommand('onFindAgainCommand', false)"/>
+     <command id="cmd_findPrevious" oncommand="gLazyFindCommand('onFindAgainCommand', true)"/>
+@@ -231,14 +230,6 @@
+ #endif
+          disabled="true"/>
+ 
+-#ifndef XP_MACOSX
+-    <key id="key_togglePictureInPicture" data-l10n-id="picture-in-picture-toggle-shortcut" command="View:PictureInPicture" modifiers="accel,shift"/>
+-    <key                                 data-l10n-id="picture-in-picture-toggle-shortcut-alt" command="View:PictureInPicture" modifiers="accel,shift"/>
+-#else
+-    <key                                 data-l10n-id="picture-in-picture-toggle-shortcut-mac" command="View:PictureInPicture" modifiers="accel,alt,shift"/>
+-    <key                                 data-l10n-id="picture-in-picture-toggle-shortcut-mac-alt" command="View:PictureInPicture" modifiers="accel,alt,shift"/>
+-#endif
+-
+     <key data-l10n-id="nav-reload-shortcut" command="Browser:Reload" modifiers="accel" id="key_reload"/>
+     <key data-l10n-id="nav-reload-shortcut" command="Browser:ReloadSkipCache" modifiers="accel,shift" id="key_reload_skip_cache"/>
+     <key id="key_viewSource" data-l10n-id="page-source-shortcut" command="View:PageSource" modifiers="accel"/>
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -52,7 +52,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PageThumbs: "resource://gre/modules/PageThumbs.jsm",
+   PanelMultiView: "resource:///modules/PanelMultiView.jsm",
+   PanelView: "resource:///modules/PanelMultiView.jsm",
+-  PictureInPicture: "resource://gre/modules/PictureInPicture.jsm",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.jsm",
+   PlacesUIUtils: "resource:///modules/PlacesUIUtils.jsm",
+   PlacesTransactions: "resource://gre/modules/PlacesTransactions.jsm",
+diff --git a/browser/base/content/main-popupset.inc.xhtml b/browser/base/content/main-popupset.inc.xhtml
+--- a/browser/base/content/main-popupset.inc.xhtml
++++ b/browser/base/content/main-popupset.inc.xhtml
+@@ -450,16 +450,6 @@
+ #include browser-context.inc
+   </menupopup>
+ 
+-  <menupopup id="pictureInPictureToggleContextMenu">
+-    <menuitem
+-              id="context_HidePictureInPictureToggle"
+-              data-l10n-id="picture-in-picture-hide-toggle"
+-              oncommand="PictureInPicture.hideToggle();" />
+-    <menuitem id="context_MovePictureInPictureToggle"
+-              data-l10n-id="picture-in-picture-move-toggle-left"
+-              oncommand="PictureInPicture.moveToggle();" />
+-  </menupopup>
+-
+ #include ../../components/places/content/placesContextMenu.inc.xhtml
+ 
+   <panel id="ctrlTab-panel" hidden="true" norestorefocus="true" level="top" orient="vertical">
+diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
+--- a/browser/base/content/nsContextMenu.js
++++ b/browser/base/content/nsContextMenu.js
+@@ -944,16 +944,6 @@ class nsContextMenu {
+       "context-video-fullscreen",
+       this.onVideo && !this.target.ownerDocument.fullscreen
+     );
+-    {
+-      let shouldDisplay =
+-        Services.prefs.getBoolPref(
+-          "media.videocontrols.picture-in-picture.enabled"
+-        ) &&
+-        this.onVideo &&
+-        !this.target.ownerDocument.fullscreen &&
+-        this.target.readyState > 0;
+-      this.showItem("context-video-pictureinpicture", shouldDisplay);
+-    }
+     this.showItem("context-media-eme-learnmore", this.onDRMMedia);
+ 
+     // Disable them when there isn't a valid media source loaded.
+diff --git a/browser/base/content/tabbrowser.js b/browser/base/content/tabbrowser.js
+--- a/browser/base/content/tabbrowser.js
++++ b/browser/base/content/tabbrowser.js
+@@ -63,7 +63,6 @@
+ 
+       XPCOMUtils.defineLazyModuleGetters(this, {
+         E10SUtils: "resource://gre/modules/E10SUtils.jsm",
+-        PictureInPicture: "resource://gre/modules/PictureInPicture.jsm",
+       });
+       XPCOMUtils.defineLazyServiceGetters(this, {
+         MacSharingService: [
+@@ -4372,15 +4371,6 @@
+         aOurTab._sharingState = aOtherTab._sharingState;
+         webrtcUI.swapBrowserForNotification(otherBrowser, ourBrowser);
+       }
+-      if (aOtherTab.hasAttribute("pictureinpicture")) {
+-        aOurTab.setAttribute("pictureinpicture", true);
+-        modifiedAttrs.push("pictureinpicture");
+-
+-        let event = new CustomEvent("TabSwapPictureInPicture", {
+-          detail: aOurTab,
+-        });
+-        aOtherTab.dispatchEvent(event);
+-      }
+ 
+       SitePermissions.copyTemporaryPermissions(otherBrowser, ourBrowser);
+ 
+@@ -5316,8 +5306,7 @@
+         (aBrowser == this.selectedBrowser &&
+           window.windowState != window.STATE_MINIMIZED &&
+           !window.isFullyOccluded) ||
+-        this._printPreviewBrowsers.has(aBrowser) ||
+-        this.PictureInPicture.isOriginatingBrowser(aBrowser)
++        this._printPreviewBrowsers.has(aBrowser)
+       );
+     },
+ 
+diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
+--- a/browser/extensions/moz.build
++++ b/browser/extensions/moz.build
+@@ -10,6 +10,5 @@ DIRS += [
+     "screenshots",
+     "webcompat",
+     "report-site-issue",
+-    "pictureinpicture",
+     "search-detection",
+ ]
+diff --git a/browser/modules/AsyncTabSwitcher.jsm b/browser/modules/AsyncTabSwitcher.jsm
+--- a/browser/modules/AsyncTabSwitcher.jsm
++++ b/browser/modules/AsyncTabSwitcher.jsm
+@@ -12,7 +12,6 @@ const { XPCOMUtils } = ChromeUtils.impor
+ );
+ XPCOMUtils.defineLazyModuleGetters(this, {
+   AppConstants: "resource://gre/modules/AppConstants.jsm",
+-  PictureInPicture: "resource://gre/modules/PictureInPicture.jsm",
+   Services: "resource://gre/modules/Services.jsm",
+ });
+ 
+@@ -924,10 +923,7 @@ class AsyncTabSwitcher {
+    * @returns false if a print preview or PiP browser else true
+    */
+   shouldDeactivateDocShell(browser) {
+-    return !(
+-      this.tabbrowser._printPreviewBrowsers.has(browser) ||
+-      PictureInPicture.isOriginatingBrowser(browser)
+-    );
++    return !this.tabbrowser._printPreviewBrowsers.has(browser);
+   }
+ 
+   shouldActivateDocShell(browser) {
+@@ -1235,8 +1231,7 @@ class AsyncTabSwitcher {
+       let linkedBrowser = tab.linkedBrowser;
+       let isActive = linkedBrowser && linkedBrowser.docShellIsActive;
+       let isRendered = linkedBrowser && linkedBrowser.renderLayers;
+-      let isPiP =
+-        linkedBrowser && PictureInPicture.isOriginatingBrowser(linkedBrowser);
++      let isPiP = false;
+ 
+       if (tab === this.lastVisibleTab) {
+         tabString += "V";
+diff --git a/toolkit/actors/UAWidgetsChild.jsm b/toolkit/actors/UAWidgetsChild.jsm
+--- a/toolkit/actors/UAWidgetsChild.jsm
++++ b/toolkit/actors/UAWidgetsChild.jsm
+@@ -88,12 +88,6 @@ class UAWidgetsChild extends JSWindowAct
+         uri = "chrome://global/content/elements/videocontrols.js";
+         widgetName = "VideoControlsWidget";
+         prefKeys = [
+-          "media.videocontrols.picture-in-picture.enabled",
+-          "media.videocontrols.picture-in-picture.video-toggle.enabled",
+-          "media.videocontrols.picture-in-picture.video-toggle.always-show",
+-          "media.videocontrols.picture-in-picture.video-toggle.min-video-secs",
+-          "media.videocontrols.picture-in-picture.video-toggle.position",
+-          "media.videocontrols.picture-in-picture.video-toggle.has-used",
+           "media.videocontrols.keyboard-tab-to-all-controls",
+         ];
+         break;
+diff --git a/toolkit/actors/moz.build b/toolkit/actors/moz.build
+--- a/toolkit/actors/moz.build
++++ b/toolkit/actors/moz.build
+@@ -55,7 +55,6 @@ FINAL_TARGET_FILES.actors += [
+     "InlineSpellCheckerChild.jsm",
+     "InlineSpellCheckerParent.jsm",
+     "KeyPressEventModelCheckerChild.jsm",
+-    "PictureInPictureChild.jsm",
+     "PopupBlockingChild.jsm",
+     "PopupBlockingParent.jsm",
+     "PrintingChild.jsm",
+diff --git a/toolkit/components/moz.build b/toolkit/components/moz.build
+--- a/toolkit/components/moz.build
++++ b/toolkit/components/moz.build
+@@ -53,7 +53,6 @@ DIRS += [
+     "passwordmgr",
+     "pdfjs",
+     "perfmonitoring",
+-    "pictureinpicture",
+     "places",
+     "processtools",
+     "processsingleton",
+diff --git a/toolkit/content/widgets/videocontrols.js b/toolkit/content/widgets/videocontrols.js
+--- a/toolkit/content/widgets/videocontrols.js
++++ b/toolkit/content/widgets/videocontrols.js
+@@ -51,8 +51,6 @@ this.VideoControlsWidget = class {
+       newImpl = VideoControlsImplWidget;
+     } else if (this.isMobile) {
+       newImpl = NoControlsMobileImplWidget;
+-    } else if (VideoControlsWidget.isPictureInPictureVideo(this.element)) {
+-      newImpl = NoControlsPictureInPictureImplWidget;
+     } else if (
+       pageURI.startsWith("http://") ||
+       pageURI.startsWith("https://")
+@@ -66,8 +64,7 @@ this.VideoControlsWidget = class {
+     // without a value change.
+     if (
+       this.impl &&
+-      this.impl.constructor == newImpl &&
+-      this.impl.elementStateMatches(this.element)
++      this.impl.constructor == newImpl
+     ) {
+       return;
+     }
+@@ -112,78 +109,6 @@ this.VideoControlsWidget = class {
+   // If you change this, also change SEEK_TIME_SECS in PictureInPictureChild.jsm
+   static SEEK_TIME_SECS = 5;
+ 
+-  static isPictureInPictureVideo(someVideo) {
+-    return someVideo.isCloningElementVisually;
+-  }
+-
+-  /**
+-   * Returns true if a <video> meets the requirements to show the Picture-in-Picture
+-   * toggle. Those requirements currently are:
+-   *
+-   * 1. The video must be 45 seconds in length or longer.
+-   * 2. Neither the width or the height of the video can be less than 140px.
+-   * 3. The video must have audio.
+-   * 4. The video must not a MediaStream video (Bug 1592539)
+-   *
+-   * This can be overridden via the
+-   * media.videocontrols.picture-in-picture.video-toggle.always-show pref, which
+-   * is mostly used for testing.
+-   *
+-   * @param {Object} prefs
+-   *   The preferences set that was passed to the UAWidget.
+-   * @param {Element} someVideo
+-   *   The <video> to test.
+-   * @param {Object} reflowedDimensions
+-   *   An object representing the reflowed dimensions of the <video>. Properties
+-   *   are:
+-   *
+-   *     videoWidth (Number):
+-   *       The width of the video in pixels.
+-   *
+-   *     videoHeight (Number):
+-   *       The height of the video in pixels.
+-   *
+-   * @return {Boolean}
+-   */
+-  static shouldShowPictureInPictureToggle(
+-    prefs,
+-    someVideo,
+-    reflowedDimensions
+-  ) {
+-    if (isNaN(someVideo.duration)) {
+-      return false;
+-    }
+-
+-    if (
+-      prefs["media.videocontrols.picture-in-picture.video-toggle.always-show"]
+-    ) {
+-      return true;
+-    }
+-
+-    const MIN_VIDEO_LENGTH =
+-      prefs[
+-        "media.videocontrols.picture-in-picture.video-toggle.min-video-secs"
+-      ];
+-
+-    if (someVideo.duration < MIN_VIDEO_LENGTH) {
+-      return false;
+-    }
+-
+-    const MIN_VIDEO_DIMENSION = 140; // pixels
+-    if (
+-      reflowedDimensions.videoWidth < MIN_VIDEO_DIMENSION ||
+-      reflowedDimensions.videoHeight < MIN_VIDEO_DIMENSION
+-    ) {
+-      return false;
+-    }
+-
+-    if (!someVideo.mozHasAudio) {
+-      return false;
+-    }
+-
+-    return true;
+-  }
+-
+   /**
+    * Some variations on the Picture-in-Picture toggle are being experimented with.
+    * These variations have slightly different setup parameters from the currently
+@@ -263,7 +188,6 @@ this.VideoControlsImplWidget = class {
+       controlsOverlay: null,
+       fullscreenButton: null,
+       layoutControls: null,
+-      isShowingPictureInPictureMessage: false,
+       l10n: this.l10n,
+ 
+       textTracksCount: 0,
+@@ -305,7 +229,6 @@ this.VideoControlsImplWidget = class {
+       set isAudioOnly(val) {
+         this._isAudioOnly = val;
+         this.setFullscreenButtonState();
+-        this.updatePictureInPictureToggleDisplay();
+ 
+         if (!this.isTopLevelSyntheticDocument) {
+           return;
+@@ -455,17 +378,6 @@ this.VideoControlsImplWidget = class {
+           this.statusIcon.setAttribute("type", "error");
+           this.updateErrorText();
+           this.setupStatusFader(true);
+-        } else if (VideoControlsWidget.isPictureInPictureVideo(this.video)) {
+-          this.setShowPictureInPictureMessage(true);
+-        }
+-
+-        if (this.video.readyState >= this.video.HAVE_METADATA) {
+-          // According to the spec[1], at the HAVE_METADATA (or later) state, we know
+-          // the video duration and dimensions, which means we can calculate whether or
+-          // not to show the Picture-in-Picture toggle now.
+-          //
+-          // [1]: https://www.w3.org/TR/html50/embedded-content-0.html#dom-media-have_metadata
+-          this.updatePictureInPictureToggleDisplay();
+         }
+ 
+         let adjustableControls = [
+@@ -581,32 +493,6 @@ this.VideoControlsImplWidget = class {
+         });
+       },
+ 
+-      updatePictureInPictureToggleDisplay() {
+-        if (this.isAudioOnly) {
+-          this.pictureInPictureToggle.hidden = true;
+-          return;
+-        }
+-
+-        if (
+-          this.pipToggleEnabled &&
+-          !this.isShowingPictureInPictureMessage &&
+-          VideoControlsWidget.shouldShowPictureInPictureToggle(
+-            this.prefs,
+-            this.video,
+-            this.reflowedDimensions
+-          )
+-        ) {
+-          this.pictureInPictureToggle.hidden = false;
+-          VideoControlsWidget.setupToggle(
+-            this.prefs,
+-            this.pictureInPictureToggle,
+-            this.reflowedDimensions
+-          );
+-        } else {
+-          this.pictureInPictureToggle.hidden = true;
+-        }
+-      },
+-
+       setupNewLoadState() {
+         // For videos with |autoplay| set, we'll leave the controls initially hidden,
+         // so that they don't get in the way of the playing video. Otherwise we'll
+@@ -618,8 +504,7 @@ this.VideoControlsImplWidget = class {
+           shouldShow &&
+           !this.isAudioOnly &&
+           this.video.currentTime == 0 &&
+-          !this.hasError() &&
+-          !this.isShowingPictureInPictureMessage;
++          !this.hasError();
+         this.startFade(this.clickToPlay, shouldClickToPlayShow, true);
+         this.startFade(this.controlBar, shouldShow, true);
+       },
+@@ -774,10 +659,8 @@ this.VideoControlsImplWidget = class {
+               this.muteButton.disabled = true;
+             }
+             this.adjustControlSize();
+-            this.updatePictureInPictureToggleDisplay();
+             break;
+           case "durationchange":
+-            this.updatePictureInPictureToggleDisplay();
+             break;
+           case "loadeddata":
+             this.firstFrameShown = true;
+@@ -933,7 +816,6 @@ this.VideoControlsImplWidget = class {
+             this.updateReflowedDimensions();
+             this.reflowTriggeringCallValidator.isReflowTriggeringPropsAllowed = false;
+             this.adjustControlSize();
+-            this.updatePictureInPictureToggleDisplay();
+             break;
+           case "fullscreenchange":
+             this.onFullscreenChange();
+@@ -1077,11 +959,6 @@ this.VideoControlsImplWidget = class {
+         );
+       },
+ 
+-      setShowPictureInPictureMessage(showMessage) {
+-        this.pictureInPictureOverlay.hidden = !showMessage;
+-        this.isShowingPictureInPictureMessage = showMessage;
+-      },
+-
+       hasSources() {
+         if (
+           this.video.hasAttribute("src") &&
+@@ -2542,9 +2419,6 @@ this.VideoControlsImplWidget = class {
+         this.controlsOverlay = this.shadowRoot.getElementById(
+           "controlsOverlay"
+         );
+-        this.pictureInPictureOverlay = this.shadowRoot.getElementById(
+-          "pictureInPictureOverlay"
+-        );
+         this.controlsSpacer = this.shadowRoot.getElementById("controlsSpacer");
+         this.clickToPlay = this.shadowRoot.getElementById("clickToPlay");
+         this.fullscreenButton = this.shadowRoot.getElementById(
+@@ -2558,9 +2432,6 @@ this.VideoControlsImplWidget = class {
+         this.textTrackListContainer = this.shadowRoot.getElementById(
+           "textTrackListContainer"
+         );
+-        this.pictureInPictureToggle = this.shadowRoot.getElementById(
+-          "pictureInPictureToggle"
+-        );
+ 
+         let isMobile = this.window.navigator.appVersion.includes("Android");
+         if (isMobile) {
+@@ -2847,29 +2718,12 @@ this.VideoControlsImplWidget = class {
+             <bdi class="statusLabel" id="errorGeneric" data-l10n-id="videocontrols-error-generic"></bdi>
+           </div>
+ 
+-          <div id="pictureInPictureOverlay" class="pictureInPictureOverlay stackItem" status="pictureInPicture" hidden="true">
+-            <div class="statusIcon" type="pictureInPicture"></div>
+-            <bdi class="statusLabel" id="pictureInPicture" data-l10n-id="videocontrols-status-picture-in-picture"></bdi>
+-          </div>
+-
+           <div id="controlsOverlay" class="controlsOverlay stackItem" role="none">
+             <div class="controlsSpacerStack">
+               <div id="controlsSpacer" class="controlsSpacer stackItem" role="none"></div>
+               <button id="clickToPlay" class="clickToPlay" hidden="true"></button>
+             </div>
+ 
+-            <button id="pictureInPictureToggle" class="pip-wrapper" position="left" hidden="true">
+-              <div class="pip-small clickable"></div>
+-              <div class="pip-expanded clickable">
+-                <span class="pip-icon-label clickable">
+-                  <span class="pip-icon"></span>
+-                  <span class="pip-label" data-l10n-id="videocontrols-picture-in-picture-toggle-label"></span>
+-                </span>
+-                <div class="pip-explainer clickable" data-l10n-id="videocontrols-picture-in-picture-explainer"></div>
+-              </div>
+-              <div class="pip-icon clickable"></div>
+-            </button>
+-
+             <div id="controlBar" class="controlBar" role="none" hidden="true">
+               <button id="playButton"
+                       class="button playButton"
+@@ -2937,11 +2791,6 @@ this.VideoControlsImplWidget = class {
+     this.l10n.translateRoots();
+   }
+ 
+-  elementStateMatches(element) {
+-    let elementInPiP = VideoControlsWidget.isPictureInPictureVideo(element);
+-    return this.isShowingPictureInPictureMessage == elementInPiP;
+-  }
+-
+   destructor() {
+     this.Utils.terminate();
+     this.TouchUtils.terminate();
+@@ -2952,7 +2801,6 @@ this.VideoControlsImplWidget = class {
+ 
+   onPrefChange(prefName, prefValue) {
+     this.prefs[prefName] = prefValue;
+-    this.Utils.updatePictureInPictureToggleDisplay();
+   }
+ 
+   _setupEventListeners() {
+@@ -3105,10 +2953,6 @@ this.NoControlsMobileImplWidget = class 
+     );
+   }
+ 
+-  elementStateMatches(element) {
+-    return true;
+-  }
+-
+   destructor() {
+     this.Utils.terminate();
+   }
+@@ -3144,64 +2988,6 @@ this.NoControlsMobileImplWidget = class 
+   }
+ };
+ 
+-this.NoControlsPictureInPictureImplWidget = class {
+-  constructor(shadowRoot, prefs) {
+-    this.shadowRoot = shadowRoot;
+-    this.prefs = prefs;
+-    this.element = shadowRoot.host;
+-    this.document = this.element.ownerDocument;
+-    this.window = this.document.defaultView;
+-  }
+-
+-  onsetup(direction) {
+-    this.generateContent();
+-
+-    this.shadowRoot.firstElementChild.setAttribute("localedir", direction);
+-  }
+-
+-  elementStateMatches(element) {
+-    return true;
+-  }
+-
+-  destructor() {}
+-
+-  onPrefChange(prefName, prefValue) {
+-    this.prefs[prefName] = prefValue;
+-  }
+-
+-  generateContent() {
+-    /*
+-     * Pass the markup through XML parser purely for the reason of loading the localization DTD.
+-     * Remove it when migrate to Fluent.
+-     */
+-    const parser = new this.window.DOMParser();
+-    let parserDoc = parser.parseFromString(
+-      `<div class="videocontrols" xmlns="http://www.w3.org/1999/xhtml" role="none">
+-        <link rel="stylesheet" href="chrome://global/skin/media/videocontrols.css" />
+-        <div id="controlsContainer" class="controlsContainer" role="none">
+-          <div class="pictureInPictureOverlay stackItem" status="pictureInPicture">
+-            <div id="statusIcon" class="statusIcon" type="pictureInPicture"></div>
+-            <bdi class="statusLabel" id="pictureInPicture" data-l10n-id="videocontrols-status-picture-in-picture"></bdi>
+-          </div>
+-          <div class="controlsOverlay stackItem"></div>
+-        </div>
+-      </div>`,
+-      "application/xml"
+-    );
+-    this.shadowRoot.importNodeAndAppendChildAt(
+-      this.shadowRoot,
+-      parserDoc.documentElement,
+-      true
+-    );
+-    this.l10n = new this.window.DOMLocalization([
+-      "branding/brand.ftl",
+-      "toolkit/global/videocontrols.ftl",
+-    ]);
+-    this.l10n.connectRoot(this.shadowRoot);
+-    this.l10n.translateRoots();
+-  }
+-};
+-
+ this.NoControlsDesktopImplWidget = class {
+   constructor(shadowRoot, prefs) {
+     this.shadowRoot = shadowRoot;
+@@ -3229,7 +3015,6 @@ this.NoControlsDesktopImplWidget = class
+           }
+           case "resizevideocontrols": {
+             this.updateReflowedDimensions();
+-            this.updatePictureInPictureToggleDisplay();
+             break;
+           }
+           case "durationchange":
+@@ -3237,32 +3022,11 @@ this.NoControlsDesktopImplWidget = class
+           case "emptied":
+           // Intentional fall-through
+           case "loadedmetadata": {
+-            this.updatePictureInPictureToggleDisplay();
+             break;
+           }
+         }
+       },
+ 
+-      updatePictureInPictureToggleDisplay() {
+-        if (
+-          this.pipToggleEnabled &&
+-          VideoControlsWidget.shouldShowPictureInPictureToggle(
+-            this.prefs,
+-            this.video,
+-            this.reflowedDimensions
+-          )
+-        ) {
+-          this.pictureInPictureToggle.hidden = false;
+-          VideoControlsWidget.setupToggle(
+-            this.prefs,
+-            this.pictureInPictureToggle,
+-            this.reflowedDimensions
+-          );
+-        } else {
+-          this.pictureInPictureToggle.hidden = true;
+-        }
+-      },
+-
+       init(shadowRoot, prefs) {
+         this.shadowRoot = shadowRoot;
+         this.prefs = prefs;
+@@ -3272,27 +3036,10 @@ this.NoControlsDesktopImplWidget = class
+         this.window = this.document.defaultView;
+         this.shadowRoot = shadowRoot;
+ 
+-        this.pictureInPictureToggle = this.shadowRoot.getElementById(
+-          "pictureInPictureToggle"
+-        );
+-
+         if (this.document.fullscreenElement) {
+           this.videocontrols.setAttribute("inDOMFullscreen", true);
+         }
+ 
+-        // Default the Picture-in-Picture toggle button to being hidden. We might unhide it
+-        // later if we determine that this video is qualified to show it.
+-        this.pictureInPictureToggle.hidden = true;
+-
+-        if (this.video.readyState >= this.video.HAVE_METADATA) {
+-          // According to the spec[1], at the HAVE_METADATA (or later) state, we know
+-          // the video duration and dimensions, which means we can calculate whether or
+-          // not to show the Picture-in-Picture toggle now.
+-          //
+-          // [1]: https://www.w3.org/TR/html50/embedded-content-0.html#dom-media-have_metadata
+-          this.updatePictureInPictureToggleDisplay();
+-        }
+-
+         this.document.addEventListener("fullscreenchange", this, {
+           capture: true,
+         });
+@@ -3339,17 +3086,12 @@ this.NoControlsDesktopImplWidget = class
+     this.Utils.init(this.shadowRoot, this.prefs);
+   }
+ 
+-  elementStateMatches(element) {
+-    return true;
+-  }
+-
+   destructor() {
+     this.Utils.terminate();
+   }
+ 
+   onPrefChange(prefName, prefValue) {
+     this.prefs[prefName] = prefValue;
+-    this.Utils.updatePictureInPictureToggleDisplay();
+   }
+ 
+   generateContent() {
+@@ -3364,17 +3106,6 @@ this.NoControlsDesktopImplWidget = class
+ 
+         <div id="controlsContainer" class="controlsContainer" role="none">
+           <div class="controlsOverlay stackItem">
+-            <button id="pictureInPictureToggle" class="pip-wrapper" position="left" hidden="true">
+-              <div class="pip-small clickable"></div>
+-              <div class="pip-expanded clickable">
+-                <span class="pip-icon-label clickable">
+-                  <span class="pip-icon"></span>
+-                  <span class="pip-label" data-l10n-id="videocontrols-picture-in-picture-toggle-label"></span>
+-                </span>
+-                <div class="pip-explainer clickable" data-l10n-id="videocontrols-picture-in-picture-explainer"></div>
+-              </div>
+-              <div class="pip-icon"></div>
+-            </button>
+           </div>
+         </div>
+       </div>`,
+diff --git a/toolkit/modules/ActorManagerParent.jsm b/toolkit/modules/ActorManagerParent.jsm
+--- a/toolkit/modules/ActorManagerParent.jsm
++++ b/toolkit/modules/ActorManagerParent.jsm
+@@ -313,46 +313,6 @@ let JSWINDOWACTORS = {
+     },
+   },
+ 
+-  PictureInPictureLauncher: {
+-    parent: {
+-      moduleURI: "resource://gre/modules/PictureInPicture.jsm",
+-    },
+-    child: {
+-      moduleURI: "resource://gre/actors/PictureInPictureChild.jsm",
+-      events: {
+-        MozTogglePictureInPicture: { capture: true },
+-      },
+-    },
+-
+-    allFrames: true,
+-  },
+-
+-  PictureInPicture: {
+-    parent: {
+-      moduleURI: "resource://gre/modules/PictureInPicture.jsm",
+-    },
+-    child: {
+-      moduleURI: "resource://gre/actors/PictureInPictureChild.jsm",
+-    },
+-
+-    allFrames: true,
+-  },
+-
+-  PictureInPictureToggle: {
+-    parent: {
+-      moduleURI: "resource://gre/modules/PictureInPicture.jsm",
+-    },
+-    child: {
+-      moduleURI: "resource://gre/actors/PictureInPictureChild.jsm",
+-      events: {
+-        UAWidgetSetupOrChange: {},
+-        contextmenu: { capture: true },
+-      },
+-    },
+-
+-    allFrames: true,
+-  },
+-
+   PopupBlocking: {
+     parent: {
+       moduleURI: "resource://gre/actors/PopupBlockingParent.jsm",

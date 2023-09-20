@@ -1,0 +1,36 @@
+diff --git a/dom/push/moz.build b/dom/push/moz.build
+--- a/dom/push/moz.build
++++ b/dom/push/moz.build
+@@ -10,32 +10,6 @@ EXTRA_COMPONENTS += [
+     "Push.manifest",
+ ]
+ 
+-EXTRA_JS_MODULES += [
+-    "Push.jsm",
+-    "PushBroadcastService.jsm",
+-    "PushComponents.jsm",
+-    "PushCrypto.jsm",
+-    "PushDB.jsm",
+-    "PushRecord.jsm",
+-    "PushService.jsm",
+-]
+-
+-if CONFIG["MOZ_BUILD_APP"] != "mobile/android":
+-    # Everything but Fennec.
+-    EXTRA_JS_MODULES += [
+-        "PushServiceHttp2.jsm",
+-        "PushServiceWebSocket.jsm",
+-    ]
+-else:
+-    # Fennec only.
+-    EXTRA_JS_MODULES += [
+-        "PushServiceAndroidGCM.jsm",
+-    ]
+-
+-XPCOM_MANIFESTS += [
+-    "components.conf",
+-]
+-
+ MOCHITEST_MANIFESTS += [
+     "test/mochitest.ini",
+ ]

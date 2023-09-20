@@ -1,0 +1,440 @@
+diff --git a/browser/actors/moz.build b/browser/actors/moz.build
+--- a/browser/actors/moz.build
++++ b/browser/actors/moz.build
+@@ -25,9 +25,6 @@ with Files("PageStyleChild.jsm"):
+ with Files("PluginChild.jsm"):
+     BUG_COMPONENT = ("Core", "Plug-ins")
+ 
+-with Files("ScreenshotsComponentChild.jsm"):
+-    BUG_COMPONENT = ("Firefox", "Screenshots")
+-
+ with Files("WebRTCChild.jsm"):
+     BUG_COMPONENT = ("Firefox", "Site Permissions")
+ 
+@@ -82,7 +79,6 @@ FINAL_TARGET_FILES.actors += [
+     "RefreshBlockerParent.jsm",
+     "RFPHelperChild.jsm",
+     "RFPHelperParent.jsm",
+-    "ScreenshotsComponentChild.jsm",
+     "SwitchDocumentDirectionChild.jsm",
+     "WebRTCChild.jsm",
+     "WebRTCParent.jsm",
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -61,7 +61,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   RFPHelper: "resource://gre/modules/RFPHelper.jsm",
+   SafeBrowsing: "resource://gre/modules/SafeBrowsing.jsm",
+   Sanitizer: "resource:///modules/Sanitizer.jsm",
+-  ScreenshotsUtils: "resource:///modules/ScreenshotsUtils.jsm",
+   SessionStartup: "resource:///modules/sessionstore/SessionStartup.jsm",
+   SessionStore: "resource:///modules/sessionstore/SessionStore.jsm",
+   ShortcutUtils: "resource://gre/modules/ShortcutUtils.jsm",
+diff --git a/browser/base/content/nsContextMenu.js b/browser/base/content/nsContextMenu.js
+--- a/browser/base/content/nsContextMenu.js
++++ b/browser/base/content/nsContextMenu.js
+@@ -335,7 +335,6 @@ class nsContextMenu {
+     this.initViewItems();
+     this.initImageItems();
+     this.initMiscItems();
+-    this.initPocketItems();
+     this.initSpellingItems();
+     this.initSaveItems();
+     this.initClipboardItems();
+@@ -760,14 +759,6 @@ class nsContextMenu {
+     );
+   }
+ 
+-  initPocketItems() {
+-    let showSaveCurrentPageToPocket = false;
+-    let showSaveLinkToPocket = false;
+-
+-    this.showItem("context-pocket", showSaveCurrentPageToPocket);
+-    this.showItem("context-savelinktopocket", showSaveLinkToPocket);
+-  }
+-
+   initSpellingItems() {
+     var canSpell =
+       InlineSpellCheckerUI.canSpellCheck &&
+diff --git a/browser/components/BrowserGlue.jsm b/browser/components/BrowserGlue.jsm
+--- a/browser/components/BrowserGlue.jsm
++++ b/browser/components/BrowserGlue.jsm
+@@ -74,8 +74,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   RFPHelper: "resource://gre/modules/RFPHelper.jsm",
+   SafeBrowsing: "resource://gre/modules/SafeBrowsing.jsm",
+   Sanitizer: "resource:///modules/Sanitizer.jsm",
+-  SaveToPocket: "chrome://pocket/content/SaveToPocket.jsm",
+-  ScreenshotsUtils: "resource:///modules/ScreenshotsUtils.jsm",
+   SessionStartup: "resource:///modules/sessionstore/SessionStartup.jsm",
+   SessionStore: "resource:///modules/sessionstore/SessionStore.jsm",
+   ShellService: "resource:///modules/ShellService.jsm",
+@@ -646,16 +644,6 @@ let JSWINDOWACTORS = {
+     enablePreference: "accessibility.blockautorefresh",
+   },
+ 
+-  ScreenshotsComponent: {
+-    parent: {
+-      moduleURI: "resource:///modules/ScreenshotsUtils.jsm",
+-    },
+-    child: {
+-      moduleURI: "resource:///actors/ScreenshotsComponentChild.jsm",
+-    },
+-    enablePreference: "screenshots.browser.component.enabled",
+-  },
+-
+   ASRouter: {
+     parent: {
+       moduleURI: "resource:///actors/ASRouterParent.jsm",
+@@ -1139,8 +1127,6 @@ BrowserGlue.prototype = {
+ 
+     BuiltInThemes.maybeInstallActiveBuiltInTheme();
+ 
+-    SaveToPocket.init();
+-
+     AboutHomeStartupCache.init();
+ 
+     Services.obs.notifyObservers(null, "browser-ui-startup-complete");
+@@ -1669,77 +1655,6 @@ BrowserGlue.prototype = {
+     }
+   },
+ 
+-  // Set up a listener to enable/disable the screenshots extension
+-  // based on its preference.
+-  _monitorScreenshotsPref() {
+-    const SCREENSHOTS_PREF = "extensions.screenshots.disabled";
+-    const COMPONENT_PREF = "screenshots.browser.component.enabled";
+-    const ID = "screenshots@mozilla.org";
+-    const _checkScreenshotsPref = async () => {
+-      let addon = await AddonManager.getAddonByID(ID);
+-      if (!addon) {
+-        return;
+-      }
+-      let screenshotsDisabled = Services.prefs.getBoolPref(
+-        SCREENSHOTS_PREF,
+-        false
+-      );
+-      let componentEnabled = Services.prefs.getBoolPref(COMPONENT_PREF, false);
+-      if (screenshotsDisabled) {
+-        if (componentEnabled) {
+-          ScreenshotsUtils.uninitialize();
+-        } else {
+-          await addon.disable({ allowSystemAddons: true });
+-        }
+-      } else if (componentEnabled) {
+-        ScreenshotsUtils.initialize();
+-        await addon.disable({ allowSystemAddons: true });
+-      } else {
+-        await addon.enable({ allowSystemAddons: true });
+-        ScreenshotsUtils.uninitialize();
+-      }
+-    };
+-    Services.prefs.addObserver(SCREENSHOTS_PREF, _checkScreenshotsPref);
+-    Services.prefs.addObserver(COMPONENT_PREF, _checkScreenshotsPref);
+-    _checkScreenshotsPref();
+-  },
+-
+-  _monitorWebcompatReporterPref() {
+-    const PREF = "extensions.webcompat-reporter.enabled";
+-    const ID = "webcompat-reporter@mozilla.org";
+-    Services.prefs.addObserver(PREF, async () => {
+-      let addon = await AddonManager.getAddonByID(ID);
+-      if (!addon) {
+-        return;
+-      }
+-      let enabled = Services.prefs.getBoolPref(PREF, false);
+-      if (enabled && !addon.isActive) {
+-        await addon.enable({ allowSystemAddons: true });
+-      } else if (!enabled && addon.isActive) {
+-        await addon.disable({ allowSystemAddons: true });
+-      }
+-    });
+-  },
+-
+-  async _setupSearchDetection() {
+-    // There is no pref for this add-on because it shouldn't be disabled.
+-    const ID = "addons-search-detection@mozilla.com";
+-
+-    let addon = await AddonManager.getAddonByID(ID);
+-
+-    // first time install of addon and install on firefox update
+-    addon =
+-      (await AddonManager.maybeInstallBuiltinAddon(
+-        ID,
+-        "2.0.0",
+-        "resource://builtin-addons/search-detection/"
+-      )) || addon;
+-
+-    if (!addon.isActive) {
+-      addon.enable();
+-    }
+-  },
+-
+   _monitorHTTPSOnlyPref() {
+     const PREF_ENABLED = "dom.security.https_only_mode";
+     const PREF_WAS_ENABLED = "dom.security.https_only_mode_ever_enabled";
+@@ -1943,12 +1858,9 @@ BrowserGlue.prototype = {
+       LATE_TASKS_IDLE_TIME_SEC
+     );
+ 
+-    this._monitorScreenshotsPref();
+-    this._monitorWebcompatReporterPref();
+     this._monitorHTTPSOnlyPref();
+     this._monitorIonPref();
+     this._monitorIonStudies();
+-    this._setupSearchDetection();
+ 
+     this._monitorGPCPref();
+   },
+@@ -2070,16 +1982,6 @@ BrowserGlue.prototype = {
+ 
+       {
+         task: () => {
+-          if (
+-            Services.prefs.getBoolPref("screenshots.browser.component.enabled")
+-          ) {
+-            ScreenshotsUtils.initialize();
+-          }
+-        },
+-      },
+-
+-      {
+-        task: () => {
+           let { setTimeout } = ChromeUtils.import(
+             "resource://gre/modules/Timer.jsm"
+           );
+@@ -2234,12 +2136,6 @@ BrowserGlue.prototype = {
+       },
+ 
+       {
+-        task: () => {
+-          this._collectTelemetryPiPEnabled();
+-        },
+-      },
+-
+-      {
+         condition: AppConstants.platform == "win",
+         task: () => {
+           Services.obs.notifyObservers(
+@@ -3827,9 +3723,6 @@ BrowserGlue.prototype = {
+     });
+   },
+ 
+-  _collectTelemetryPiPEnabled() {
+-  },
+-
+   QueryInterface: ChromeUtils.generateQI([
+     "nsIObserver",
+     "nsISupportsWeakReference",
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -174,18 +174,6 @@ AboutRedirector::NewChannel(nsIURI* aURI
+     if (!strcmp(path.get(), redir.id)) {
+       nsAutoCString url;
+ 
+-      // Let the aboutNewTabService decide where to redirect for about:home and
+-      // enabled about:newtab. Disabled about:newtab page uses fallback.
+-      if (path.EqualsLiteral("home") ||
+-          (StaticPrefs::browser_newtabpage_enabled() &&
+-           path.EqualsLiteral("newtab"))) {
+-        nsCOMPtr<nsIAboutNewTabService> aboutNewTabService =
+-            do_GetService("@mozilla.org/browser/aboutnewtab-service;1", &rv);
+-        NS_ENSURE_SUCCESS(rv, rv);
+-        rv = aboutNewTabService->GetDefaultURL(url);
+-        NS_ENSURE_SUCCESS(rv, rv);
+-      }
+-
+       if (path.EqualsLiteral("welcome")) {
+         nsCOMPtr<nsIAboutNewTabService> aboutNewTabService =
+             do_GetService("@mozilla.org/browser/aboutnewtab-service;1", &rv);
+diff --git a/browser/components/preferences/jar.mn b/browser/components/preferences/jar.mn
+--- a/browser/components/preferences/jar.mn
++++ b/browser/components/preferences/jar.mn
+@@ -13,7 +13,6 @@ browser.jar:
+    content/browser/preferences/privacy.js
+    content/browser/preferences/containers.js
+    content/browser/preferences/experimental.js
+-   content/browser/preferences/moreFromMozilla.js
+    content/browser/preferences/findInPage.js
+    content/browser/preferences/more-from-mozilla-qr-code-simple.svg
+    content/browser/preferences/more-from-mozilla-qr-code-simple-cn.svg
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -197,14 +197,6 @@ function init_all() {
+     register_module("paneExperimental", gExperimentalPane);
+   }
+ 
+-  NimbusFeatures.moreFromMozilla.recordExposureEvent({ once: true });
+-  if (NimbusFeatures.moreFromMozilla.getVariable("enabled")) {
+-    document.getElementById("category-more-from-mozilla").hidden = false;
+-    gMoreFromMozillaPane.option = NimbusFeatures.moreFromMozilla.getVariable(
+-      "template"
+-    );
+-    register_module("paneMoreFromMozilla", gMoreFromMozillaPane);
+-  }
+   register_module("paneSearchResults", gSearchResultsPane);
+   gSearchResultsPane.init();
+   gMainPane.preInit();
+diff --git a/browser/components/preferences/preferences.xhtml b/browser/components/preferences/preferences.xhtml
+--- a/browser/components/preferences/preferences.xhtml
++++ b/browser/components/preferences/preferences.xhtml
+@@ -140,16 +140,6 @@
+           <image class="category-icon"/>
+           <label class="category-name" flex="1" data-l10n-id="pane-experimental-title"></label>
+         </richlistitem>
+-        <richlistitem id="category-more-from-mozilla"
+-                      class="category"
+-                      hidden="true"
+-                      data-l10n-id="more-from-moz-category"
+-                      data-l10n-attrs="tooltiptext"
+-                      value="paneMoreFromMozilla"
+-                      align="center">
+-          <image class="category-icon"/>
+-          <label class="category-name" flex="1" data-l10n-id="more-from-moz-title"></label>
+-        </richlistitem>
+       </richlistbox>
+ 
+       <spacer flex="1"/>
+@@ -197,7 +187,6 @@
+ #include privacy.inc.xhtml
+ #include containers.inc.xhtml
+ #include experimental.inc.xhtml
+-#include moreFromMozilla.inc.xhtml
+         </vbox>
+       </vbox>
+     </vbox>
+diff --git a/browser/components/screenshots/moz.build b/browser/components/screenshots/moz.build
+--- a/browser/components/screenshots/moz.build
++++ b/browser/components/screenshots/moz.build
+@@ -6,7 +6,6 @@
+ 
+ EXTRA_JS_MODULES += [
+     "ScreenshotsOverlayChild.jsm",
+-    "ScreenshotsUtils.jsm",
+ ]
+ 
+ JAR_MANIFESTS += ["jar.mn"]
+diff --git a/browser/extensions/moz.build b/browser/extensions/moz.build
+--- a/browser/extensions/moz.build
++++ b/browser/extensions/moz.build
+@@ -7,8 +7,5 @@
+ DIRS += [
+     "doh-rollout",
+     "formautofill",
+-    "screenshots",
+-    "webcompat",
+-    "report-site-issue",
+     "search-detection",
+ ]
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -167,7 +167,6 @@
+ 
+ ; JavaScript components
+ @RESPATH@/browser/components/BrowserComponents.manifest
+-@RESPATH@/components/toolkitsearch.manifest
+ @RESPATH@/components/extensions.manifest
+ #ifdef MOZ_UPDATER
+ @RESPATH@/components/nsUpdateService.manifest
+@@ -179,11 +178,9 @@
+ @RESPATH@/browser/components/MacTouchBar.manifest
+ @RESPATH@/browser/components/MacTouchBar.js
+ #endif
+-@RESPATH@/components/SyncComponents.manifest
+ @RESPATH@/components/servicesComponents.manifest
+ @RESPATH@/components/servicesSettings.manifest
+ @RESPATH@/components/cryptoComponents.manifest
+-@RESPATH@/components/TelemetryStartup.manifest
+ 
+ @RESPATH@/components/Push.manifest
+ 
+@@ -424,13 +421,6 @@ bin/libfreebl_64int_3.so
+ @BINPATH@/minidump-analyzer@BIN_SUFFIX@
+ #endif
+ 
+-; [ Ping Sender ]
+-;
+-@BINPATH@/pingsender@BIN_SUFFIX@
+-
+-; Shutdown Terminator
+-@RESPATH@/components/terminator.manifest
+-
+ #ifdef LLVM_SYMBOLIZER
+ @BINPATH@/@LLVM_SYMBOLIZER@
+ #endif
+diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
+--- a/browser/locales/Makefile.in
++++ b/browser/locales/Makefile.in
+@@ -50,12 +50,10 @@ l10n-%:
+ 	$(if $(filter en-US,$(AB_CD)),, @$(MAKE) merge-$*)
+ 	$(NSINSTALL) -D $(DIST)/install
+ 	@$(MAKE) -C ../../toolkit/locales l10n-$* XPI_ROOT_APPID='$(XPI_ROOT_APPID)'
+-	@$(MAKE) -C ../../services/sync/locales AB_CD=$* XPI_NAME=locale-$*
+ 	@$(MAKE) -C ../../extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
+ ifneq (,$(wildcard ../extensions/formautofill/locales))
+ 	@$(MAKE) -C ../extensions/formautofill/locales AB_CD=$* XPI_NAME=locale-$*
+ endif
+-	@$(MAKE) -C ../extensions/report-site-issue/locales AB_CD=$* XPI_NAME=locale-$*
+ 	@$(MAKE) -C ../../devtools/client/locales AB_CD=$* XPI_NAME=locale-$* XPI_ROOT_APPID='$(XPI_ROOT_APPID)'
+ 	@$(MAKE) -C ../../devtools/startup/locales AB_CD=$* XPI_NAME=locale-$* XPI_ROOT_APPID='$(XPI_ROOT_APPID)'
+ 	@$(MAKE) l10n AB_CD=$* XPI_NAME=locale-$* PREF_DIR=$(PREF_DIR)
+@@ -67,7 +65,6 @@ chrome-%: IS_LANGUAGE_REPACK=1
+ chrome-%:
+ 	$(if $(filter en-US,$(AB_CD)),, @$(MAKE) merge-$*)
+ 	@$(MAKE) -C ../../toolkit/locales chrome-$*
+-	@$(MAKE) -C ../../services/sync/locales chrome AB_CD=$*
+ 	@$(MAKE) -C ../../extensions/spellcheck/locales chrome AB_CD=$*
+ ifneq (,$(wildcard ../extensions/formautofill/locales))
+ 	@$(MAKE) -C ../extensions/formautofill/locales chrome AB_CD=$*
+@@ -76,7 +73,6 @@ endif
+ 	@$(MAKE) -C ../../devtools/startup/locales chrome AB_CD=$*
+ 	@$(MAKE) chrome AB_CD=$*
+ 	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales chrome AB_CD=$*
+-	@$(MAKE) -C ../extensions/report-site-issue/locales chrome AB_CD=$*
+ 
+ package-win32-installer: $(SUBMAKEFILES)
+ 	$(MAKE) -C ../installer/windows CONFIG_DIR=l10ngen ZIP_IN='$(ZIP_OUT)' installer
+diff --git a/browser/moz.configure b/browser/moz.configure
+--- a/browser/moz.configure
++++ b/browser/moz.configure
+@@ -5,11 +5,11 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ imply_option("MOZ_PLACES", True)
+-imply_option("MOZ_SERVICES_HEALTHREPORT", True)
+-imply_option("MOZ_SERVICES_SYNC", True)
++imply_option("MOZ_SERVICES_HEALTHREPORT", False)
++imply_option("MOZ_SERVICES_SYNC", False)
+ imply_option("MOZ_DEDICATED_PROFILES", True)
+ imply_option("MOZ_BLOCK_PROFILE_DOWNGRADE", True)
+-imply_option("MOZ_NORMANDY", True)
++imply_option("MOZ_NORMANDY", False)
+ 
+ with only_when(target_is_linux & compile_environment):
+     option(env="MOZ_NO_PIE_COMPAT", help="Enable non-PIE wrapper")
+diff --git a/toolkit/components/extensions/moz.build b/toolkit/components/extensions/moz.build
+--- a/toolkit/components/extensions/moz.build
++++ b/toolkit/components/extensions/moz.build
+@@ -28,7 +28,6 @@ EXTRA_JS_MODULES += [
+     "ExtensionShortcuts.jsm",
+     "ExtensionStorage.jsm",
+     "ExtensionStorageIDB.jsm",
+-    "ExtensionTelemetry.jsm",
+     "ExtensionUtils.jsm",
+     "ExtensionWorkerChild.jsm",
+     "FindContent.jsm",
+diff --git a/toolkit/mozapps/extensions/content/view-controller.js b/toolkit/mozapps/extensions/content/view-controller.js
+--- a/toolkit/mozapps/extensions/content/view-controller.js
++++ b/toolkit/mozapps/extensions/content/view-controller.js
+@@ -8,9 +8,6 @@
+ /* import-globals-from aboutaddonsCommon.js */
+ /* exported loadView */
+ 
+-async function recordViewTelemetry(param) {
+-}
+-
+ // Used by external callers to load a specific view into the manager
+ function loadView(viewId) {
+   if (!gViewController.readyForLoadView) {

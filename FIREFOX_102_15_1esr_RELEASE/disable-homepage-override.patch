@@ -1,0 +1,268 @@
+diff --git a/browser/components/BrowserContentHandler.jsm b/browser/components/BrowserContentHandler.jsm
+--- a/browser/components/BrowserContentHandler.jsm
++++ b/browser/components/BrowserContentHandler.jsm
+@@ -24,7 +24,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   PrivateBrowsingUtils: "resource://gre/modules/PrivateBrowsingUtils.jsm",
+   SessionStartup: "resource:///modules/sessionstore/SessionStartup.jsm",
+   ShellService: "resource:///modules/ShellService.jsm",
+-  UpdatePing: "resource://gre/modules/UpdatePing.jsm",
+ });
+ XPCOMUtils.defineLazyServiceGetters(this, {
+   UpdateManager: ["@mozilla.org/updates/update-manager;1", "nsIUpdateManager"],
+@@ -91,98 +90,6 @@ let gKiosk = false;
+ let gMajorUpgrade = false;
+ var gFirstWindow = false;
+ 
+-const OVERRIDE_NONE = 0;
+-const OVERRIDE_NEW_PROFILE = 1;
+-const OVERRIDE_NEW_MSTONE = 2;
+-const OVERRIDE_NEW_BUILD_ID = 3;
+-/**
+- * Determines whether a home page override is needed.
+- * Returns:
+- *  OVERRIDE_NEW_PROFILE if this is the first run with a new profile.
+- *  OVERRIDE_NEW_MSTONE if this is the first run with a build with a different
+- *                      Gecko milestone (i.e. right after an upgrade).
+- *  OVERRIDE_NEW_BUILD_ID if this is the first run with a new build ID of the
+- *                        same Gecko milestone (i.e. after a nightly upgrade).
+- *  OVERRIDE_NONE otherwise.
+- */
+-function needHomepageOverride(prefb) {
+-  var savedmstone = prefb.getCharPref(
+-    "browser.startup.homepage_override.mstone",
+-    ""
+-  );
+-
+-  if (savedmstone == "ignore") {
+-    return OVERRIDE_NONE;
+-  }
+-
+-  var mstone = Services.appinfo.platformVersion;
+-
+-  var savedBuildID = prefb.getCharPref(
+-    "browser.startup.homepage_override.buildID",
+-    ""
+-  );
+-
+-  var buildID = Services.appinfo.platformBuildID;
+-
+-  if (mstone != savedmstone) {
+-    // Bug 462254. Previous releases had a default pref to suppress the EULA
+-    // agreement if the platform's installer had already shown one. Now with
+-    // about:rights we've removed the EULA stuff and default pref, but we need
+-    // a way to make existing profiles retain the default that we removed.
+-    if (savedmstone) {
+-      prefb.setBoolPref("browser.rights.3.shown", true);
+-
+-      // Remember that we saw a major version change.
+-      gMajorUpgrade = true;
+-    }
+-
+-    prefb.setCharPref("browser.startup.homepage_override.mstone", mstone);
+-    prefb.setCharPref("browser.startup.homepage_override.buildID", buildID);
+-    return savedmstone ? OVERRIDE_NEW_MSTONE : OVERRIDE_NEW_PROFILE;
+-  }
+-
+-  if (buildID != savedBuildID) {
+-    prefb.setCharPref("browser.startup.homepage_override.buildID", buildID);
+-    return OVERRIDE_NEW_BUILD_ID;
+-  }
+-
+-  return OVERRIDE_NONE;
+-}
+-
+-/**
+- * Gets the override page for the first run after the application has been
+- * updated.
+- * @param  update
+- *         The nsIUpdate for the update that has been applied.
+- * @param  defaultOverridePage
+- *         The default override page.
+- * @return The override page.
+- */
+-function getPostUpdateOverridePage(update, defaultOverridePage) {
+-  update = update.QueryInterface(Ci.nsIWritablePropertyBag);
+-  let actions = update.getProperty("actions");
+-  // When the update doesn't specify actions fallback to the original behavior
+-  // of displaying the default override page.
+-  if (!actions) {
+-    return defaultOverridePage;
+-  }
+-
+-  // The existence of silent or the non-existence of showURL in the actions both
+-  // mean that an override page should not be displayed.
+-  if (actions.includes("silent") || !actions.includes("showURL")) {
+-    return "";
+-  }
+-
+-  // If a policy was set to not allow the update.xml-provided
+-  // URL to be used, use the default fallback (which will also
+-  // be provided by the policy).
+-  if (!Services.policies.isAllowed("postUpdateCustomPage")) {
+-    return defaultOverridePage;
+-  }
+-
+-  return update.getProperty("openURL") || defaultOverridePage;
+-}
+-
+ /**
+  * Open a browser window. If this is the initial launch, this function will
+  * attempt to use the navigator:blank window opened by BrowserGlue.jsm during
+@@ -626,139 +533,6 @@ nsBrowserContentHandler.prototype = {
+   getArgs(isStartup = false) {
+     var prefb = Services.prefs;
+ 
+-    if (!gFirstWindow) {
+-      gFirstWindow = true;
+-      if (PrivateBrowsingUtils.isInTemporaryAutoStartMode) {
+-        return "about:privatebrowsing";
+-      }
+-    }
+-
+-    var override;
+-    var overridePage = "";
+-    var additionalPage = "";
+-    var willRestoreSession = false;
+-    try {
+-      // Read the old value of homepage_override.mstone before
+-      // needHomepageOverride updates it, so that we can later add it to the
+-      // URL if we do end up showing an overridePage. This makes it possible
+-      // to have the overridePage's content vary depending on the version we're
+-      // upgrading from.
+-      let old_mstone = Services.prefs.getCharPref(
+-        "browser.startup.homepage_override.mstone",
+-        "unknown"
+-      );
+-      let old_buildId = Services.prefs.getCharPref(
+-        "browser.startup.homepage_override.buildID",
+-        "unknown"
+-      );
+-      override = needHomepageOverride(prefb);
+-      if (override != OVERRIDE_NONE) {
+-        switch (override) {
+-          case OVERRIDE_NEW_PROFILE:
+-            // New profile.
+-            overridePage = Services.urlFormatter.formatURLPref(
+-              "startup.homepage_welcome_url"
+-            );
+-            additionalPage = Services.urlFormatter.formatURLPref(
+-              "startup.homepage_welcome_url.additional"
+-            );
+-            // Turn on 'later run' pages for new profiles.
+-            LaterRun.enabled = true;
+-            break;
+-          case OVERRIDE_NEW_MSTONE:
+-            // Check whether we will restore a session. If we will, we assume
+-            // that this is an "update" session. This does not take crashes
+-            // into account because that requires waiting for the session file
+-            // to be read. If a crash occurs after updating, before restarting,
+-            // we may open the startPage in addition to restoring the session.
+-            willRestoreSession = SessionStartup.isAutomaticRestoreEnabled();
+-
+-            overridePage = Services.urlFormatter.formatURLPref(
+-              "startup.homepage_override_url"
+-            );
+-            let update = UpdateManager.readyUpdate;
+-            if (
+-              update &&
+-              Services.vc.compare(update.appVersion, old_mstone) > 0
+-            ) {
+-              overridePage = getPostUpdateOverridePage(update, overridePage);
+-              // Send the update ping to signal that the update was successful.
+-              UpdatePing.handleUpdateSuccess(old_mstone, old_buildId);
+-            }
+-
+-            overridePage = overridePage.replace("%OLD_VERSION%", old_mstone);
+-            break;
+-          case OVERRIDE_NEW_BUILD_ID:
+-            if (UpdateManager.readyUpdate) {
+-              // Send the update ping to signal that the update was successful.
+-              UpdatePing.handleUpdateSuccess(old_mstone, old_buildId);
+-            }
+-            break;
+-        }
+-      }
+-    } catch (ex) {}
+-
+-    // formatURLPref might return "about:blank" if getting the pref fails
+-    if (overridePage == "about:blank") {
+-      overridePage = "";
+-    }
+-
+-    // Allow showing a one-time startup override if we're not showing one
+-    if (isStartup && overridePage == "" && prefb.prefHasUserValue(ONCE_PREF)) {
+-      try {
+-        // Show if we haven't passed the expiration or there's no expiration
+-        const { expire, url } = JSON.parse(
+-          Services.urlFormatter.formatURLPref(ONCE_PREF)
+-        );
+-        if (!(Date.now() > expire)) {
+-          // Only set allowed urls as override pages
+-          overridePage = url
+-            .split("|")
+-            .map(val => {
+-              try {
+-                return new URL(val);
+-              } catch (ex) {
+-                // Invalid URL, so filter out below
+-                Cu.reportError(`Invalid once url: ${ex}`);
+-                return null;
+-              }
+-            })
+-            .filter(
+-              parsed =>
+-                parsed &&
+-                parsed.protocol == "https:" &&
+-                // Only accept exact hostname or subdomain; without port
+-                ONCE_DOMAINS.includes(
+-                  Services.eTLD.getBaseDomainFromHost(parsed.host)
+-                )
+-            )
+-            .join("|");
+-
+-          // Be noisy as properly configured urls should be unchanged
+-          if (overridePage != url) {
+-            Cu.reportError(`Mismatched once urls: ${url}`);
+-          }
+-        }
+-      } catch (ex) {
+-        // Invalid json pref, so ignore (and clear below)
+-        Cu.reportError(`Invalid once pref: ${ex}`);
+-      } finally {
+-        prefb.clearUserPref(ONCE_PREF);
+-      }
+-    }
+-
+-    if (!additionalPage) {
+-      additionalPage = LaterRun.getURL() || "";
+-    }
+-
+-    if (additionalPage && additionalPage != "about:blank") {
+-      if (overridePage) {
+-        overridePage += "|" + additionalPage;
+-      } else {
+-        overridePage = additionalPage;
+-      }
+-    }
+-
+     var startPage = "";
+     try {
+       var choice = prefb.getIntPref("browser.startup.page");
+@@ -773,16 +547,7 @@ nsBrowserContentHandler.prototype = {
+       startPage = "";
+     }
+ 
+-    let skipStartPage =
+-      override == OVERRIDE_NEW_PROFILE &&
+-      prefb.getBoolPref("browser.startup.firstrunSkipsHomepage");
+-    // Only show the startPage if we're not restoring an update session and are
+-    // not set to skip the start page on this profile
+-    if (overridePage && startPage && !willRestoreSession && !skipStartPage) {
+-      return overridePage + "|" + startPage;
+-    }
+-
+-    return overridePage || startPage || "about:blank";
++    return startPage || "about:blank";
+   },
+ 
+   mFeatures: null,

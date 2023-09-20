@@ -1,0 +1,59 @@
+diff --git a/browser/components/BrowserGlue.jsm b/browser/components/BrowserGlue.jsm
+--- a/browser/components/BrowserGlue.jsm
++++ b/browser/components/BrowserGlue.jsm
+@@ -94,7 +94,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   TelemetryUtils: "resource://gre/modules/TelemetryUtils.jsm",
+   TRRRacer: "resource:///modules/TRRPerformance.jsm",
+   UIState: "resource://services-sync/UIState.jsm",
+-  UpdateListener: "resource://gre/modules/UpdateListener.jsm",
+   UrlbarQuickSuggest: "resource:///modules/UrlbarQuickSuggest.jsm",
+   UrlbarPrefs: "resource:///modules/UrlbarPrefs.jsm",
+   WebChannel: "resource://gre/modules/WebChannel.jsm",
+@@ -820,12 +819,6 @@ const global = this;
+ 
+ const listeners = {
+   observers: {
+-    "update-downloading": ["UpdateListener"],
+-    "update-staged": ["UpdateListener"],
+-    "update-downloaded": ["UpdateListener"],
+-    "update-available": ["UpdateListener"],
+-    "update-error": ["UpdateListener"],
+-    "update-swap": ["UpdateListener"],
+     "gmp-plugin-crash": ["PluginManager"],
+     "plugin-crashed": ["PluginManager"],
+   },
+@@ -1993,7 +1986,6 @@ BrowserGlue.prototype = {
+       () => Normandy.uninit(),
+       () => RFPHelper.uninit(),
+       () => ASRouterNewTabHook.destroy(),
+-      () => UpdateListener.reset(),
+     ];
+ 
+     for (let task of tasks) {
+@@ -2760,12 +2752,6 @@ BrowserGlue.prototype = {
+ 
+       {
+         task: () => {
+-          UpdateListener.maybeShowUnsupportedNotification();
+-        },
+-      },
+-
+-      {
+-        task: () => {
+           // Use idleDispatch a second time to run this after the per-window
+           // idle tasks.
+           ChromeUtils.idleDispatch(() => {
+diff --git a/build/moz.configure/update-programs.configure b/build/moz.configure/update-programs.configure
+--- a/build/moz.configure/update-programs.configure
++++ b/build/moz.configure/update-programs.configure
+@@ -17,8 +17,8 @@ option(
+     help="{Enable|Disable} building the updater",
+ )
+ 
+-set_config("MOZ_UPDATER", True, when="--enable-updater")
+-set_define("MOZ_UPDATER", True, when="--enable-updater")
++set_config("__MOZ_UPDATER_IS_FIXED_TO_DISABLE_ON_WEBVIEWER__", True, when="--enable-updater")
++set_define("__MOZ_UPDATER_IS_FIXED_TO_DISABLE_ON_WEBVIEWER__", True, when="--enable-updater")
+ 
+ # Verify MAR signatures
+ # ==============================================================

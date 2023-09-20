@@ -1,0 +1,816 @@
+diff --git a/modules/libpref/init/StaticPrefList.yaml b/modules/libpref/init/StaticPrefList.yaml
+--- a/modules/libpref/init/StaticPrefList.yaml
++++ b/modules/libpref/init/StaticPrefList.yaml
+@@ -1350,13 +1350,13 @@
+ # Blocked plugin content
+ - name: browser.safebrowsing.blockedURIs.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
+ 
+ # Malware protection
+ - name: browser.safebrowsing.malware.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
+ 
+ # Password protection
+@@ -1368,7 +1368,7 @@
+ # Phishing protection
+ - name: browser.safebrowsing.phishing.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
+ 
+ # Maximum size for an array to store the safebrowsing prefixset.
+diff --git a/netwerk/url-classifier/nsChannelClassifier.cpp b/netwerk/url-classifier/nsChannelClassifier.cpp
+--- a/netwerk/url-classifier/nsChannelClassifier.cpp
++++ b/netwerk/url-classifier/nsChannelClassifier.cpp
+@@ -352,37 +352,6 @@ bool nsChannelClassifier::HasBeenClassif
+   return tag.EqualsLiteral("1");
+ }
+ 
+-/* static */
+-nsresult nsChannelClassifier::SendThreatHitReport(nsIChannel* aChannel,
+-                                                  const nsACString& aProvider,
+-                                                  const nsACString& aList,
+-                                                  const nsACString& aFullHash) {
+-  NS_ENSURE_ARG_POINTER(aChannel);
+-
+-  nsAutoCString provider(aProvider);
+-  nsPrintfCString reportEnablePref(
+-      "browser.safebrowsing.provider.%s.dataSharing.enabled", provider.get());
+-  if (!Preferences::GetBool(reportEnablePref.get(), false)) {
+-    UC_LOG(
+-        ("nsChannelClassifier::SendThreatHitReport - data sharing disabled for "
+-         "%s",
+-         provider.get()));
+-    return NS_OK;
+-  }
+-
+-  nsCOMPtr<nsIURIClassifier> uriClassifier =
+-      components::UrlClassifierDB::Service();
+-  if (!uriClassifier) {
+-    return NS_ERROR_UNEXPECTED;
+-  }
+-
+-  nsresult rv =
+-      uriClassifier->SendThreatHitReport(aChannel, aProvider, aList, aFullHash);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  return NS_OK;
+-}
+-
+ NS_IMETHODIMP
+ nsChannelClassifier::OnClassifyComplete(nsresult aErrorCode,
+                                         const nsACString& aList,
+@@ -419,13 +388,6 @@ nsChannelClassifier::OnClassifyComplete(
+       UrlClassifierCommon::SetBlockedContent(mChannel, aErrorCode, aList,
+                                              aProvider, aFullHash);
+ 
+-      if (aErrorCode == NS_ERROR_MALWARE_URI ||
+-          aErrorCode == NS_ERROR_PHISHING_URI ||
+-          aErrorCode == NS_ERROR_UNWANTED_URI ||
+-          aErrorCode == NS_ERROR_HARMFUL_URI) {
+-        SendThreatHitReport(mChannel, aProvider, aList, aFullHash);
+-      }
+-
+       mChannel->Cancel(aErrorCode);
+     }
+     UC_LOG(
+diff --git a/netwerk/url-classifier/nsChannelClassifier.h b/netwerk/url-classifier/nsChannelClassifier.h
+--- a/netwerk/url-classifier/nsChannelClassifier.h
++++ b/netwerk/url-classifier/nsChannelClassifier.h
+@@ -50,10 +50,6 @@ class nsChannelClassifier final : public
+ 
+   void AddShutdownObserver();
+   void RemoveShutdownObserver();
+-  static nsresult SendThreatHitReport(nsIChannel* aChannel,
+-                                      const nsACString& aProvider,
+-                                      const nsACString& aList,
+-                                      const nsACString& aFullHash);
+ 
+  public:
+   // If we are blocking content, update the corresponding flag in the respective
+diff --git a/netwerk/url-classifier/nsIURIClassifier.idl b/netwerk/url-classifier/nsIURIClassifier.idl
+--- a/netwerk/url-classifier/nsIURIClassifier.idl
++++ b/netwerk/url-classifier/nsIURIClassifier.idl
+@@ -96,20 +96,4 @@ interface nsIURIClassifier : nsISupports
+   nsIUrlClassifierFeature createFeatureWithTables(in ACString aName,
+                                                   in Array<ACString> aBlocklistTables,
+                                                   in Array<ACString> aEntitylistTables);
+-
+-  /**
+-   * Report to the provider that a Safe Browsing warning was shown.
+-   *
+-   * @param aChannel
+-   *        Channel for which the URL matched something on the threat list.
+-   * @param aProvider
+-   *        Provider to notify.
+-   * @param aList
+-   *        List where the full hash was found.
+-   * @param aFullHash
+-   *        Full URL hash that triggered the warning.
+-   */
+-
+-  void sendThreatHitReport(in nsIChannel aChannel, in ACString aProvider,
+-                           in ACString aList, in ACString aFullHash);
+ };
+diff --git a/toolkit/components/reputationservice/ApplicationReputation.cpp b/toolkit/components/reputationservice/ApplicationReputation.cpp
+--- a/toolkit/components/reputationservice/ApplicationReputation.cpp
++++ b/toolkit/components/reputationservice/ApplicationReputation.cpp
+@@ -739,9 +739,6 @@ class PendingLookup final : public nsISt
+   // Sends a query to the remote application reputation service. Returns NS_OK
+   // on success.
+   nsresult SendRemoteQuery();
+-
+-  // Helper function to ensure that we always call the callback.
+-  nsresult SendRemoteQueryInternal(Reason& aReason);
+ };
+ 
+ // A single-use class for looking up a single URI in the safebrowsing DB. This
+@@ -1555,8 +1552,8 @@ nsresult PendingLookup::SendRemoteQuery(
+   MOZ_ASSERT(!IsFileType(
+       mFileName, ApplicationReputationService::kNonBinaryExecutables,
+       ArrayLength(ApplicationReputationService::kNonBinaryExecutables)));
+-  Reason reason = Reason::NotSet;
+-  nsresult rv = SendRemoteQueryInternal(reason);
++  Reason reason = Reason::RemoteLookupDisabled;
++  nsresult rv = NS_ERROR_NOT_AVAILABLE;
+   if (NS_FAILED(rv)) {
+     return OnComplete(nsIApplicationReputationService::VERDICT_SAFE, reason,
+                       rv);
+@@ -1566,143 +1563,6 @@ nsresult PendingLookup::SendRemoteQuery(
+   return rv;
+ }
+ 
+-nsresult PendingLookup::SendRemoteQueryInternal(Reason& aReason) {
+-  auto scopeExit = mozilla::MakeScopeExit([&aReason]() {
+-    if (aReason == Reason::NotSet) {
+-      aReason = Reason::InternalError;
+-    }
+-  });
+-
+-  // If we aren't supposed to do remote lookups, bail.
+-  if (!Preferences::GetBool(PREF_SB_DOWNLOADS_REMOTE_ENABLED, false)) {
+-    LOG(("Remote lookups are disabled [this = %p]", this));
+-    aReason = Reason::RemoteLookupDisabled;
+-    return NS_ERROR_NOT_AVAILABLE;
+-  }
+-  // If the remote lookup URL is empty or absent, bail.
+-  nsString serviceUrl;
+-  nsCOMPtr<nsIURLFormatter> formatter(
+-      do_GetService("@mozilla.org/toolkit/URLFormatterService;1"));
+-  if (!formatter ||
+-      NS_FAILED(formatter->FormatURLPref(
+-          NS_ConvertASCIItoUTF16(PREF_SB_APP_REP_URL), serviceUrl)) ||
+-      serviceUrl.IsEmpty() || u"about:blank"_ns.Equals(serviceUrl)) {
+-    LOG(("Remote lookup URL is empty or absent [this = %p]", this));
+-    aReason = Reason::RemoteLookupDisabled;
+-    return NS_ERROR_NOT_AVAILABLE;
+-  }
+-
+-  LOG(("Sending remote query for application reputation [this = %p]", this));
+-  // We did not find a local result, so fire off the query to the
+-  // application reputation service.
+-  nsCOMPtr<nsIURI> uri;
+-  nsresult rv;
+-  rv = mQuery->GetSourceURI(getter_AddRefs(uri));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  nsCString spec;
+-  rv = GetStrippedSpec(uri, spec);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  mRequest.set_url(spec.get());
+-
+-  uint32_t fileSize;
+-  rv = mQuery->GetFileSize(&fileSize);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  mRequest.set_length(fileSize);
+-  // We have no way of knowing whether or not a user initiated the
+-  // download. Set it to true to lessen the chance of false positives.
+-  mRequest.set_user_initiated(true);
+-
+-  nsCString locale;
+-  rv = LocaleService::GetInstance()->GetAppLocaleAsBCP47(locale);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  mRequest.set_locale(locale.get());
+-  nsCString sha256Hash;
+-  rv = mQuery->GetSha256Hash(sha256Hash);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  mRequest.mutable_digests()->set_sha256(
+-      std::string(sha256Hash.Data(), sha256Hash.Length()));
+-  mRequest.set_file_basename(mFileName.get());
+-  mRequest.set_download_type(GetDownloadType(mFileName));
+-
+-  if (mRequest.signature().trusted()) {
+-    LOG(
+-        ("Got signed binary for remote application reputation check "
+-         "[this = %p]",
+-         this));
+-  } else {
+-    LOG(
+-        ("Got unsigned binary for remote application reputation check "
+-         "[this = %p]",
+-         this));
+-  }
+-
+-  // Serialize the protocol buffer to a string. This can only fail if we are
+-  // out of memory, or if the protocol buffer req is missing required fields
+-  // (only the URL for now).
+-  std::string serialized;
+-  if (!mRequest.SerializeToString(&serialized)) {
+-    return NS_ERROR_UNEXPECTED;
+-  }
+-
+-  if (LOG_ENABLED()) {
+-    nsAutoCString serializedStr(serialized.c_str(), serialized.length());
+-    serializedStr.ReplaceSubstring("\0"_ns, "\\0"_ns);
+-
+-    LOG(("Serialized protocol buffer [this = %p]: (length=%zd) %s", this,
+-         serializedStr.Length(), serializedStr.get()));
+-  }
+-
+-  // Set the input stream to the serialized protocol buffer
+-  nsCOMPtr<nsIStringInputStream> sstream =
+-      do_CreateInstance("@mozilla.org/io/string-input-stream;1", &rv);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  rv = sstream->SetData(serialized.c_str(), serialized.length());
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  // Set up the channel to transmit the request to the service.
+-  nsCOMPtr<nsIIOService> ios = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
+-  rv = ios->NewChannel(NS_ConvertUTF16toUTF8(serviceUrl), nullptr, nullptr,
+-                       nullptr,  // aLoadingNode
+-                       nsContentUtils::GetSystemPrincipal(),
+-                       nullptr,  // aTriggeringPrincipal
+-                       nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_SEC_CONTEXT_IS_NULL,
+-                       nsIContentPolicy::TYPE_OTHER, getter_AddRefs(mChannel));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  mChannel->SetLoadFlags(nsIChannel::LOAD_BYPASS_URL_CLASSIFIER);
+-
+-  nsCOMPtr<nsILoadInfo> loadInfo = mChannel->LoadInfo();
+-  mozilla::OriginAttributes attrs;
+-  attrs.mFirstPartyDomain.AssignLiteral(NECKO_SAFEBROWSING_FIRST_PARTY_DOMAIN);
+-  loadInfo->SetOriginAttributes(attrs);
+-
+-  nsCOMPtr<nsIHttpChannel> httpChannel(do_QueryInterface(mChannel, &rv));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  mozilla::Unused << httpChannel;
+-
+-  // Upload the protobuf to the application reputation service.
+-  nsCOMPtr<nsIUploadChannel2> uploadChannel = do_QueryInterface(mChannel, &rv);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  rv = uploadChannel->ExplicitSetUploadStream(
+-      sstream, "application/octet-stream"_ns, serialized.size(), "POST"_ns,
+-      false);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  uint32_t timeoutMs =
+-      Preferences::GetUint(PREF_SB_DOWNLOADS_REMOTE_TIMEOUT, 10000);
+-  NS_NewTimerWithCallback(getter_AddRefs(mTimeoutTimer), this, timeoutMs,
+-                          nsITimer::TYPE_ONE_SHOT);
+-
+-  mTelemetryRemoteRequestStartMs = PR_IntervalNow();
+-
+-  rv = mChannel->AsyncOpen(this);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  return NS_OK;
+-}
+-
+ NS_IMETHODIMP
+ PendingLookup::Notify(nsITimer* aTimer) {
+   LOG(("Remote lookup timed out [this = %p]", this));
+@@ -1920,7 +1780,7 @@ ApplicationReputationService::QueryReput
+   NS_ENSURE_ARG_POINTER(aQuery);
+   NS_ENSURE_ARG_POINTER(aCallback);
+ 
+-  nsresult rv = QueryReputationInternal(aQuery, aCallback);
++  nsresult rv = NS_ERROR_NOT_AVAILABLE;
+   if (NS_FAILED(rv)) {
+     Reason reason = rv == NS_ERROR_NOT_AVAILABLE ? Reason::DPDisabled
+                                                  : Reason::InternalError;
+@@ -1934,38 +1794,6 @@ ApplicationReputationService::QueryReput
+   return NS_OK;
+ }
+ 
+-nsresult ApplicationReputationService::QueryReputationInternal(
+-    nsIApplicationReputationQuery* aQuery,
+-    nsIApplicationReputationCallback* aCallback) {
+-  // If malware checks aren't enabled, don't query application reputation.
+-  if (!Preferences::GetBool(PREF_SB_MALWARE_ENABLED, false)) {
+-    return NS_ERROR_NOT_AVAILABLE;
+-  }
+-
+-  if (!Preferences::GetBool(PREF_SB_DOWNLOADS_ENABLED, false)) {
+-    return NS_ERROR_NOT_AVAILABLE;
+-  }
+-
+-  nsCOMPtr<nsIURI> uri;
+-  nsresult rv = aQuery->GetSourceURI(getter_AddRefs(uri));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  // Bail if the URI hasn't been set.
+-  NS_ENSURE_STATE(uri);
+-
+-  // Create a new pending lookup and start the call chain.
+-  RefPtr<PendingLookup> lookup(new PendingLookup(aQuery, aCallback));
+-
+-  // Add an observer for shutdown
+-  nsCOMPtr<nsIObserverService> observerService =
+-      mozilla::services::GetObserverService();
+-  if (!observerService) {
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  observerService->AddObserver(lookup, "quit-application", true);
+-  return lookup->StartLookup();
+-}
+-
+ nsresult ApplicationReputationService::IsBinary(const nsACString& aFileName,
+                                                 bool* aBinary) {
+   *aBinary = ::IsBinary(aFileName);
+diff --git a/toolkit/components/url-classifier/SafeBrowsing.jsm b/toolkit/components/url-classifier/SafeBrowsing.jsm
+--- a/toolkit/components/url-classifier/SafeBrowsing.jsm
++++ b/toolkit/components/url-classifier/SafeBrowsing.jsm
+@@ -37,9 +37,7 @@ const FEATURES = [
+     name: "phishing",
+     list: ["urlclassifier.phishTable"],
+     enabled() {
+-      return Services.prefs.getBoolPref(
+-        "browser.safebrowsing.phishing.enabled"
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -52,7 +50,7 @@ const FEATURES = [
+     name: "malware",
+     list: ["urlclassifier.malwareTable"],
+     enabled() {
+-      return Services.prefs.getBoolPref("browser.safebrowsing.malware.enabled");
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -65,9 +63,7 @@ const FEATURES = [
+     name: "blockedURIs",
+     list: ["urlclassifier.blockedTable"],
+     enabled() {
+-      return Services.prefs.getBoolPref(
+-        "browser.safebrowsing.blockedURIs.enabled"
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -80,9 +76,7 @@ const FEATURES = [
+     name: "passwords",
+     list: ["urlclassifier.passwordAllowTable"],
+     enabled() {
+-      return Services.prefs.getBoolPref(
+-        "browser.safebrowsing.passwords.enabled"
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -98,10 +92,7 @@ const FEATURES = [
+       "urlclassifier.downloadAllowTable",
+     ],
+     enabled() {
+-      return (
+-        Services.prefs.getBoolPref("browser.safebrowsing.downloads.enabled") &&
+-        Services.prefs.getBoolPref("browser.safebrowsing.malware.enabled")
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -117,9 +108,7 @@ const FEATURES = [
+       "urlclassifier.trackingAnnotationWhitelistTable",
+     ],
+     enabled() {
+-      return Services.prefs.getBoolPref(
+-        "privacy.trackingprotection.annotate_channels"
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -135,10 +124,7 @@ const FEATURES = [
+       "urlclassifier.trackingWhitelistTable",
+     ],
+     enabled() {
+-      return (
+-        Services.prefs.getBoolPref("privacy.trackingprotection.enabled") ||
+-        Services.prefs.getBoolPref("privacy.trackingprotection.pbmode.enabled")
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -158,7 +144,7 @@ const FEATURES = [
+       "urlclassifier.flashSubDocExceptTable",
+     ],
+     enabled() {
+-      return Services.prefs.getBoolPref("plugins.flashBlock.enabled");
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -174,8 +160,7 @@ const FEATURES = [
+       "urlclassifier.features.fingerprinting.annotate.whitelistTables",
+     ],
+     enabled() {
+-      // Annotation features are enabled by default.
+-      return true;
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -191,10 +176,7 @@ const FEATURES = [
+       "urlclassifier.features.fingerprinting.whitelistTables",
+     ],
+     enabled() {
+-      return Services.prefs.getBoolPref(
+-        "privacy.trackingprotection.fingerprinting.enabled",
+-        false
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -210,8 +192,7 @@ const FEATURES = [
+       "urlclassifier.features.cryptomining.annotate.whitelistTables",
+     ],
+     enabled() {
+-      // Annotation features are enabled by default.
+-      return true;
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -227,10 +208,7 @@ const FEATURES = [
+       "urlclassifier.features.cryptomining.whitelistTables",
+     ],
+     enabled() {
+-      return Services.prefs.getBoolPref(
+-        "privacy.trackingprotection.cryptomining.enabled",
+-        false
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -246,8 +224,7 @@ const FEATURES = [
+       "urlclassifier.features.socialtracking.annotate.whitelistTables",
+     ],
+     enabled() {
+-      // Annotation features are enabled by default.
+-      return true;
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+@@ -263,10 +240,7 @@ const FEATURES = [
+       "urlclassifier.features.socialtracking.whitelistTables",
+     ],
+     enabled() {
+-      return Services.prefs.getBoolPref(
+-        "privacy.trackingprotection.socialtracking.enabled",
+-        false
+-      );
++      return false;
+     },
+     update() {
+       return Services.prefs.getBoolPref(
+diff --git a/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp b/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
+--- a/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
++++ b/toolkit/components/url-classifier/nsUrlClassifierDBService.cpp
+@@ -1894,112 +1894,6 @@ ThreatHitReportListener::OnStopRequest(n
+ }
+ 
+ NS_IMETHODIMP
+-nsUrlClassifierDBService::SendThreatHitReport(nsIChannel* aChannel,
+-                                              const nsACString& aProvider,
+-                                              const nsACString& aList,
+-                                              const nsACString& aFullHash) {
+-  NS_ENSURE_ARG_POINTER(aChannel);
+-
+-  if (aProvider.IsEmpty()) {
+-    LOG(("nsUrlClassifierDBService::SendThreatHitReport missing provider"));
+-    return NS_ERROR_FAILURE;
+-  }
+-  if (aList.IsEmpty()) {
+-    LOG(("nsUrlClassifierDBService::SendThreatHitReport missing list"));
+-    return NS_ERROR_FAILURE;
+-  }
+-  if (aFullHash.IsEmpty()) {
+-    LOG(("nsUrlClassifierDBService::SendThreatHitReport missing fullhash"));
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  nsPrintfCString reportUrlPref(
+-      "browser.safebrowsing.provider.%s.dataSharingURL",
+-      PromiseFlatCString(aProvider).get());
+-
+-  nsCOMPtr<nsIURLFormatter> formatter(
+-      do_GetService("@mozilla.org/toolkit/URLFormatterService;1"));
+-  if (!formatter) {
+-    return NS_ERROR_UNEXPECTED;
+-  }
+-
+-  nsString urlStr;
+-  nsresult rv =
+-      formatter->FormatURLPref(NS_ConvertUTF8toUTF16(reportUrlPref), urlStr);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  if (urlStr.IsEmpty() || u"about:blank"_ns.Equals(urlStr)) {
+-    LOG(("%s is missing a ThreatHit data reporting URL.",
+-         PromiseFlatCString(aProvider).get()));
+-    return NS_OK;
+-  }
+-
+-  nsUrlClassifierUtils* utilsService = nsUrlClassifierUtils::GetInstance();
+-  if (NS_WARN_IF(!utilsService)) {
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  nsAutoCString reportBody;
+-  rv =
+-      utilsService->MakeThreatHitReport(aChannel, aList, aFullHash, reportBody);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  nsCOMPtr<nsIStringInputStream> sis(
+-      do_CreateInstance(NS_STRINGINPUTSTREAM_CONTRACTID));
+-  rv = sis->SetData(reportBody.get(), reportBody.Length());
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  LOG(("Sending the following ThreatHit report to %s about %s: %s",
+-       PromiseFlatCString(aProvider).get(), PromiseFlatCString(aList).get(),
+-       reportBody.get()));
+-
+-  nsCOMPtr<nsIURI> reportURI;
+-  rv = NS_NewURI(getter_AddRefs(reportURI), urlStr);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  uint32_t loadFlags = nsIRequest::LOAD_ANONYMOUS |  // no cookies
+-                       nsIChannel::INHIBIT_CACHING |
+-                       nsIChannel::LOAD_BYPASS_CACHE;
+-
+-  nsCOMPtr<nsIChannel> reportChannel;
+-  rv = NS_NewChannel(getter_AddRefs(reportChannel), reportURI,
+-                     nsContentUtils::GetSystemPrincipal(),
+-                     nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_SEC_CONTEXT_IS_NULL,
+-                     nsIContentPolicy::TYPE_OTHER,
+-                     nullptr,  // nsICookieJarSettings
+-                     nullptr,  // aPerformanceStorage
+-                     nullptr,  // aLoadGroup
+-                     nullptr, loadFlags);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  nsCOMPtr<nsILoadInfo> loadInfo = reportChannel->LoadInfo();
+-  mozilla::OriginAttributes attrs;
+-  attrs.mFirstPartyDomain.AssignLiteral(NECKO_SAFEBROWSING_FIRST_PARTY_DOMAIN);
+-  loadInfo->SetOriginAttributes(attrs);
+-
+-  nsCOMPtr<nsIUploadChannel> uploadChannel(do_QueryInterface(reportChannel));
+-  NS_ENSURE_TRUE(uploadChannel, NS_ERROR_FAILURE);
+-  rv = uploadChannel->SetUploadStream(sis, "application/x-protobuf"_ns, -1);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  nsCOMPtr<nsIHttpChannel> httpChannel(do_QueryInterface(reportChannel));
+-  NS_ENSURE_TRUE(httpChannel, NS_ERROR_FAILURE);
+-  rv = httpChannel->SetRequestMethod("POST"_ns);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  // Disable keepalive.
+-  rv = httpChannel->SetRequestHeader("Connection"_ns, "close"_ns, false);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  RefPtr<ThreatHitReportListener> listener = new ThreatHitReportListener();
+-  rv = reportChannel->AsyncOpen(listener);
+-  if (NS_FAILED(rv)) {
+-    LOG(("Failure to send Safe Browsing ThreatHit report"));
+-    return rv;
+-  }
+-
+-  return NS_OK;
+-}
+-
+-NS_IMETHODIMP
+ nsUrlClassifierDBService::Lookup(nsIPrincipal* aPrincipal,
+                                  const nsACString& aTables,
+                                  nsIUrlClassifierCallback* aCallback) {
+diff --git a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp b/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp
+--- a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp
++++ b/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.cpp
+@@ -109,133 +109,6 @@ void nsUrlClassifierStreamUpdater::Downl
+ ///////////////////////////////////////////////////////////////////////////////
+ // nsIUrlClassifierStreamUpdater implementation
+ 
+-nsresult nsUrlClassifierStreamUpdater::FetchUpdate(
+-    nsIURI* aUpdateUrl, const nsACString& aRequestPayload, bool aIsPostRequest,
+-    const nsACString& aStreamTable) {
+-#ifdef DEBUG
+-  LOG(("Fetching update %s from %s", aRequestPayload.Data(),
+-       aUpdateUrl->GetSpecOrDefault().get()));
+-#endif
+-
+-  // SafeBrowsing update request should never be classified to make sure
+-  // we can recover from a bad SafeBrowsing database.
+-  nsresult rv;
+-  uint32_t loadFlags = nsIChannel::INHIBIT_CACHING |
+-                       nsIChannel::LOAD_BYPASS_CACHE |
+-                       nsIChannel::LOAD_BYPASS_URL_CLASSIFIER;
+-  rv = NS_NewChannel(getter_AddRefs(mChannel), aUpdateUrl,
+-                     nsContentUtils::GetSystemPrincipal(),
+-                     nsILoadInfo::SEC_ALLOW_CROSS_ORIGIN_SEC_CONTEXT_IS_NULL,
+-                     nsIContentPolicy::TYPE_OTHER,
+-                     nullptr,  // nsICookieJarSettings
+-                     nullptr,  // aPerformanceStorage
+-                     nullptr,  // aLoadGroup
+-                     this,     // aInterfaceRequestor
+-                     loadFlags);
+-
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  nsCOMPtr<nsILoadInfo> loadInfo = mChannel->LoadInfo();
+-  mozilla::OriginAttributes attrs;
+-  attrs.mFirstPartyDomain.AssignLiteral(NECKO_SAFEBROWSING_FIRST_PARTY_DOMAIN);
+-  loadInfo->SetOriginAttributes(attrs);
+-  // allow deprecated HTTP request from SystemPrincipal
+-  loadInfo->SetAllowDeprecatedSystemRequests(true);
+-
+-  mBeganStream = false;
+-
+-  if (!aIsPostRequest) {
+-    // We use POST method to send our request in v2. In v4, the request
+-    // needs to be embedded to the URL and use GET method to send.
+-    // However, from the Chromium source code, a extended HTTP header has
+-    // to be sent along with the request to make the request succeed.
+-    // The following description is from Chromium source code:
+-    //
+-    // "The following header informs the envelope server (which sits in
+-    // front of Google's stubby server) that the received GET request should be
+-    // interpreted as a POST."
+-    //
+-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(mChannel, &rv);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-
+-    rv = httpChannel->SetRequestHeader("X-HTTP-Method-Override"_ns, "POST"_ns,
+-                                       false);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  } else if (!aRequestPayload.IsEmpty()) {
+-    rv = AddRequestBody(aRequestPayload);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  }
+-
+-  // Set the appropriate content type for file/data URIs, for unit testing
+-  // purposes.
+-  // This is only used for testing and should be deleted.
+-  if (aUpdateUrl->SchemeIs("file") || aUpdateUrl->SchemeIs("data")) {
+-    mChannel->SetContentType("application/vnd.google.safebrowsing-update"_ns);
+-  } else {
+-    // We assume everything else is an HTTP request.
+-
+-    // Disable keepalive.
+-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(mChannel, &rv);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-    rv = httpChannel->SetRequestHeader("Connection"_ns, "close"_ns, false);
+-    NS_ENSURE_SUCCESS(rv, rv);
+-  }
+-
+-  // Make the request.
+-  rv = mChannel->AsyncOpen(this);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  mTelemetryClockStart = PR_IntervalNow();
+-  mStreamTable = aStreamTable;
+-
+-  if (StaticPrefs::urlclassifier_update_response_timeout_ms() >
+-      StaticPrefs::urlclassifier_update_timeout_ms()) {
+-    NS_WARNING(
+-        "Safe Browsing response timeout is greater than the general "
+-        "timeout. Disabling these update timeouts.");
+-    return NS_OK;
+-  }
+-  MOZ_TRY_VAR(mResponseTimeoutTimer,
+-              NS_NewTimerWithCallback(
+-                  this, StaticPrefs::urlclassifier_update_response_timeout_ms(),
+-                  nsITimer::TYPE_ONE_SHOT));
+-
+-  MOZ_TRY_VAR(mTimeoutTimer,
+-              NS_NewTimerWithCallback(
+-                  this, StaticPrefs::urlclassifier_update_timeout_ms(),
+-                  nsITimer::TYPE_ONE_SHOT));
+-
+-  if (StaticPrefs::urlclassifier_update_timeout_ms() < MIN_TIMEOUT_MS) {
+-    LOG(("Download update timeout %d ms (< %d ms) would be too small",
+-         StaticPrefs::urlclassifier_update_timeout_ms(), MIN_TIMEOUT_MS));
+-  }
+-
+-  return NS_OK;
+-}
+-
+-nsresult nsUrlClassifierStreamUpdater::FetchUpdate(
+-    const nsACString& aUpdateUrl, const nsACString& aRequestPayload,
+-    bool aIsPostRequest, const nsACString& aStreamTable) {
+-  LOG(("(pre) Fetching update from %s\n",
+-       PromiseFlatCString(aUpdateUrl).get()));
+-
+-  nsCString updateUrl(aUpdateUrl);
+-  if (!aIsPostRequest) {
+-    updateUrl.AppendPrintf("&$req=%s", nsCString(aRequestPayload).get());
+-  }
+-
+-  nsCOMPtr<nsIURI> uri;
+-  nsresult rv = NS_NewURI(getter_AddRefs(uri), updateUrl);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  nsAutoCString urlSpec;
+-  uri->GetAsciiSpec(urlSpec);
+-
+-  LOG(("(post) Fetching update from %s\n", urlSpec.get()));
+-
+-  return FetchUpdate(uri, aRequestPayload, aIsPostRequest, aStreamTable);
+-}
+-
+ NS_IMETHODIMP
+ nsUrlClassifierStreamUpdater::DownloadUpdates(
+     const nsACString& aRequestTables, const nsACString& aRequestPayload,
+@@ -328,9 +201,7 @@ nsUrlClassifierStreamUpdater::DownloadUp
+   mIsUpdating = true;
+   *_retval = true;
+ 
+-  LOG(("FetchUpdate: %s", mCurrentRequest->mUrl.Data()));
+-
+-  return FetchUpdate(aUpdateUrl, aRequestPayload, aIsPostRequest, ""_ns);
++  return NS_OK;
+ }
+ 
+ ///////////////////////////////////////////////////////////////////////////////
+@@ -370,26 +241,7 @@ nsresult nsUrlClassifierStreamUpdater::F
+     return NS_OK;
+   }
+ 
+-  PendingUpdate& update = mPendingUpdates[0];
+-  LOG(("Fetching update url: %s\n", update.mUrl.get()));
+-  nsresult rv =
+-      FetchUpdate(update.mUrl, ""_ns,
+-                  true,  // This method is for v2 and v2 is always a POST.
+-                  update.mTable);
+-  if (NS_FAILED(rv)) {
+-    nsAutoCString errorName;
+-    mozilla::GetErrorName(rv, errorName);
+-    LOG(("Error (%s) fetching update url: %s\n", errorName.get(),
+-         update.mUrl.get()));
+-    // We can commit the urls that we've applied so far.  This is
+-    // probably a transient server problem, so trigger backoff.
+-    mDownloadError = true;
+-    mDBService->FinishUpdate();
+-    return rv;
+-  }
+-
+   mPendingUpdates.RemoveElementAt(0);
+-
+   return NS_OK;
+ }
+ 
+@@ -399,15 +251,7 @@ nsresult nsUrlClassifierStreamUpdater::F
+     return NS_OK;
+   }
+ 
+-  UpdateRequest request = mPendingRequests[0];
+   mPendingRequests.RemoveElementAt(0);
+-  LOG(("Stream updater: fetching next request: %s, %s", request.mTables.get(),
+-       request.mUrl.get()));
+-  bool dummy;
+-  DownloadUpdates(request.mTables, request.mRequestPayload,
+-                  request.mIsPostRequest, request.mUrl,
+-                  request.mSuccessCallback, request.mUpdateErrorCallback,
+-                  request.mDownloadErrorCallback, &dummy);
+   return NS_OK;
+ }
+ 
+diff --git a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.h b/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.h
+--- a/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.h
++++ b/toolkit/components/url-classifier/nsUrlClassifierStreamUpdater.h
+@@ -53,13 +53,6 @@ class nsUrlClassifierStreamUpdater final
+ 
+   nsresult AddRequestBody(const nsACString& aRequestBody);
+ 
+-  // Fetches an update for a single table.
+-  nsresult FetchUpdate(nsIURI* aURI, const nsACString& aRequest,
+-                       bool aIsPostRequest, const nsACString& aTable);
+-  // Dumb wrapper so we don't have to create URIs.
+-  nsresult FetchUpdate(const nsACString& aURI, const nsACString& aRequest,
+-                       bool aIsPostRequest, const nsACString& aTable);
+-
+   // Fetches the next table, from mPendingUpdates.
+   nsresult FetchNext();
+   // Fetches the next request, from mPendingRequests

@@ -1,0 +1,32 @@
+diff --git a/browser/actors/FormValidationParent.jsm b/browser/actors/FormValidationParent.jsm
+--- a/browser/actors/FormValidationParent.jsm
++++ b/browser/actors/FormValidationParent.jsm
+@@ -88,11 +88,11 @@ class FormValidationParent extends JSWin
+         let browser = this.browsingContext.top.embedderElement;
+         let window = browser.ownerGlobal;
+         let data = aMessage.data;
+-        let tabBrowser = window.gBrowser;
++        let selectedBrowser = window.getSelectedBrowser();
+ 
+         // target is the <browser>, make sure we're receiving a message
+         // from the foreground tab.
+-        if (tabBrowser && browser != tabBrowser.selectedBrowser) {
++        if (browser != selectedBrowser) {
+           return;
+         }
+ 
+@@ -128,10 +128,10 @@ class FormValidationParent extends JSWin
+   _onPopupHidden(aEvent) {
+     aEvent.originalTarget.removeEventListener("popuphidden", this, true);
+     Services.obs.removeObserver(this._obs, "popup-shown");
+-    let tabBrowser = aEvent.originalTarget.ownerGlobal.gBrowser;
+-    tabBrowser.selectedBrowser.removeEventListener("scroll", this, true);
+-    tabBrowser.selectedBrowser.removeEventListener("FullZoomChange", this);
+-    tabBrowser.selectedBrowser.removeEventListener("TextZoomChange", this);
++    let selectedBrowser = aEvent.originalTarget.ownerGlobal.getSelectedBrowser();
++    selectedBrowser.removeEventListener("scroll", this, true);
++    selectedBrowser.removeEventListener("FullZoomChange", this);
++    selectedBrowser.removeEventListener("TextZoomChange", this);
+ 
+     this._obs = null;
+     this._panel = null;

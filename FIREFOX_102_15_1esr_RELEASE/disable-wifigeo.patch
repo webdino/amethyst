@@ -1,0 +1,428 @@
+diff --git a/dom/system/moz.build b/dom/system/moz.build
+--- a/dom/system/moz.build
++++ b/dom/system/moz.build
+@@ -86,14 +86,6 @@ UNIFIED_SOURCES += [
+     "PathUtils.cpp",
+ ]
+ 
+-EXTRA_JS_MODULES += [
+-    "NetworkGeolocationProvider.jsm",
+-]
+-
+-XPCOM_MANIFESTS += [
+-    "components.conf",
+-]
+-
+ include("/ipc/chromium/chromium-config.mozbuild")
+ 
+ FINAL_LIBRARY = "xul"
+diff --git a/toolkit/components/search/moz.build b/toolkit/components/search/moz.build
+--- a/toolkit/components/search/moz.build
++++ b/toolkit/components/search/moz.build
+@@ -29,10 +29,6 @@ EXTRA_JS_MODULES += [
+     "SearchUtils.jsm",
+ ]
+ 
+-EXTRA_COMPONENTS += [
+-    "toolkitsearch.manifest",
+-]
+-
+ XPCOM_MANIFESTS += [
+     "components.conf",
+ ]
+diff --git a/toolkit/modules/Region.jsm b/toolkit/modules/Region.jsm
+--- a/toolkit/modules/Region.jsm
++++ b/toolkit/modules/Region.jsm
+@@ -21,32 +21,6 @@ XPCOMUtils.defineLazyModuleGetters(this,
+   setTimeout: "resource://gre/modules/Timer.jsm",
+ });
+ 
+-XPCOMUtils.defineLazyGlobalGetters(this, ["fetch"]);
+-
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "wifiScanningEnabled",
+-  "browser.region.network.scan",
+-  true
+-);
+-
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "networkTimeout",
+-  "browser.region.timeout",
+-  5000
+-);
+-
+-// Retry the region lookup every hour on failure, a failure
+-// is likely to be a service failure so this gives the
+-// service some time to restore. Setting to 0 disabled retries.
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "retryTimeout",
+-  "browser.region.retry-timeout",
+-  60 * 60 * 1000
+-);
+-
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+   "loggingEnabled",
+@@ -56,13 +30,6 @@ XPCOMUtils.defineLazyPreferenceGetter(
+ 
+ XPCOMUtils.defineLazyPreferenceGetter(
+   this,
+-  "cacheBustEnabled",
+-  "browser.region.update.enabled",
+-  false
+-);
+-
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+   "updateDebounce",
+   "browser.region.update.debounce",
+   60 * 60 * 24
+@@ -75,20 +42,6 @@ XPCOMUtils.defineLazyPreferenceGetter(
+   0
+ );
+ 
+-XPCOMUtils.defineLazyPreferenceGetter(
+-  this,
+-  "localGeocodingEnabled",
+-  "browser.region.local-geocoding",
+-  false
+-);
+-
+-XPCOMUtils.defineLazyServiceGetter(
+-  this,
+-  "timerManager",
+-  "@mozilla.org/updates/timer-manager;1",
+-  "nsIUpdateTimerManager"
+-);
+-
+ const log = console.createInstance({
+   prefix: "Region.jsm",
+   maxLogLevel: loggingEnabled ? "All" : "Warn",
+@@ -106,18 +59,6 @@ const UPDATE_PREFIX = "browser.region.up
+ // Currently set to 2 weeks.
+ const UPDATE_INTERVAL = 60 * 60 * 24 * 14;
+ 
+-const MAX_RETRIES = 3;
+-
+-// If the user never uses geolocation, schedule a periodic
+-// update to check the current location (in seconds).
+-const UPDATE_CHECK_NAME = "region-update-timer";
+-const UPDATE_CHECK_INTERVAL = 60 * 60 * 24 * 7;
+-
+-// Let child processes read the current home value
+-// but dont trigger redundant updates in them.
+-let inChildProcess =
+-  Services.appinfo.processType != Ci.nsIXULRuntime.PROCESS_TYPE_DEFAULT;
+-
+ /**
+  * This module keeps track of the users current region (country).
+  * so the SearchService and other consumers can apply region
+@@ -155,23 +96,8 @@ class RegionDetector {
+     if (this._initPromise) {
+       return this._initPromise;
+     }
+-    if (cacheBustEnabled && !inChildProcess) {
+-      Services.tm.idleDispatchToMainThread(() => {
+-        timerManager.registerTimer(
+-          UPDATE_CHECK_NAME,
+-          () => this._updateTimer(),
+-          UPDATE_CHECK_INTERVAL
+-        );
+-      });
+-    }
+     let promises = [];
+     this._home = Services.prefs.getCharPref(REGION_PREF, null);
+-    if (!this._home && !inChildProcess) {
+-      promises.push(this._idleDispatch(() => this._fetchRegion()));
+-    }
+-    if (localGeocodingEnabled && !inChildProcess) {
+-      promises.push(this._idleDispatch(() => this._setupRemoteSettings()));
+-    }
+     return (this._initPromise = Promise.all(promises));
+   }
+ 
+@@ -196,116 +122,6 @@ class RegionDetector {
+   }
+ 
+   /**
+-   * Fetch the users current region.
+-   *
+-   * @returns {string}
+-   *   The country_code defining users current region.
+-   */
+-  async _fetchRegion() {
+-    if (this._retryCount >= MAX_RETRIES) {
+-      return null;
+-    }
+-    let startTime = Date.now();
+-    let telemetryResult = this.TELEMETRY.SUCCESS;
+-    let result = null;
+-
+-    try {
+-      result = await this._getRegion();
+-    } catch (err) {
+-      telemetryResult = this.TELEMETRY[err.message] || this.TELEMETRY.ERROR;
+-      log.error("Failed to fetch region", err);
+-      if (retryTimeout) {
+-        this._retryCount++;
+-        setTimeout(() => {
+-          Services.tm.idleDispatchToMainThread(this._fetchRegion.bind(this));
+-        }, retryTimeout);
+-      }
+-    }
+-
+-    let took = Date.now() - startTime;
+-    if (result) {
+-      await this._storeRegion(result);
+-    }
+-    Services.telemetry
+-      .getHistogramById("SEARCH_SERVICE_COUNTRY_FETCH_TIME_MS")
+-      .add(took);
+-
+-    Services.telemetry
+-      .getHistogramById("SEARCH_SERVICE_COUNTRY_FETCH_RESULT")
+-      .add(telemetryResult);
+-
+-    return result;
+-  }
+-
+-  /**
+-   * Validate then store the region and report telemetry.
+-   *
+-   * @param region
+-   *   The region to store.
+-   */
+-  async _storeRegion(region) {
+-    let prefix = "SEARCH_SERVICE";
+-    let isTimezoneUS = isUSTimezone();
+-    // If it's a US region, but not a US timezone, we don't store
+-    // the value. This works because no region defaults to
+-    // ZZ (unknown) in nsURLFormatter
+-    if (region != "US" || isTimezoneUS) {
+-      this._setCurrentRegion(region, true);
+-    }
+-
+-    // and telemetry...
+-    if (region == "US" && !isTimezoneUS) {
+-      log.info("storeRegion mismatch - US Region, non-US timezone");
+-      Services.telemetry
+-        .getHistogramById(`${prefix}_US_COUNTRY_MISMATCHED_TIMEZONE`)
+-        .add(1);
+-    }
+-    if (region != "US" && isTimezoneUS) {
+-      log.info("storeRegion mismatch - non-US Region, US timezone");
+-      Services.telemetry
+-        .getHistogramById(`${prefix}_US_TIMEZONE_MISMATCHED_COUNTRY`)
+-        .add(1);
+-    }
+-    // telemetry to compare our geoip response with
+-    // platform-specific country data.
+-    // On Mac and Windows, we can get a country code via sysinfo
+-    let platformCC = await Services.sysinfo.countryCode;
+-    if (platformCC) {
+-      let probeUSMismatched, probeNonUSMismatched;
+-      switch (AppConstants.platform) {
+-        case "macosx":
+-          probeUSMismatched = `${prefix}_US_COUNTRY_MISMATCHED_PLATFORM_OSX`;
+-          probeNonUSMismatched = `${prefix}_NONUS_COUNTRY_MISMATCHED_PLATFORM_OSX`;
+-          break;
+-        case "win":
+-          probeUSMismatched = `${prefix}_US_COUNTRY_MISMATCHED_PLATFORM_WIN`;
+-          probeNonUSMismatched = `${prefix}_NONUS_COUNTRY_MISMATCHED_PLATFORM_WIN`;
+-          break;
+-        default:
+-          log.error(
+-            "Platform " +
+-              Services.appinfo.OS +
+-              " has system country code but no search service telemetry probes"
+-          );
+-          break;
+-      }
+-      if (probeUSMismatched && probeNonUSMismatched) {
+-        if (region == "US" || platformCC == "US") {
+-          // one of the 2 said US, so record if they are the same.
+-          Services.telemetry
+-            .getHistogramById(probeUSMismatched)
+-            .add(region != platformCC);
+-        } else {
+-          // non-US - record if they are the same
+-          Services.telemetry
+-            .getHistogramById(probeNonUSMismatched)
+-            .add(region != platformCC);
+-        }
+-      }
+-    }
+-  }
+-
+-  /**
+    * Save the update current region and check if the home region
+    * also needs an update.
+    *
+@@ -384,43 +200,6 @@ class RegionDetector {
+   }
+ 
+   /**
+-   * Make the request to fetch the region from the configured service.
+-   */
+-  async _getRegion() {
+-    log.info("_getRegion called");
+-    let fetchOpts = {
+-      headers: { "Content-Type": "application/json" },
+-      credentials: "omit",
+-    };
+-    if (wifiScanningEnabled) {
+-      let wifiData = await this._fetchWifiData();
+-      if (wifiData) {
+-        let postData = JSON.stringify({ wifiAccessPoints: wifiData });
+-        log.info("Sending wifi details: ", wifiData);
+-        fetchOpts.method = "POST";
+-        fetchOpts.body = postData;
+-      }
+-    }
+-    let url = Services.urlFormatter.formatURLPref("browser.region.network.url");
+-    log.info("_getRegion url is: ", url);
+-
+-    if (!url) {
+-      return null;
+-    }
+-
+-    try {
+-      let req = await this._fetchTimeout(url, fetchOpts, networkTimeout);
+-      let res = await req.json();
+-      log.info("_getRegion returning ", res.country_code);
+-      return res.country_code;
+-    } catch (err) {
+-      log.error("Error fetching region", err);
+-      let errCode = err.message in this.TELEMETRY ? err.message : "NO_RESULT";
+-      throw new Error(errCode);
+-    }
+-  }
+-
+-  /**
+    * Setup the RemoteSetting client + sync listener and ensure
+    * the map files are downloaded.
+    */
+@@ -498,36 +277,6 @@ class RegionDetector {
+   }
+ 
+   /**
+-   * Gets the users current location using the same reverse IP
+-   * request that is used for GeoLocation requests.
+-   *
+-   * @returns {Object} location
+-   *   Object representing the user location, with a location key
+-   *   that contains the lat / lng coordinates.
+-   */
+-  async _getLocation() {
+-    log.info("_getLocation called");
+-    let fetchOpts = { headers: { "Content-Type": "application/json" } };
+-    let url = Services.urlFormatter.formatURLPref("geo.provider.network.url");
+-    let req = await this._fetchTimeout(url, fetchOpts, networkTimeout);
+-    let result = await req.json();
+-    log.info("_getLocation returning", result);
+-    return result;
+-  }
+-
+-  /**
+-   * Return the users current region using
+-   * request that is used for GeoLocation requests.
+-   *
+-   * @returns {String}
+-   *   A 2 character string representing a region.
+-   */
+-  async _getRegionLocally() {
+-    let { location } = await this._getLocation();
+-    return this._geoCode(location);
+-  }
+-
+-  /**
+    * Take a location and return the region code for that location
+    * by looking up the coordinates in geojson map files.
+    * Inspired by https://github.com/mozilla/ichnaea/blob/874e8284f0dfa1868e79aae64e14707eed660efe/ichnaea/geocode.py#L114
+@@ -730,56 +479,6 @@ class RegionDetector {
+   }
+ 
+   /**
+-   * A wrapper around fetch that implements a timeout, will throw
+-   * a TIMEOUT error if the request is not completed in time.
+-   *
+-   * @param {String} url
+-   *   The time url to fetch.
+-   * @param {Object} opts
+-   *   The options object passed to the call to fetch.
+-   * @param {int} timeout
+-   *   The time in ms to wait for the request to complete.
+-   */
+-  async _fetchTimeout(url, opts, timeout) {
+-    let controller = new AbortController();
+-    opts.signal = controller.signal;
+-    return Promise.race([fetch(url, opts), this._timeout(timeout, controller)]);
+-  }
+-
+-  /**
+-   * Implement the timeout for network requests. This will be run for
+-   * all network requests, but the error will only be returned if it
+-   * completes first.
+-   *
+-   * @param {int} timeout
+-   *   The time in ms to wait for the request to complete.
+-   * @param {Object} controller
+-   *   The AbortController passed to the fetch request that
+-   *   allows us to abort the request.
+-   */
+-  async _timeout(timeout, controller) {
+-    await new Promise(resolve => setTimeout(resolve, timeout));
+-    if (controller) {
+-      // Yield so it is the TIMEOUT that is returned and not
+-      // the result of the abort().
+-      setTimeout(() => controller.abort(), 0);
+-    }
+-    throw new Error("TIMEOUT");
+-  }
+-
+-  async _fetchWifiData() {
+-    log.info("fetchWifiData called");
+-    this.wifiService = Cc["@mozilla.org/wifi/monitor;1"].getService(
+-      Ci.nsIWifiMonitor
+-    );
+-    this.wifiService.startWatching(this);
+-
+-    return new Promise(resolve => {
+-      this._wifiDataPromise = resolve;
+-    });
+-  }
+-
+-  /**
+    * If the user is using geolocation then we will see frequent updates
+    * debounce those so we aren't processing them constantly.
+    *
+@@ -796,26 +495,6 @@ class RegionDetector {
+   }
+ 
+   /**
+-   * Dispatch a promise returning function to the main thread and
+-   * resolve when it is completed.
+-   */
+-  _idleDispatch(fun) {
+-    return new Promise(resolve => {
+-      Services.tm.idleDispatchToMainThread(fun().then(resolve));
+-    });
+-  }
+-
+-  /**
+-   * timerManager will call this periodically to update the region
+-   * in case the user never users geolocation.
+-   */
+-  async _updateTimer() {
+-    if (this._needsUpdateCheck()) {
+-      await this._fetchRegion();
+-    }
+-  }
+-
+-  /**
+    * Called when we see geolocation updates.
+    * in case the user never users geolocation.
+    *

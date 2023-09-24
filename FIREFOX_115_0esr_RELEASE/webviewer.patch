@@ -11,6 +11,38 @@ diff --git a/browser/actors/ContextMenuParent.sys.mjs b/browser/actors/ContextMe
      }
  
      message.data.context.showRelay &&= lazy.FirefoxRelay.isEnabled;
+diff --git a/browser/actors/FormValidationParent.sys.mjs b/browser/actors/FormValidationParent.sys.mjs
+--- a/browser/actors/FormValidationParent.sys.mjs
++++ b/browser/actors/FormValidationParent.sys.mjs
+@@ -84,11 +84,11 @@ export class FormValidationParent extend
+         let browser = this.browsingContext.top.embedderElement;
+         let window = browser.ownerGlobal;
+         let data = aMessage.data;
+-        let tabBrowser = window.gBrowser;
++        let selectedBrowser = window.getSelectedBrowser();
+ 
+         // target is the <browser>, make sure we're receiving a message
+         // from the foreground tab.
+-        if (tabBrowser && browser != tabBrowser.selectedBrowser) {
++        if (browser != selectedBrowser) {
+           return;
+         }
+ 
+@@ -124,10 +124,10 @@ export class FormValidationParent extend
+   _onPopupHidden(aEvent) {
+     aEvent.originalTarget.removeEventListener("popuphidden", this, true);
+     Services.obs.removeObserver(this._obs, "popup-shown");
+-    let tabBrowser = aEvent.originalTarget.ownerGlobal.gBrowser;
+-    tabBrowser.selectedBrowser.removeEventListener("scroll", this, true);
+-    tabBrowser.selectedBrowser.removeEventListener("FullZoomChange", this);
+-    tabBrowser.selectedBrowser.removeEventListener("TextZoomChange", this);
++    let selectedBrowser = aEvent.originalTarget.ownerGlobal.getSelectedBrowser();
++    selectedBrowser.removeEventListener("scroll", this, true);
++    selectedBrowser.removeEventListener("FullZoomChange", this);
++    selectedBrowser.removeEventListener("TextZoomChange", this);
+ 
+     this._obs = null;
+     this._panel = null;
 diff --git a/browser/amethyst/content/browser.css b/browser/amethyst/content/browser.css
 new file mode 100644
 --- /dev/null
